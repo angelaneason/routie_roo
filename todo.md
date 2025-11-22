@@ -73,3 +73,15 @@
 - [x] Display phone numbers with labels in contact list
 - [ ] Show contact photos on map markers
 - [ ] Include phone numbers in route waypoint details
+
+## Click-to-Call Features
+
+- [x] Create dropdown menu for calling service selection
+- [x] Add Google Voice calling option
+- [x] Add regular phone dialer (tel:) option
+- [x] Add WhatsApp calling option
+- [x] Add Skype calling option
+- [x] Store user's preferred calling service in database
+- [ ] Add settings UI for default calling service preference (future enhancement)
+- [x] Make phone numbers clickable in contact list
+- [ ] Make phone numbers clickable in route waypoint details (future enhancement)

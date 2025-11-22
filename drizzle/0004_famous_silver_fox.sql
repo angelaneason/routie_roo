@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `preferredCallingService` enum('phone','google-voice','whatsapp','skype','facetime') DEFAULT 'phone';

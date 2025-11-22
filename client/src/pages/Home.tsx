@@ -19,6 +19,7 @@ import {
 import { APP_TITLE, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus } from "lucide-react";
+import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Link, useLocation } from "wouter";
@@ -340,9 +341,16 @@ export default function Home() {
                               const phones = JSON.parse(contact.phoneNumbers);
                               if (phones.length > 0) {
                                 return (
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    📞 {phones[0].value} {phones[0].label && `(${phones[0].label})`}
-                                  </p>
+                                  <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                                    <PhoneCallMenu 
+                                      phoneNumber={phones[0].value}
+                                      label={`${phones[0].value} ${phones[0].label ? `(${phones[0].label})` : ''}`}
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-auto p-1 text-sm text-muted-foreground hover:text-foreground"
+                                      preferredService={user?.preferredCallingService || "phone"}
+                                    />
+                                  </div>
                                 );
                               }
                             } catch (e) {

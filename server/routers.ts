@@ -13,6 +13,7 @@ import {
   upsertCachedContacts,
   getUserCachedContacts,
   clearUserCachedContacts,
+  getDb,
   deleteRoute,
   updateRoute,
   createFolder,
@@ -27,6 +28,8 @@ import {
   parseGoogleContacts 
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
+import { users } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 // Helper to calculate route using Google Maps Routes API
@@ -457,6 +460,23 @@ export const appRouter = router({
         }
 
         await updateRoute(input.routeId, { folderId: input.folderId });
+        return { success: true };
+      }),
+  }),
+
+  settings: router({
+    updatePreferredCallingService: protectedProcedure
+      .input(z.object({
+        service: z.enum(["phone", "google-voice", "whatsapp", "skype", "facetime"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        await db.update(users)
+          .set({ preferredCallingService: input.service })
+          .where(eq(users.id, ctx.user.id));
+
         return { success: true };
       }),
   }),
