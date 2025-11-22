@@ -811,6 +811,56 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Reschedule waypoint via share token (public access)
+    rescheduleWaypointPublic: publicProcedure
+      .input(z.object({
+        shareToken: z.string(),
+        waypointId: z.number(),
+        rescheduledDate: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify share token and route access
+        const result = await db.select()
+          .from(routes)
+          .where(eq(routes.shareToken, input.shareToken))
+          .limit(1);
+
+        if (result.length === 0 || !result[0].isPubliclyAccessible) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Invalid or expired share link",
+          });
+        }
+
+        const route = result[0];
+
+        // Verify waypoint belongs to this route
+        const waypoint = await db.select()
+          .from(routeWaypoints)
+          .where(eq(routeWaypoints.id, input.waypointId))
+          .limit(1);
+
+        if (waypoint.length === 0 || waypoint[0].routeId !== route.id) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Waypoint not found",
+          });
+        }
+
+        // Update waypoint with reschedule date
+        await db.update(routeWaypoints)
+          .set({
+            rescheduledDate: new Date(input.rescheduledDate),
+            needsReschedule: 0,
+          })
+          .where(eq(routeWaypoints.id, input.waypointId));
+
+        return { success: true };
+      }),
+
     // Get all missed waypoints that need rescheduling (for manager dashboard)
     getMissedWaypoints: protectedProcedure
       .query(async ({ ctx }) => {

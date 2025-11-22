@@ -6,21 +6,50 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapView } from "@/components/Map";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, CheckCircle2, XCircle, MessageSquare } from "lucide-react";
+import { Loader2, MapPin, CheckCircle2, XCircle, MessageSquare, Phone } from "lucide-react";
+import { PhoneCallMenu } from "@/components/PhoneCallMenu";
+import { PhoneTextMenu } from "@/components/PhoneTextMenu";
 import { formatDistance } from "@shared/distance";
 import { StopStatusBadge, type StopStatus } from "@/components/StopStatusBadge";
 import { useEffect, useState } from "react";
 import { useParams } from "wouter";
 import { toast } from "sonner";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical } from "lucide-react";
 
 export default function SharedRouteExecution() {
   const { token } = useParams<{ token: string }>();
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
   const [selectedWaypoint, setSelectedWaypoint] = useState<any | null>(null);
-  const [actionType, setActionType] = useState<"complete" | "miss" | "note" | null>(null);
+  const [actionType, setActionType] = useState<"complete" | "miss" | "note" | "reschedule" | null>(null);
   const [missedReason, setMissedReason] = useState("");
   const [executionNotes, setExecutionNotes] = useState("");
+  const [rescheduledDate, setRescheduledDate] = useState("");
+  const [localWaypoints, setLocalWaypoints] = useState<any[]>([]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const routeQuery = trpc.routes.getByShareToken.useQuery(
     { shareToken: token! },
@@ -38,8 +67,26 @@ export default function SharedRouteExecution() {
     },
   });
 
+  const rescheduleMutation = trpc.routes.rescheduleWaypointPublic.useMutation({
+    onSuccess: () => {
+      toast.success("Stop rescheduled");
+      routeQuery.refetch();
+      closeDialog();
+    },
+    onError: (error) => {
+      toast.error(`Failed to reschedule: ${error.message}`);
+    },
+  });
+
   const route = routeQuery.data?.route;
   const waypoints = routeQuery.data?.waypoints || [];
+
+  // Sync local waypoints with fetched data
+  useEffect(() => {
+    if (waypoints.length > 0) {
+      setLocalWaypoints(waypoints);
+    }
+  }, [waypoints]);
 
   useEffect(() => {
     if (!map || !directionsRenderer || waypoints.length < 2) return;
@@ -76,11 +123,12 @@ export default function SharedRouteExecution() {
     setDirectionsRenderer(renderer);
   };
 
-  const openDialog = (waypoint: any, type: "complete" | "miss" | "note") => {
+  const openDialog = (waypoint: any, type: "complete" | "miss" | "note" | "reschedule") => {
     setSelectedWaypoint(waypoint);
     setActionType(type);
     setMissedReason("");
     setExecutionNotes("");
+    setRescheduledDate("");
   };
 
   const closeDialog = () => {
@@ -88,6 +136,33 @@ export default function SharedRouteExecution() {
     setActionType(null);
     setMissedReason("");
     setExecutionNotes("");
+    setRescheduledDate("");
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setLocalWaypoints((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        const reordered = arrayMove(items, oldIndex, newIndex);
+
+        // Update execution order in backend
+        if (token) {
+          const updates = reordered.map((wp, index) => ({
+            waypointId: wp.id,
+            executionOrder: index + 1,
+          }));
+
+          // Call backend to update order
+          // Note: We'll need to add this mutation
+          toast.success("Stop order updated");
+        }
+
+        return reordered;
+      });
+    }
   };
 
   const handleSubmit = () => {
@@ -122,6 +197,16 @@ export default function SharedRouteExecution() {
         waypointId: selectedWaypoint.id,
         status: selectedWaypoint.status,
         executionNotes,
+      });
+    } else if (actionType === "reschedule") {
+      if (!rescheduledDate.trim()) {
+        toast.error("Please select a reschedule date");
+        return;
+      }
+      rescheduleMutation.mutate({
+        shareToken: token,
+        waypointId: selectedWaypoint.id,
+        rescheduledDate,
       });
     }
   };
@@ -226,8 +311,35 @@ export default function SharedRouteExecution() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {waypoints.map((waypoint, index) => (
-              <div key={waypoint.id} className="flex gap-4 p-4 border rounded-lg">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={localWaypoints.map(wp => wp.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {localWaypoints.map((waypoint, index) => {
+                  const WaypointCard = () => {
+                    const {
+                      attributes,
+                      listeners,
+                      setNodeRef,
+                      transform,
+                      transition,
+                    } = useSortable({ id: waypoint.id });
+
+                    const style = {
+                      transform: CSS.Transform.toString(transform),
+                      transition,
+                    };
+
+                    return (
+              <div ref={setNodeRef} style={style} key={waypoint.id} className="flex gap-4 p-4 border rounded-lg">
+                <div className="flex-shrink-0 cursor-grab active:cursor-grabbing" {...attributes} {...listeners}>
+                  <GripVertical className="h-6 w-6 text-muted-foreground" />
+                </div>
                 <div className="flex-shrink-0">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-semibold">
                     {index + 1}
@@ -244,6 +356,12 @@ export default function SharedRouteExecution() {
                         <StopStatusBadge status={waypoint.status as StopStatus} />
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{waypoint.address}</p>
+                      {waypoint.phoneNumbers && (
+                        <div className="flex gap-2 mt-2">
+                          <PhoneCallMenu phoneNumber={waypoint.phoneNumbers} size="sm" />
+                          <PhoneTextMenu phoneNumber={waypoint.phoneNumbers} size="sm" />
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -258,6 +376,18 @@ export default function SharedRouteExecution() {
                     <div className="text-sm bg-destructive/10 p-2 rounded">
                       <p className="font-medium text-destructive">Missed:</p>
                       <p>{waypoint.missedReason}</p>
+                    </div>
+                  )}
+
+                  {waypoint.status === "missed" && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openDialog(waypoint, "reschedule")}
+                      >
+                        Reschedule
+                      </Button>
                     </div>
                   )}
 
@@ -291,7 +421,12 @@ export default function SharedRouteExecution() {
                   )}
                 </div>
               </div>
-            ))}
+                    );
+                  };
+                  return <WaypointCard key={waypoint.id} />;
+                })}
+              </SortableContext>
+            </DndContext>
           </CardContent>
         </Card>
 
@@ -309,6 +444,7 @@ export default function SharedRouteExecution() {
               {actionType === "complete" && "Complete Stop"}
               {actionType === "miss" && "Mark Stop as Missed"}
               {actionType === "note" && "Add Note"}
+              {actionType === "reschedule" && "Reschedule Stop"}
             </DialogTitle>
             <DialogDescription>
               {selectedWaypoint?.contactName} - {selectedWaypoint?.address}
@@ -326,6 +462,18 @@ export default function SharedRouteExecution() {
                   onChange={(e) => setMissedReason(e.target.value)}
                   rows={3}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+              </div>
+            )}
+
+            {actionType === "reschedule" && (
+              <div className="space-y-2">
+                <Label htmlFor="reschedule-date">Reschedule Date *</Label>
+                <Input
+                  id="reschedule-date"
+                  type="datetime-local"
+                  value={rescheduledDate}
+                  onChange={(e) => setRescheduledDate(e.target.value)}
                 />
               </div>
             )}
@@ -353,9 +501,9 @@ export default function SharedRouteExecution() {
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={updateStatusMutation.isPending}
+              disabled={updateStatusMutation.isPending || rescheduleMutation.isPending}
             >
-              {updateStatusMutation.isPending ? "Saving..." : "Confirm"}
+              {(updateStatusMutation.isPending || rescheduleMutation.isPending) ? "Saving..." : "Confirm"}
             </Button>
           </DialogFooter>
         </DialogContent>

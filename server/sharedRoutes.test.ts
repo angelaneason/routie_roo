@@ -89,4 +89,12 @@ describe("Shared Route Execution", () => {
     // Verify revoke procedure exists
     expect(caller.routes.revokeShareToken).toBeDefined();
   });
+
+  it("allows public reschedule via share token", async () => {
+    const { ctx } = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    // Verify reschedule procedure exists
+    expect(caller.routes.rescheduleWaypointPublic).toBeDefined();
+  });
 });

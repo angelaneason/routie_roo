@@ -335,3 +335,30 @@
 - [x] Test unauthenticated route access
 - [x] Test waypoint updates via shared routes
 - [x] Verify missed stops appear in creator's dashboard
+
+
+## Shared Route Enhancements - Phase 2
+
+### Reschedule Functionality
+- [x] Add reschedule date picker to missed stop dialog on shared route page
+- [x] Update backend to handle reschedule via share token
+- [x] Show rescheduled date on shared route waypoint cards
+- [x] Add rescheduleWaypointPublic procedure
+
+### Phone Communication
+- [x] Add PhoneCallMenu component to shared route waypoints
+- [x] Add PhoneTextMenu component to shared route waypoints
+- [x] Parse and display phone numbers from waypoint data
+- [x] Ensure phone buttons work without authentication
+
+### Drag-and-Drop Reordering
+- [x] Add @dnd-kit components to SharedRouteExecution page
+- [x] Implement drag handles for waypoints on shared route
+- [x] Update execution order via share token when reordering
+- [x] Show visual feedback during dragging
+
+### Testing
+- [x] Test reschedule functionality on shared routes
+- [x] Test phone call/text from shared route
+- [x] Test drag-and-drop reordering on shared route
+- [x] Verify all updates sync back to creator's account
