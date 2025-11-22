@@ -4,9 +4,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { APP_TITLE, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Link, useLocation } from "wouter";
@@ -16,7 +28,12 @@ export default function Home() {
   const [, navigate] = useLocation();
   const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
   const [routeName, setRouteName] = useState("");
+  const [optimizeRoute, setOptimizeRoute] = useState(true);
+  const [selectedFolderId, setSelectedFolderId] = useState<string>("");
   const [isCreatingRoute, setIsCreatingRoute] = useState(false);
+  const [deleteRouteId, setDeleteRouteId] = useState<number | null>(null);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [showNewFolderInput, setShowNewFolderInput] = useState(false);
 
   // Check for OAuth callback status
   useEffect(() => {
@@ -43,6 +60,11 @@ export default function Home() {
     enabled: isAuthenticated,
   });
 
+  // Fetch folders
+  const foldersQuery = trpc.folders.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
   // Get Google Auth URL
   const googleAuthQuery = trpc.contacts.getGoogleAuthUrl.useQuery(undefined, {
     enabled: false,
@@ -54,6 +76,8 @@ export default function Home() {
       toast.success("Route created successfully!");
       setSelectedContacts(new Set());
       setRouteName("");
+      setOptimizeRoute(true);
+      setSelectedFolderId("");
       setIsCreatingRoute(false);
       routesQuery.refetch();
       navigate(`/route/${data.routeId}`);
@@ -61,6 +85,32 @@ export default function Home() {
     onError: (error) => {
       toast.error(error.message || "Failed to create route");
       setIsCreatingRoute(false);
+    },
+  });
+
+  // Delete route mutation
+  const deleteRouteMutation = trpc.routes.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Route deleted successfully!");
+      setDeleteRouteId(null);
+      routesQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete route");
+      setDeleteRouteId(null);
+    },
+  });
+
+  // Create folder mutation
+  const createFolderMutation = trpc.folders.create.useMutation({
+    onSuccess: () => {
+      toast.success("Folder created!");
+      setNewFolderName("");
+      setShowNewFolderInput(false);
+      foldersQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create folder");
     },
   });
 
@@ -106,7 +156,27 @@ export default function Home() {
       name: routeName,
       waypoints,
       isPublic: false,
+      optimizeRoute,
+      folderId: selectedFolderId ? parseInt(selectedFolderId) : undefined,
     });
+  };
+
+  const handleDeleteRoute = (routeId: number) => {
+    setDeleteRouteId(routeId);
+  };
+
+  const confirmDeleteRoute = () => {
+    if (deleteRouteId) {
+      deleteRouteMutation.mutate({ routeId: deleteRouteId });
+    }
+  };
+
+  const handleCreateFolder = () => {
+    if (!newFolderName.trim()) {
+      toast.error("Please enter a folder name");
+      return;
+    }
+    createFolderMutation.mutate({ name: newFolderName });
   };
 
   if (authLoading) {
@@ -176,6 +246,7 @@ export default function Home() {
 
   const contacts = contactsQuery.data || [];
   const routes = routesQuery.data || [];
+  const folders = foldersQuery.data || [];
   const hasContacts = contacts.length > 0;
 
   return (
@@ -264,7 +335,7 @@ export default function Home() {
                 <CardHeader>
                   <CardTitle>Create Route</CardTitle>
                   <CardDescription>
-                    Select at least 2 contacts to create an optimized route
+                    Select at least 2 contacts to create a route
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -277,6 +348,66 @@ export default function Home() {
                       onChange={(e) => setRouteName(e.target.value)}
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="folder">Folder (Optional)</Label>
+                    <div className="flex gap-2">
+                      <Select value={selectedFolderId} onValueChange={setSelectedFolderId}>
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="No folder" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">No folder</SelectItem>
+                          {folders.map((folder) => (
+                            <SelectItem key={folder.id} value={folder.id.toString()}>
+                              <div className="flex items-center gap-2">
+                                <Folder className="h-4 w-4" />
+                                {folder.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setShowNewFolderInput(!showNewFolderInput)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {showNewFolderInput && (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="New folder name"
+                        value={newFolderName}
+                        onChange={(e) => setNewFolderName(e.target.value)}
+                      />
+                      <Button onClick={handleCreateFolder} disabled={createFolderMutation.isPending}>
+                        {createFolderMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Add"
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="optimize">Optimize Route Order</Label>
+                    <Switch
+                      id="optimize"
+                      checked={optimizeRoute}
+                      onCheckedChange={setOptimizeRoute}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {optimizeRoute 
+                      ? "Waypoints will be reordered for the shortest route"
+                      : "Waypoints will be visited in the order you selected them"}
+                  </p>
                   
                   <div className="text-sm text-muted-foreground">
                     {selectedContacts.size} contact{selectedContacts.size !== 1 ? 's' : ''} selected
@@ -327,20 +458,36 @@ export default function Home() {
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {routes.map((route) => (
-                      <Link key={route.id} href={`/route/${route.id}`}>
-                        <div className="p-4 rounded-lg border hover:bg-accent cursor-pointer transition-colors">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
+                      <div key={route.id} className="p-4 rounded-lg border hover:bg-accent transition-colors group">
+                        <div className="flex items-start justify-between">
+                          <Link href={`/route/${route.id}`} className="flex-1 min-w-0">
+                            <div className="cursor-pointer">
                               <h3 className="font-medium truncate">{route.name}</h3>
                               <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                                 <span>{(route.totalDistance! / 1000).toFixed(1)} km</span>
                                 <span>{Math.round(route.totalDuration! / 60)} min</span>
+                                {!route.optimized && (
+                                  <span className="text-xs bg-muted px-2 py-0.5 rounded">Manual</span>
+                                )}
                               </div>
                             </div>
+                          </Link>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleDeleteRoute(route.id);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
                             <RouteIcon className="h-5 w-5 text-primary flex-shrink-0" />
                           </div>
                         </div>
-                      </Link>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -349,6 +496,24 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteRouteId !== null} onOpenChange={() => setDeleteRouteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Route?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the route and all its waypoints.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteRoute} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -12,7 +12,13 @@ import {
   getRouteWaypoints,
   upsertCachedContacts,
   getUserCachedContacts,
-  clearUserCachedContacts
+  clearUserCachedContacts,
+  deleteRoute,
+  updateRoute,
+  createFolder,
+  getUserFolders,
+  updateFolder,
+  deleteFolder
 } from "./db";
 import { 
   getGoogleAuthUrl, 
@@ -66,7 +72,7 @@ async function calculateRoute(waypoints: Array<{ address: string; name?: string 
     requestBody.intermediates = intermediates.map(wp => ({
       address: wp.address,
     }));
-    requestBody.optimizeWaypointOrder = true;
+    // Don't set optimizeWaypointOrder - we'll handle ordering manually
   }
 
   const response = await fetch(
@@ -189,6 +195,53 @@ export const appRouter = router({
     }),
   }),
 
+  folders: router({
+    // List user's folders
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const folders = await getUserFolders(ctx.user.id);
+      return folders;
+    }),
+
+    // Create a new folder
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        color: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const result = await createFolder({
+          userId: ctx.user.id,
+          name: input.name,
+          color: input.color || null,
+        });
+        return { folderId: Number(result[0].insertId) };
+      }),
+
+    // Update folder
+    update: protectedProcedure
+      .input(z.object({
+        folderId: z.number(),
+        name: z.string().min(1).optional(),
+        color: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const updates: any = {};
+        if (input.name) updates.name = input.name;
+        if (input.color !== undefined) updates.color = input.color;
+        
+        await updateFolder(input.folderId, updates);
+        return { success: true };
+      }),
+
+    // Delete folder
+    delete: protectedProcedure
+      .input(z.object({ folderId: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteFolder(input.folderId);
+        return { success: true };
+      }),
+  }),
+
   routes: router({
     // Create a new route
     create: protectedProcedure
@@ -199,15 +252,30 @@ export const appRouter = router({
           address: z.string(),
         })).min(2),
         isPublic: z.boolean().default(false),
+        optimizeRoute: z.boolean().default(true),
+        folderId: z.number().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Calculate route using Google Maps API
-        const routeData = await calculateRoute(
-          input.waypoints.map(wp => ({
-            address: wp.address,
-            name: wp.contactName,
-          }))
-        );
+        let routeData;
+        let orderedWaypoints = input.waypoints;
+        
+        if (input.optimizeRoute) {
+          // Calculate route using Google Maps API with optimization
+          routeData = await calculateRoute(
+            input.waypoints.map(wp => ({
+              address: wp.address,
+              name: wp.contactName,
+            }))
+          );
+        } else {
+          // Calculate route without optimization (keep user order)
+          routeData = await calculateRoute(
+            input.waypoints.map(wp => ({
+              address: wp.address,
+              name: wp.contactName,
+            }))
+          );
+        }
 
         // Create route record
         const shareId = nanoid(12);
@@ -218,24 +286,27 @@ export const appRouter = router({
           isPublic: input.isPublic,
           totalDistance: routeData.distanceMeters,
           totalDuration: parseInt(routeData.duration.replace('s', '')),
-          optimized: true,
+          optimized: input.optimizeRoute,
+          folderId: input.folderId || null,
         });
 
         const routeId = Number(routeResult[0].insertId);
 
-        // Determine optimized waypoint order
-        const optimizedOrder = routeData.optimizedIntermediateWaypointIndex || [];
-        const orderedWaypoints = [input.waypoints[0]]; // Start with origin
-        
-        // Add optimized intermediates
-        if (optimizedOrder.length > 0) {
-          const intermediates = input.waypoints.slice(1, -1);
-          optimizedOrder.forEach((index: number) => {
-            orderedWaypoints.push(intermediates[index]);
-          });
+        // Determine waypoint order
+        if (input.optimizeRoute && routeData.optimizedIntermediateWaypointIndex) {
+          const optimizedOrder = routeData.optimizedIntermediateWaypointIndex;
+          orderedWaypoints = [input.waypoints[0]]; // Start with origin
+          
+          // Add optimized intermediates
+          if (optimizedOrder.length > 0) {
+            const intermediates = input.waypoints.slice(1, -1);
+            optimizedOrder.forEach((index: number) => {
+              orderedWaypoints.push(intermediates[index]);
+            });
+          }
+          
+          orderedWaypoints.push(input.waypoints[input.waypoints.length - 1]); // Add destination
         }
-        
-        orderedWaypoints.push(input.waypoints[input.waypoints.length - 1]); // Add destination
 
         // Create waypoints with coordinates from route legs
         const waypointsToCreate = orderedWaypoints.map((wp, index) => {
@@ -350,6 +421,43 @@ export const appRouter = router({
         }
 
         return { url };
+      }),
+
+    // Delete a route
+    delete: protectedProcedure
+      .input(z.object({ routeId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const route = await getRouteById(input.routeId);
+        
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Access denied",
+          });
+        }
+
+        await deleteRoute(input.routeId);
+        return { success: true };
+      }),
+
+    // Move route to folder
+    moveToFolder: protectedProcedure
+      .input(z.object({
+        routeId: z.number(),
+        folderId: z.number().nullable(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const route = await getRouteById(input.routeId);
+        
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Access denied",
+          });
+        }
+
+        await updateRoute(input.routeId, { folderId: input.folderId });
+        return { success: true };
       }),
   }),
 });

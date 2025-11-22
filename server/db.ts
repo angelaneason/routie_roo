@@ -1,6 +1,6 @@
 import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, routes, routeWaypoints, cachedContacts, InsertRoute, InsertRouteWaypoint, InsertCachedContact } from "../drizzle/schema";
+import { InsertUser, users, routes, routeWaypoints, cachedContacts, folders, InsertRoute, InsertRouteWaypoint, InsertCachedContact, InsertFolder } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -174,4 +174,57 @@ export async function clearUserCachedContacts(userId: number) {
   if (!db) return;
   
   await db.delete(cachedContacts).where(eq(cachedContacts.userId, userId));
+}
+
+// Folder management functions
+export async function createFolder(folder: InsertFolder) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(folders).values(folder);
+  return result;
+}
+
+export async function getUserFolders(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(folders).where(eq(folders.userId, userId)).orderBy(folders.name);
+}
+
+export async function updateFolder(folderId: number, updates: Partial<InsertFolder>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(folders).set(updates).where(eq(folders.id, folderId));
+}
+
+export async function deleteFolder(folderId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Remove folder reference from routes
+  await db.update(routes).set({ folderId: null }).where(eq(routes.folderId, folderId));
+  
+  // Delete the folder
+  await db.delete(folders).where(eq(folders.id, folderId));
+}
+
+// Route deletion and updates
+export async function deleteRoute(routeId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Delete waypoints first
+  await db.delete(routeWaypoints).where(eq(routeWaypoints.routeId, routeId));
+  
+  // Delete the route
+  await db.delete(routes).where(eq(routes.id, routeId));
+}
+
+export async function updateRoute(routeId: number, updates: Partial<InsertRoute>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(routes).set(updates).where(eq(routes.id, routeId));
 }

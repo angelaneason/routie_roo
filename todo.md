@@ -47,3 +47,18 @@
 - [ ] Save project checkpoint
 - [ ] Create deployment documentation
 - [ ] Provide user guide for team testing
+
+## New Features - User Requested
+
+### Route Management
+- [x] Add option to disable route optimization (manual waypoint order)
+- [x] Implement route deletion functionality
+- [ ] Add drag-and-drop waypoint reordering (future enhancement)
+- [x] Add confirmation dialog before deleting routes
+
+### Folder Organization
+- [x] Create folders/categories table in database
+- [x] Add folder selection when creating routes
+- [x] Display routes grouped by folder
+- [x] Allow moving routes between folders
+- [x] Add folder management UI (create, rename, delete)

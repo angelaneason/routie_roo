@@ -30,6 +30,7 @@ export const routes = mysqlTable("routes", {
   totalDistance: int("totalDistance"), // Total distance in meters
   totalDuration: int("totalDuration"), // Total duration in seconds
   optimized: boolean("optimized").default(true).notNull(), // Whether waypoints were optimized
+  folderId: int("folderId"), // Optional folder/category ID
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -71,3 +72,18 @@ export const cachedContacts = mysqlTable("cached_contacts", {
 
 export type CachedContact = typeof cachedContacts.$inferSelect;
 export type InsertCachedContact = typeof cachedContacts.$inferInsert;
+
+/**
+ * Folders table - organize routes into categories
+ */
+export const folders = mysqlTable("folders", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Owner of the folder
+  name: varchar("name", { length: 255 }).notNull(), // Folder name
+  color: varchar("color", { length: 7 }), // Optional color hex code
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Folder = typeof folders.$inferSelect;
+export type InsertFolder = typeof folders.$inferInsert;

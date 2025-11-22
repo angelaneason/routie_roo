@@ -15,6 +15,13 @@
       "when": 1763783292413,
       "tag": "0001_remarkable_shadow_king",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1763789685152,
+      "tag": "0002_regular_lockheed",
+      "breakpoints": true
     }
   ]
 }
