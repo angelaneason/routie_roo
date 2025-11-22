@@ -142,6 +142,14 @@ export async function fetchGoogleContacts(accessToken: string): Promise<GoogleCo
  */
 export function parseGoogleContacts(googleContacts: GoogleContact[]) {
   return googleContacts
+    // Filter out contact groups and other non-person entries
+    .filter(contact => {
+      // Only include entries that start with "people/" (actual contacts)
+      // Exclude "contactGroups/" and other resource types
+      return contact.resourceName?.startsWith('people/');
+    })
+    // Also filter out contacts without names (invalid entries)
+    .filter(contact => contact.names && contact.names.length > 0)
     .map(contact => {
       const name = contact.names?.[0]?.displayName || "Unknown";
       const email = contact.emailAddresses?.[0]?.value || null;

@@ -287,3 +287,15 @@
 ### Bug Fixes
 - [x] Fix "Show inactive contacts" to only show inactive when checked (not add to active)
 - [x] Update contact filtering logic in Home.tsx
+
+
+## Bug Fixes - Phase 4
+
+### Contact Display Issues
+- [x] Fix contacts showing resource IDs (10a5e7768dc5c4f2, 5db8c017898daefe, myContacts) instead of names
+- [x] Investigate Google Contacts sync parsing logic
+- [x] Filter out non-contact entries from sync results
+
+### UX Clarification
+- [x] Document that drag-and-drop reordering is on route detail page, not home page
+- [ ] Add visual indicator or tooltip showing drag handles are available on route execution
