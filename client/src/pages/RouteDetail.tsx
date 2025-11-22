@@ -8,6 +8,7 @@ import { MapView } from "@/components/Map";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar } from "lucide-react";
+import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
 import { useEffect, useState } from "react";
@@ -17,7 +18,7 @@ import { toast } from "sonner";
 export default function RouteDetail() {
   const { id } = useParams<{ id: string }>();
   const routeId = id;
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
   const [showCalendarDialog, setShowCalendarDialog] = useState(false);
@@ -213,7 +214,7 @@ export default function RouteDetail() {
                 <div>
                   <p className="text-sm text-muted-foreground">Total Distance</p>
                   <p className="text-2xl font-bold">
-                    {(route.totalDistance! / 1000).toFixed(1)} km
+                    {formatDistance(route.totalDistance! / 1000, user?.distanceUnit || "km")}
                   </p>
                 </div>
                 <div>
@@ -311,7 +312,7 @@ export default function RouteDetail() {
             {route && (
               <div className="text-sm text-muted-foreground">
                 <p>Duration: {Math.round(route.totalDuration! / 60)} minutes</p>
-                <p>Distance: {(route.totalDistance! / 1000).toFixed(1)} km</p>
+                <p>Distance: {formatDistance(route.totalDistance! / 1000, user?.distanceUnit || "km")}</p>
               </div>
             )}
           </div>

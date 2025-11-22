@@ -717,7 +717,7 @@ export default function Home() {
                             <div className="cursor-pointer">
                               <h3 className="font-medium truncate">{route.name}</h3>
                               <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                                <span>{(route.totalDistance! / 1000).toFixed(1)} km</span>
+                                <span>{formatDistance(route.totalDistance! / 1000, user?.distanceUnit || "km")}</span>
                                 <span>{Math.round(route.totalDuration! / 60)} min</span>
                                 {!route.optimized && (
                                   <span className="text-xs bg-muted px-2 py-0.5 rounded">Manual</span>

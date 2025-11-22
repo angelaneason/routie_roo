@@ -186,3 +186,11 @@
 - [ ] Add legend showing stop type meanings
 - [ ] Update waypoint list to display stop type badges
 - [x] Push database schema changes
+
+
+## Bug Fixes
+
+### Distance Unit Display
+- [x] Fix route list to show miles when user selects miles in settings
+- [x] Fix route detail page to show miles when user selects miles in settings
+- [x] Ensure unit conversion is applied consistently across all distance displays
