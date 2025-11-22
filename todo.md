@@ -408,3 +408,8 @@
 - [x] Test editing stop type colors
 - [x] Test deleting unused stop types
 - [x] Verify stop types persist across sessions
+
+## Bug Fixes - Null Address Validation
+
+- [x] Fix route creation validation error when contacts have null addresses
+- [x] Prevent selection of contacts without addresses in route creation UI

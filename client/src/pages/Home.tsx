@@ -178,19 +178,28 @@ export default function Home() {
     }
 
     const contacts = contactsQuery.data || [];
-    const waypoints = Array.from(selectedContacts)
+    const selectedContactsList = Array.from(selectedContacts)
       .map(id => contacts.find(c => c.id === id))
-      .filter(c => c)
-      .map(c => {
-        const stopTypeInfo = contactStopTypes.get(c!.id) || { type: "visit", color: "#3b82f6" };
-        return {
-          contactName: c!.name || undefined,
-          address: c!.address!,
-          phoneNumbers: c!.phoneNumbers || undefined,
-          stopType: stopTypeInfo.type as "pickup" | "delivery" | "meeting" | "visit" | "other",
-          stopColor: stopTypeInfo.color,
-        };
-      });
+      .filter(c => c);
+
+    // Check for contacts without addresses
+    const contactsWithoutAddress = selectedContactsList.filter(c => !c!.address || c!.address.trim() === "");
+    if (contactsWithoutAddress.length > 0) {
+      const names = contactsWithoutAddress.map(c => c!.name || "Unknown").join(", ");
+      toast.error(`The following contact${contactsWithoutAddress.length > 1 ? 's have' : ' has'} no address: ${names}`);
+      return;
+    }
+
+    const waypoints = selectedContactsList.map(c => {
+      const stopTypeInfo = contactStopTypes.get(c!.id) || { type: "visit", color: "#3b82f6" };
+      return {
+        contactName: c!.name || undefined,
+        address: c!.address!,
+        phoneNumbers: c!.phoneNumbers || undefined,
+        stopType: stopTypeInfo.type as "pickup" | "delivery" | "meeting" | "visit" | "other",
+        stopColor: stopTypeInfo.color,
+      };
+    });
 
     setIsCreatingRoute(true);
     createRouteMutation.mutate({
