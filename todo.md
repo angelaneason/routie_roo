@@ -85,3 +85,12 @@
 - [ ] Add settings UI for default calling service preference (future enhancement)
 - [x] Make phone numbers clickable in contact list
 - [ ] Make phone numbers clickable in route waypoint details (future enhancement)
+
+## New User Requests
+
+- [x] Add folder filter/selector UI to view routes by folder
+- [x] Add contact search bar to filter by name, phone, or address
+- [x] Display all phone numbers for each contact (not just first one)
+- [x] Add text messaging options (SMS, WhatsApp text)
+- [x] Add distance unit preference (KM vs Miles)
+- [x] Convert all distance displays based on user preference

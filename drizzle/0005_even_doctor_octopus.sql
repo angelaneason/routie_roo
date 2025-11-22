@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `distanceUnit` enum('km','miles') DEFAULT 'km';

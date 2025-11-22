@@ -1,10 +1,5 @@
 import { Phone, MessageCircle } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
 interface PhoneCallMenuProps {
@@ -52,6 +47,14 @@ export function PhoneCallMenu({
         // FaceTime (iOS/macOS)
         url = `facetime:${cleanNumber}`;
         break;
+      case 'sms':
+        // SMS text message
+        url = `sms:${cleanNumber}`;
+        break;
+      case 'whatsapp-text':
+        // WhatsApp text message
+        url = `https://wa.me/${cleanNumber}`;
+        break;
     }
     
     if (url) {
@@ -98,6 +101,15 @@ export function PhoneCallMenu({
             <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
           </svg>
           FaceTime
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => handleCall('sms')}>
+          <MessageCircle className="h-4 w-4 mr-2" />
+          SMS Text
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleCall('whatsapp-text')}>
+          <MessageCircle className="h-4 w-4 mr-2" />
+          WhatsApp Text
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

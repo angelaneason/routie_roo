@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { APP_TITLE, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter } from "lucide-react";
+import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -30,6 +31,8 @@ export default function Home() {
   const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
   const [routeName, setRouteName] = useState("");
   const [optimizeRoute, setOptimizeRoute] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFolderFilter, setSelectedFolderFilter] = useState<number | null>(null);
   const [selectedFolderId, setSelectedFolderId] = useState<string>("");
   const [isCreatingRoute, setIsCreatingRoute] = useState(false);
   const [deleteRouteId, setDeleteRouteId] = useState<number | null>(null);
@@ -249,6 +252,27 @@ export default function Home() {
   const routes = routesQuery.data || [];
   const folders = foldersQuery.data || [];
   const hasContacts = contacts.length > 0;
+  
+  // Filter contacts based on search query
+  const filteredContacts = contacts.filter(contact => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    const nameMatch = contact.name?.toLowerCase().includes(query);
+    const addressMatch = contact.address?.toLowerCase().includes(query);
+    let phoneMatch = false;
+    if (contact.phoneNumbers) {
+      try {
+        const phones = JSON.parse(contact.phoneNumbers);
+        phoneMatch = phones.some((p: any) => p.value.toLowerCase().includes(query));
+      } catch (e) {}
+    }
+    return nameMatch || addressMatch || phoneMatch;
+  });
+  
+  // Filter routes by folder
+  const filteredRoutes = selectedFolderFilter === null 
+    ? routes 
+    : routes.filter(r => r.folderId === selectedFolderFilter);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -296,8 +320,18 @@ export default function Home() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
-                {contactsQuery.isLoading ? (
+                <CardContent>
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search contacts by name, phone, or address..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                {filteredContacts.length === 0 && !searchQuery ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                   </div>
@@ -305,9 +339,13 @@ export default function Home() {
                   <div className="text-center py-8 text-muted-foreground">
                     <p>Click "Sync Contacts" to import your Gmail contacts</p>
                   </div>
+                ) : filteredContacts.length === 0 && searchQuery ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>No contacts found matching "{searchQuery}"</p>
+                  </div>
                 ) : (
                   <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {contacts.map((contact) => (
+                    {filteredContacts.map((contact) => (
                       <div
                         key={contact.id}
                         className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer"
@@ -341,15 +379,18 @@ export default function Home() {
                               const phones = JSON.parse(contact.phoneNumbers);
                               if (phones.length > 0) {
                                 return (
-                                  <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-                                    <PhoneCallMenu 
-                                      phoneNumber={phones[0].value}
-                                      label={`${phones[0].value} ${phones[0].label ? `(${phones[0].label})` : ''}`}
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-auto p-1 text-sm text-muted-foreground hover:text-foreground"
-                                      preferredService={user?.preferredCallingService || "phone"}
-                                    />
+                                  <div className="mt-2 space-y-1" onClick={(e) => e.stopPropagation()}>
+                                    {phones.map((phone: any, idx: number) => (
+                                      <PhoneCallMenu 
+                                        key={idx}
+                                        phoneNumber={phone.value}
+                                        label={`${phone.value} ${phone.label ? `(${phone.label})` : ''}`}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-auto p-1 text-sm text-muted-foreground hover:text-foreground"
+                                        preferredService={user?.preferredCallingService || "phone"}
+                                      />
+                                    ))}
                                   </div>
                                 );
                               }
@@ -369,12 +410,12 @@ export default function Home() {
             {/* Create Route Section */}
             {hasContacts && (
               <Card>
-                <CardHeader>
-                  <CardTitle>Create Route</CardTitle>
-                  <CardDescription>
-                    Select at least 2 contacts to create a route
-                  </CardDescription>
-                </CardHeader>
+              <CardHeader>
+                <CardTitle>Your Contacts</CardTitle>
+                <CardDescription>
+                  {filteredContacts.length} contacts {searchQuery && `(filtered from ${contacts.length})`}
+                </CardDescription>
+              </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="routeName">Route Name</Label>
@@ -494,7 +535,7 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {routes.map((route) => (
+                    {filteredRoutes.map((route) => (
                       <div key={route.id} className="p-4 rounded-lg border hover:bg-accent transition-colors group">
                         <div className="flex items-start justify-between">
                           <Link href={`/route/${route.id}`} className="flex-1 min-w-0">
