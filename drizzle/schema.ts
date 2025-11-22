@@ -70,7 +70,10 @@ export const cachedContacts = mysqlTable("cached_contacts", {
   address: text("address"),
   phoneNumbers: text("phoneNumbers"), // JSON array of {value, type, label}
   photoUrl: text("photoUrl"), // Contact photo URL from Google
+  labels: text("labels"), // JSON array of contact labels/groups from Google
+  isActive: int("isActive").default(1).notNull(), // 1 = active, 0 = inactive
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export type CachedContact = typeof cachedContacts.$inferSelect;

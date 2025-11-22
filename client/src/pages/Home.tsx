@@ -18,9 +18,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { APP_TITLE, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
+import { ContactEditDialog } from "@/components/ContactEditDialog";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Link, useLocation } from "wouter";
@@ -38,6 +39,8 @@ export default function Home() {
   const [deleteRouteId, setDeleteRouteId] = useState<number | null>(null);
   const [newFolderName, setNewFolderName] = useState("");
   const [showNewFolderInput, setShowNewFolderInput] = useState(false);
+  const [editingContact, setEditingContact] = useState<any | null>(null);
+  const [showInactive, setShowInactive] = useState(false);
 
   // Check for OAuth callback status
   useEffect(() => {
@@ -102,6 +105,20 @@ export default function Home() {
     onError: (error) => {
       toast.error(error.message || "Failed to delete route");
       setDeleteRouteId(null);
+    },
+  });
+
+  // Update contact mutation
+  const updateContactMutation = trpc.contacts.update.useMutation({
+    onSuccess: () => {
+      contactsQuery.refetch();
+    },
+  });
+
+  // Toggle contact active status mutation
+  const toggleContactActiveMutation = trpc.contacts.toggleActive.useMutation({
+    onSuccess: () => {
+      contactsQuery.refetch();
     },
   });
 
@@ -254,8 +271,13 @@ export default function Home() {
   const folders = foldersQuery.data || [];
   const hasContacts = contacts.length > 0;
   
-  // Filter contacts based on search query
+  // Filter contacts based on search query and active status
   const filteredContacts = contacts.filter(contact => {
+    // Filter by active status
+    const isActive = contact.isActive === 1;
+    if (!showInactive && !isActive) return false;
+    
+    // Filter by search query
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const nameMatch = contact.name?.toLowerCase().includes(query);
@@ -330,15 +352,29 @@ export default function Home() {
                 </div>
               </CardHeader>
                 <CardContent>
-                <div className="relative mb-4">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Search contacts by name, phone, or address..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
+                <div className="space-y-3 mb-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      placeholder="Search contacts by name, phone, or address..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="show-inactive"
+                      checked={showInactive}
+                      onChange={(e) => setShowInactive(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <label htmlFor="show-inactive" className="text-sm text-muted-foreground cursor-pointer">
+                      Show inactive contacts
+                    </label>
+                  </div>
                 </div>
                 {filteredContacts.length === 0 && !searchQuery ? (
                   <div className="flex justify-center py-8">
@@ -380,8 +416,33 @@ export default function Home() {
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="font-medium">{contact.name}</p>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {contact.address}
+                          {contact.labels && (() => {
+                            try {
+                              const labels = JSON.parse(contact.labels);
+                              if (labels.length > 0) {
+                                return (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {labels.slice(0, 3).map((label: string, idx: number) => {
+                                      const labelName = label.split('/').pop() || label;
+                                      return (
+                                        <span key={idx} className="inline-block px-2 py-0.5 text-xs bg-primary/10 text-primary rounded">
+                                          {labelName}
+                                        </span>
+                                      );
+                                    })}
+                                    {labels.length > 3 && (
+                                      <span className="inline-block px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded">
+                                        +{labels.length - 3}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              }
+                            } catch (e) {}
+                            return null;
+                          })()}
+                          <p className="text-sm text-muted-foreground truncate mt-1">
+                            {contact.address || "No address"}
                           </p>
                           {contact.phoneNumbers && (() => {
                             try {
@@ -408,6 +469,29 @@ export default function Home() {
                             }
                             return null;
                           })()}
+                        </div>
+                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setEditingContact(contact)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => {
+                              toggleContactActiveMutation.mutate({
+                                contactId: contact.id,
+                                isActive: contact.isActive !== 1,
+                              });
+                            }}
+                          >
+                            {contact.isActive === 1 ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -622,6 +706,22 @@ export default function Home() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Contact Edit Dialog */}
+      {editingContact && (
+        <ContactEditDialog
+          contact={editingContact}
+          open={!!editingContact}
+          onOpenChange={(open) => !open && setEditingContact(null)}
+          onSave={async (updates) => {
+            updateContactMutation.mutate({
+              contactId: editingContact.id,
+              ...updates,
+            });
+            setEditingContact(null);
+          }}
+        />
+      )}
     </div>
   );
 }

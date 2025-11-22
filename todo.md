@@ -133,3 +133,20 @@
 - [x] Update RouteDetail.tsx to use formatted phone numbers
 - [x] Update PhoneCallMenu to handle formatted numbers correctly
 - [x] Update PhoneTextMenu to handle formatted numbers correctly
+
+
+## Contact Management Enhancements
+
+- [x] Add labels/groups field to cached_contacts table
+- [x] Add isActive status field to cached_contacts table
+- [x] Update Google People API to fetch contact labels/groups
+- [x] Sync all contacts including those without addresses
+- [x] Display contact labels in contact list
+- [x] Add "Mark as Inactive" button for contacts
+- [x] Add filter to show/hide inactive contacts
+- [x] Create contact edit dialog UI
+- [x] Add ability to add/edit contact addresses in app
+- [x] Add ability to edit contact phone numbers
+- [ ] Implement Google People API update endpoint
+- [ ] Sync local contact changes back to Google Contacts
+- [ ] Add validation for address and phone number fields

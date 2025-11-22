@@ -50,6 +50,13 @@
       "when": 1763838599400,
       "tag": "0006_spicy_micromax",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1763841657785,
+      "tag": "0007_blue_shriek",
+      "breakpoints": true
     }
   ]
 }

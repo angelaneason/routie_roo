@@ -150,7 +150,7 @@ export const appRouter = router({
           // Fetch contacts
           const googleContacts = await fetchGoogleContacts(tokenData.access_token);
           
-          // Parse and filter contacts with addresses
+          // Parse all contacts (including those without addresses)
           const parsedContacts = parseGoogleContacts(googleContacts);
           
           // Clear old cached contacts
@@ -165,6 +165,7 @@ export const appRouter = router({
             address: contact.address,
             phoneNumbers: contact.phoneNumbers,
             photoUrl: contact.photoUrl,
+            labels: contact.labels,
           }));
           
           if (contactsToCache.length > 0) {
@@ -196,6 +197,59 @@ export const appRouter = router({
       const state = ctx.user.id.toString();
       return { url: getGoogleAuthUrl(redirectUri, state) };
     }),
+
+    // Update contact information
+    update: protectedProcedure
+      .input(z.object({
+        contactId: z.number(),
+        name: z.string(),
+        email: z.string(),
+        address: z.string(),
+        phoneNumbers: z.array(z.object({
+          value: z.string(),
+          label: z.string(),
+        })),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        const { cachedContacts } = await import("../drizzle/schema");
+        
+        await db.update(cachedContacts)
+          .set({
+            name: input.name,
+            email: input.email,
+            address: input.address,
+            phoneNumbers: JSON.stringify(input.phoneNumbers),
+            updatedAt: new Date(),
+          })
+          .where(eq(cachedContacts.id, input.contactId));
+
+        return { success: true };
+      }),
+
+    // Toggle contact active status
+    toggleActive: protectedProcedure
+      .input(z.object({
+        contactId: z.number(),
+        isActive: z.boolean(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        const { cachedContacts } = await import("../drizzle/schema");
+        
+        await db.update(cachedContacts)
+          .set({
+            isActive: input.isActive ? 1 : 0,
+            updatedAt: new Date(),
+          })
+          .where(eq(cachedContacts.id, input.contactId));
+
+        return { success: true };
+      }),
   }),
 
   folders: router({

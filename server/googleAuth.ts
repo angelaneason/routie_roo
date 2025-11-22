@@ -28,6 +28,11 @@ interface GoogleContact {
   photos?: Array<{
     url?: string;
   }>;
+  memberships?: Array<{
+    contactGroupMembership?: {
+      contactGroupResourceName?: string;
+    };
+  }>;
 }
 
 interface GooglePeopleResponse {
@@ -98,7 +103,7 @@ export async function fetchGoogleContacts(accessToken: string): Promise<GoogleCo
 
   do {
     const params = new URLSearchParams({
-      personFields: "names,emailAddresses,addresses,phoneNumbers,photos",
+      personFields: "names,emailAddresses,addresses,phoneNumbers,photos,memberships",
       pageSize: "1000",
     });
 
@@ -137,7 +142,6 @@ export async function fetchGoogleContacts(accessToken: string): Promise<GoogleCo
  */
 export function parseGoogleContacts(googleContacts: GoogleContact[]) {
   return googleContacts
-    .filter(contact => contact.addresses && contact.addresses.length > 0)
     .map(contact => {
       const name = contact.names?.[0]?.displayName || "Unknown";
       const email = contact.emailAddresses?.[0]?.value || null;
@@ -151,6 +155,12 @@ export function parseGoogleContacts(googleContacts: GoogleContact[]) {
       
       // Get photo URL
       const photoUrl = contact.photos?.[0]?.url || null;
+      
+      // Parse contact labels/groups from memberships
+      const labels = contact.memberships
+        ?.filter(m => m.contactGroupMembership)
+        ?.map(m => m.contactGroupMembership?.contactGroupResourceName)
+        ?.filter(Boolean) || [];
 
       return {
         resourceName: contact.resourceName,
@@ -159,7 +169,7 @@ export function parseGoogleContacts(googleContacts: GoogleContact[]) {
         address,
         phoneNumbers: JSON.stringify(phoneNumbers),
         photoUrl,
+        labels: JSON.stringify(labels),
       };
-    })
-    .filter(contact => contact.address); // Only return contacts with addresses
+    });
 }
