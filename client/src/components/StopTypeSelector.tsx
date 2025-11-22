@@ -1,5 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, Truck, Users, MapPin, Circle } from "lucide-react";
+import { Circle, Package, Truck, Users, MapPin } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 export type StopType = "pickup" | "delivery" | "meeting" | "visit" | "other";
 
@@ -54,23 +55,43 @@ interface StopTypeSelectorProps {
 }
 
 export function StopTypeSelector({ value, onChange, size = "default" }: StopTypeSelectorProps) {
-  const config = getStopTypeConfig(value);
+  const { data: customStopTypes } = trpc.stopTypes.list.useQuery();
+  
+  // Use custom stop types if available, otherwise fall back to default configs
+  const stopTypes = customStopTypes && customStopTypes.length > 0
+    ? customStopTypes.map(st => ({
+        type: st.name.toLowerCase().replace(/\s+/g, '-') as StopType,
+        label: st.name,
+        color: st.color,
+        icon: <Circle className="h-4 w-4" />,
+      }))
+    : stopTypeConfigs;
+
+  const currentType = stopTypes.find(st => st.type === value || st.label === value);
+  const displayValue = currentType?.label || value;
+  const displayColor = currentType?.color || "#3b82f6";
 
   return (
     <Select value={value} onValueChange={(v) => onChange(v as StopType)}>
       <SelectTrigger className={size === "sm" ? "h-8 text-xs" : ""}>
         <SelectValue>
           <div className="flex items-center gap-2">
-            <div style={{ color: config.color }}>{config.icon}</div>
-            <span>{config.label}</span>
+            <div 
+              className="w-3 h-3 rounded-full" 
+              style={{ backgroundColor: displayColor }}
+            />
+            <span>{displayValue}</span>
           </div>
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        {stopTypeConfigs.map((config) => (
+        {stopTypes.map((config) => (
           <SelectItem key={config.type} value={config.type}>
             <div className="flex items-center gap-2">
-              <div style={{ color: config.color }}>{config.icon}</div>
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: config.color }}
+              />
               <span>{config.label}</span>
             </div>
           </SelectItem>

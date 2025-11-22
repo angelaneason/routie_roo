@@ -108,3 +108,19 @@ export const folders = mysqlTable("folders", {
 
 export type Folder = typeof folders.$inferSelect;
 export type InsertFolder = typeof folders.$inferInsert;
+
+/**
+ * Stop types table - custom stop types for route waypoints
+ */
+export const stopTypes = mysqlTable("stop_types", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Owner of the stop type
+  name: varchar("name", { length: 100 }).notNull(), // Stop type name (e.g., "Delivery", "Home Visit")
+  color: varchar("color", { length: 7 }).notNull().default("#3b82f6"), // Hex color code
+  isDefault: boolean("isDefault").default(false).notNull(), // System default types
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type StopType = typeof stopTypes.$inferSelect;
+export type InsertStopType = typeof stopTypes.$inferInsert;

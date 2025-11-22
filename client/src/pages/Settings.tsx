@@ -8,6 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { ArrowLeft, Loader2, MapPin, Settings as SettingsIcon } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
+import StopTypesSettings from "./StopTypesSettings";
 
 export default function Settings() {
   const { user, isAuthenticated } = useAuth();
@@ -148,6 +149,9 @@ export default function Settings() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Stop Types Management */}
+              <StopTypesSettings />
 
               {/* Google Integration */}
               <Card>

@@ -375,3 +375,36 @@
 ## Logo Size Fix
 
 - [x] Increase logo size in header for better visibility
+
+
+## Logo Size Adjustment
+
+- [x] Increase logo size further for better visibility (h-16)
+
+## Custom Stop Type Management
+
+### Database Schema
+- [x] Create stop_types table with name, color fields
+- [x] Add userId foreign key to stop_types for user-specific types
+- [x] Push database schema changes
+
+### Backend Implementation
+- [x] Create stopTypes.list procedure to fetch user's stop types
+- [x] Create stopTypes.create procedure to add new stop types
+- [x] Create stopTypes.update procedure to edit existing stop types
+- [x] Create stopTypes.delete procedure to remove stop types
+- [x] Validate stop type colors (hex format)
+
+### Frontend Implementation
+- [x] Create StopTypesSettings component in Settings page
+- [x] Add list of current stop types with edit/delete buttons
+- [x] Create add/edit stop type dialog with color picker
+- [x] Update StopTypeSelector to use custom stop types from database
+- [x] Show color preview in stop type selector
+- [ ] Prevent deletion of stop types currently in use
+
+### Testing
+- [x] Test creating custom stop types
+- [x] Test editing stop type colors
+- [x] Test deleting unused stop types
+- [x] Verify stop types persist across sessions

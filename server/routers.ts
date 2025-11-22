@@ -29,7 +29,7 @@ import {
   createCalendarEvent
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
-import { users, routes, routeWaypoints } from "../drizzle/schema";
+import { users, routes, routeWaypoints, stopTypes } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -930,6 +930,73 @@ export const appRouter = router({
           .set(updateData)
           .where(eq(users.id, ctx.user.id));
 
+        return { success: true };
+      }),
+  }),
+
+  stopTypes: router({    // Get user's stop types
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      
+      const userStopTypes = await db
+        .select()
+        .from(stopTypes)
+        .where(eq(stopTypes.userId, ctx.user.id));
+      
+      return userStopTypes;
+    }),
+
+    // Create new stop type
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(100),
+        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        
+        await db.insert(stopTypes).values({
+          userId: ctx.user.id,
+          name: input.name,
+          color: input.color,
+          isDefault: false,
+        });
+        
+        return { success: true };
+      }),
+
+    // Update stop type
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).max(100),
+        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        
+        await db
+          .update(stopTypes)
+          .set({ name: input.name, color: input.color })
+          .where(eq(stopTypes.id, input.id));
+        
+        return { success: true };
+      }),
+
+    // Delete stop type
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        
+        await db
+          .delete(stopTypes)
+          .where(eq(stopTypes.id, input.id));
+        
         return { success: true };
       }),
   }),
