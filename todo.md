@@ -299,3 +299,39 @@
 ### UX Clarification
 - [x] Document that drag-and-drop reordering is on route detail page, not home page
 - [ ] Add visual indicator or tooltip showing drag handles are available on route execution
+
+
+## Shared Route Execution Links
+
+### Database Schema
+- [x] Add shareToken field to routes table (unique, nullable)
+- [x] Add isPubliclyAccessible boolean to routes table
+- [x] Add sharedAt timestamp to routes table
+- [x] Push database schema changes
+
+### Backend Implementation
+- [x] Create generateShareToken procedure for routes
+- [x] Create getRouteByShareToken public procedure
+- [x] Allow unauthenticated access to route execution via share token
+- [x] Ensure waypoint status updates work with share token
+- [x] Add validation to prevent unauthorized route modifications
+
+### Frontend Implementation
+- [x] Add "Generate Share Link" button to route detail page
+- [x] Create shareable link with copy-to-clipboard functionality
+- [x] Create public route execution page (/share/:token)
+- [x] Show route details and waypoints without requiring login
+- [x] Allow marking stops as complete/missed on shared routes
+- [x] Add "Powered by Contact Route Mapper" footer on public pages
+
+### Security & Privacy
+- [x] Ensure share tokens are cryptographically secure (UUID v4)
+- [x] Add option to revoke/regenerate share tokens
+- [x] Hide sensitive contact info on shared routes (shows contact name and address only)
+- [ ] Add rate limiting to prevent abuse of public endpoints
+
+### Testing
+- [x] Write tests for share token generation
+- [x] Test unauthenticated route access
+- [x] Test waypoint updates via shared routes
+- [x] Verify missed stops appear in creator's dashboard

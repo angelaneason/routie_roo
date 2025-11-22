@@ -48,6 +48,8 @@ export default function RouteDetail() {
   const [executionNotes, setExecutionNotes] = useState("");
   const [rescheduledDate, setRescheduledDate] = useState("");
   const [localWaypoints, setLocalWaypoints] = useState<any[]>([]);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [shareToken, setShareToken] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -215,6 +217,16 @@ export default function RouteDetail() {
     }
   };
 
+  const generateShareTokenMutation = trpc.routes.generateShareToken.useMutation({
+    onSuccess: (data) => {
+      setShareToken(data.shareToken);
+      toast.success("Share link generated!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to generate share link");
+    },
+  });
+
   const calendarMutation = trpc.routes.getCalendarAuthUrl.useMutation({
     onSuccess: (data) => {
       window.location.href = data.url;
@@ -292,6 +304,10 @@ export default function RouteDetail() {
               <Button variant="outline" size="sm" onClick={handleCopyShareLink}>
                 <Copy className="h-4 w-4 mr-2" />
                 Copy Link
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)}>
+                <Share2 className="h-4 w-4 mr-2" />
+                Share for Execution
               </Button>
               <Button variant="outline" size="sm" onClick={handleAddToCalendar}>
                 <Calendar className="h-4 w-4 mr-2" />
@@ -580,6 +596,69 @@ export default function RouteDetail() {
             >
               {updateStatusMutation.isPending || rescheduleMutation.isPending ? "Saving..." : "Confirm"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Share for Execution Dialog */}
+      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Share Route for Execution</DialogTitle>
+            <DialogDescription>
+              Generate a link that allows drivers to execute this route and mark stops as complete/missed without logging in.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {!shareToken && !route?.shareToken ? (
+              <div className="text-sm text-muted-foreground">
+                <p>Click "Generate Link" to create a shareable execution link. The driver will be able to:</p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>View the route and all waypoints</li>
+                  <li>Mark stops as complete or missed</li>
+                  <li>Add notes and reasons for missed stops</li>
+                  <li>Reorder stops during execution</li>
+                </ul>
+                <p className="mt-2 font-medium">All updates will sync back to your account automatically.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label>Share Link</Label>
+                <div className="flex gap-2">
+                  <Input
+                    readOnly
+                    value={`${window.location.origin}/share/${shareToken || route?.shareToken}`}
+                    className="font-mono text-sm"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/share/${shareToken || route?.shareToken}`);
+                      toast.success("Link copied to clipboard!");
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Anyone with this link can execute the route and update stop statuses.
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowShareDialog(false)}>
+              Close
+            </Button>
+            {!shareToken && !route?.shareToken && (
+              <Button
+                onClick={() => generateShareTokenMutation.mutate({ routeId: parseInt(routeId!) })}
+                disabled={generateShareTokenMutation.isPending}
+              >
+                {generateShareTokenMutation.isPending ? "Generating..." : "Generate Link"}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

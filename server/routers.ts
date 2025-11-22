@@ -661,6 +661,156 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Generate share token for route (allows public access)
+    generateShareToken: protectedProcedure
+      .input(z.object({ routeId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify route ownership
+        const route = await getRouteById(input.routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You don't have permission to share this route",
+          });
+        }
+
+        // Generate UUID v4 share token
+        const shareToken = crypto.randomUUID();
+
+        // Update route with share token
+        await db.update(routes)
+          .set({
+            shareToken,
+            isPubliclyAccessible: true,
+            sharedAt: new Date(),
+          })
+          .where(eq(routes.id, input.routeId));
+
+        return { shareToken };
+      }),
+
+    // Revoke share token (disable public access)
+    revokeShareToken: protectedProcedure
+      .input(z.object({ routeId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify route ownership
+        const route = await getRouteById(input.routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You don't have permission to modify this route",
+          });
+        }
+
+        // Clear share token
+        await db.update(routes)
+          .set({
+            shareToken: null,
+            isPubliclyAccessible: false,
+          })
+          .where(eq(routes.id, input.routeId));
+
+        return { success: true };
+      }),
+
+    // Get route by share token (public access - no auth required)
+    getByShareToken: publicProcedure
+      .input(z.object({ shareToken: z.string() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Find route by share token
+        const result = await db.select()
+          .from(routes)
+          .where(eq(routes.shareToken, input.shareToken))
+          .limit(1);
+
+        if (result.length === 0 || !result[0].isPubliclyAccessible) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Route not found or no longer shared",
+          });
+        }
+
+        const route = result[0];
+        const waypoints = await getRouteWaypoints(route.id);
+
+        return { route, waypoints };
+      }),
+
+    // Update waypoint status via share token (public access)
+    updateWaypointStatusPublic: publicProcedure
+      .input(z.object({
+        shareToken: z.string(),
+        waypointId: z.number(),
+        status: z.enum(["pending", "in_progress", "complete", "missed"]),
+        missedReason: z.string().optional(),
+        executionNotes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify share token and route access
+        const result = await db.select()
+          .from(routes)
+          .where(eq(routes.shareToken, input.shareToken))
+          .limit(1);
+
+        if (result.length === 0 || !result[0].isPubliclyAccessible) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Invalid or expired share link",
+          });
+        }
+
+        const route = result[0];
+
+        // Verify waypoint belongs to this route
+        const waypoint = await db.select()
+          .from(routeWaypoints)
+          .where(eq(routeWaypoints.id, input.waypointId))
+          .limit(1);
+
+        if (waypoint.length === 0 || waypoint[0].routeId !== route.id) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Waypoint not found",
+          });
+        }
+
+        // Update waypoint status
+        const updateData: any = {
+          status: input.status,
+        };
+
+        if (input.status === "complete") {
+          updateData.completedAt = new Date();
+        }
+
+        if (input.status === "missed") {
+          updateData.missedReason = input.missedReason || null;
+          updateData.needsReschedule = 1;
+        }
+
+        if (input.executionNotes) {
+          updateData.executionNotes = input.executionNotes;
+        }
+
+        await db.update(routeWaypoints)
+          .set(updateData)
+          .where(eq(routeWaypoints.id, input.waypointId));
+
+        return { success: true };
+      }),
+
     // Get all missed waypoints that need rescheduling (for manager dashboard)
     getMissedWaypoints: protectedProcedure
       .query(async ({ ctx }) => {

@@ -34,6 +34,10 @@ export const routes = mysqlTable("routes", {
   optimized: boolean("optimized").default(true).notNull(), // Whether waypoints were optimized
   folderId: int("folderId"), // Optional folder/category ID
   notes: text("notes"), // Optional notes/description for the route
+  // Shared execution fields
+  shareToken: varchar("shareToken", { length: 36 }).unique(), // UUID for public access
+  isPubliclyAccessible: boolean("isPubliclyAccessible").default(false).notNull(), // Allow unauthenticated access
+  sharedAt: timestamp("sharedAt"), // When share link was generated
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

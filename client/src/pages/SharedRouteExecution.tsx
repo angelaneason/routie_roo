@@ -1,0 +1,365 @@
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { MapView } from "@/components/Map";
+import { trpc } from "@/lib/trpc";
+import { Loader2, MapPin, CheckCircle2, XCircle, MessageSquare } from "lucide-react";
+import { formatDistance } from "@shared/distance";
+import { StopStatusBadge, type StopStatus } from "@/components/StopStatusBadge";
+import { useEffect, useState } from "react";
+import { useParams } from "wouter";
+import { toast } from "sonner";
+
+export default function SharedRouteExecution() {
+  const { token } = useParams<{ token: string }>();
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+  const [selectedWaypoint, setSelectedWaypoint] = useState<any | null>(null);
+  const [actionType, setActionType] = useState<"complete" | "miss" | "note" | null>(null);
+  const [missedReason, setMissedReason] = useState("");
+  const [executionNotes, setExecutionNotes] = useState("");
+
+  const routeQuery = trpc.routes.getByShareToken.useQuery(
+    { shareToken: token! },
+    { enabled: !!token }
+  );
+
+  const updateStatusMutation = trpc.routes.updateWaypointStatusPublic.useMutation({
+    onSuccess: () => {
+      toast.success("Stop status updated");
+      routeQuery.refetch();
+      closeDialog();
+    },
+    onError: (error) => {
+      toast.error(`Failed to update status: ${error.message}`);
+    },
+  });
+
+  const route = routeQuery.data?.route;
+  const waypoints = routeQuery.data?.waypoints || [];
+
+  useEffect(() => {
+    if (!map || !directionsRenderer || waypoints.length < 2) return;
+
+    const directionsService = new google.maps.DirectionsService();
+    const origin = waypoints[0];
+    const destination = waypoints[waypoints.length - 1];
+    const waypointList = waypoints.slice(1, -1).map(wp => ({
+      location: new google.maps.LatLng(parseFloat(wp.latitude!), parseFloat(wp.longitude!)),
+      stopover: true,
+    }));
+
+    directionsService.route(
+      {
+        origin: new google.maps.LatLng(parseFloat(origin.latitude!), parseFloat(origin.longitude!)),
+        destination: new google.maps.LatLng(parseFloat(destination.latitude!), parseFloat(destination.longitude!)),
+        waypoints: waypointList,
+        travelMode: google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK && result) {
+          directionsRenderer.setDirections(result);
+        }
+      }
+    );
+  }, [map, directionsRenderer, waypoints]);
+
+  const handleMapReady = (mapInstance: google.maps.Map) => {
+    setMap(mapInstance);
+    const renderer = new google.maps.DirectionsRenderer({
+      map: mapInstance,
+      suppressMarkers: false,
+    });
+    setDirectionsRenderer(renderer);
+  };
+
+  const openDialog = (waypoint: any, type: "complete" | "miss" | "note") => {
+    setSelectedWaypoint(waypoint);
+    setActionType(type);
+    setMissedReason("");
+    setExecutionNotes("");
+  };
+
+  const closeDialog = () => {
+    setSelectedWaypoint(null);
+    setActionType(null);
+    setMissedReason("");
+    setExecutionNotes("");
+  };
+
+  const handleSubmit = () => {
+    if (!selectedWaypoint || !token) return;
+
+    if (actionType === "complete") {
+      updateStatusMutation.mutate({
+        shareToken: token,
+        waypointId: selectedWaypoint.id,
+        status: "complete",
+        executionNotes: executionNotes || undefined,
+      });
+    } else if (actionType === "miss") {
+      if (!missedReason.trim()) {
+        toast.error("Please provide a reason for missing this stop");
+        return;
+      }
+      updateStatusMutation.mutate({
+        shareToken: token,
+        waypointId: selectedWaypoint.id,
+        status: "missed",
+        missedReason,
+        executionNotes: executionNotes || undefined,
+      });
+    } else if (actionType === "note") {
+      if (!executionNotes.trim()) {
+        toast.error("Please add a note");
+        return;
+      }
+      updateStatusMutation.mutate({
+        shareToken: token,
+        waypointId: selectedWaypoint.id,
+        status: selectedWaypoint.status,
+        executionNotes,
+      });
+    }
+  };
+
+  if (routeQuery.isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (routeQuery.isError || !route) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Route Not Found</CardTitle>
+            <CardDescription>
+              This route link is invalid or has been revoked.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  const completedCount = waypoints.filter(wp => wp.status === "complete").length;
+  const progressPercent = waypoints.length > 0 ? (completedCount / waypoints.length) * 100 : 0;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <main className="container mx-auto p-4 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">{route.name}</h1>
+            <p className="text-sm text-muted-foreground">Shared Route Execution</p>
+          </div>
+        </div>
+
+        {/* Map */}
+        <Card>
+          <CardContent className="p-0">
+            <MapView onMapReady={handleMapReady} className="w-full h-[400px] rounded-lg" />
+          </CardContent>
+        </Card>
+
+        {/* Route Details */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">Total Distance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">
+                {formatDistance(route.totalDistance || 0, "km")}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">Estimated Time</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">
+                {Math.round((route.totalDuration || 0) / 60)} min
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">Stops</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{waypoints.length}</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Waypoints & Execution */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Waypoints & Execution</CardTitle>
+                <CardDescription>
+                  {completedCount} of {waypoints.length} complete
+                </CardDescription>
+              </div>
+            </div>
+            {/* Progress Bar */}
+            <div className="mt-4">
+              <div className="w-full bg-secondary rounded-full h-2">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {waypoints.map((waypoint, index) => (
+              <div key={waypoint.id} className="flex gap-4 p-4 border rounded-lg">
+                <div className="flex-shrink-0">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-semibold">
+                    {index + 1}
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        {waypoint.contactName && (
+                          <h3 className="font-semibold">{waypoint.contactName}</h3>
+                        )}
+                        <StopStatusBadge status={waypoint.status as StopStatus} />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">{waypoint.address}</p>
+                    </div>
+                  </div>
+
+                  {waypoint.executionNotes && (
+                    <div className="text-sm bg-muted p-2 rounded">
+                      <p className="font-medium">Notes:</p>
+                      <p>{waypoint.executionNotes}</p>
+                    </div>
+                  )}
+
+                  {waypoint.status === "missed" && waypoint.missedReason && (
+                    <div className="text-sm bg-destructive/10 p-2 rounded">
+                      <p className="font-medium text-destructive">Missed:</p>
+                      <p>{waypoint.missedReason}</p>
+                    </div>
+                  )}
+
+                  {waypoint.status === "pending" && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => openDialog(waypoint, "complete")}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        Complete
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => openDialog(waypoint, "miss")}
+                      >
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Miss
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openDialog(waypoint, "note")}
+                      >
+                        <MessageSquare className="h-4 w-4 mr-1" />
+                        Add Note
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Footer */}
+        <div className="text-center text-sm text-muted-foreground pb-8">
+          <p>Powered by Contact Route Mapper</p>
+        </div>
+      </main>
+
+      {/* Execution Action Dialog */}
+      <Dialog open={!!selectedWaypoint && !!actionType} onOpenChange={(open) => !open && closeDialog()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {actionType === "complete" && "Complete Stop"}
+              {actionType === "miss" && "Mark Stop as Missed"}
+              {actionType === "note" && "Add Note"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedWaypoint?.contactName} - {selectedWaypoint?.address}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {actionType === "miss" && (
+              <div className="space-y-2">
+                <Label htmlFor="missed-reason">Reason for Missing Stop *</Label>
+                <textarea
+                  id="missed-reason"
+                  placeholder="e.g., Customer not home, gate locked, wrong address..."
+                  value={missedReason}
+                  onChange={(e) => setMissedReason(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+              </div>
+            )}
+
+            {(actionType === "complete" || actionType === "note" || actionType === "miss") && (
+              <div className="space-y-2">
+                <Label htmlFor="execution-notes">
+                  Notes {actionType === "note" ? "*" : "(Optional)"}
+                </Label>
+                <textarea
+                  id="execution-notes"
+                  placeholder="Add any notes about this stop..."
+                  value={executionNotes}
+                  onChange={(e) => setExecutionNotes(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDialog}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={updateStatusMutation.isPending}
+            >
+              {updateStatusMutation.isPending ? "Saving..." : "Confirm"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
