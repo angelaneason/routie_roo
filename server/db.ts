@@ -150,11 +150,11 @@ export async function upsertCachedContacts(contacts: InsertCachedContact[]) {
   for (const contact of contacts) {
     await db.insert(cachedContacts).values(contact).onDuplicateKeyUpdate({
       set: {
-        name: contact.name,
-        email: contact.email,
-        address: contact.address,
-        addressType: contact.addressType,
-        lastSynced: contact.lastSynced,
+         name: contact.name,
+      email: contact.email,
+      address: contact.address,
+      phoneNumbers: contact.phoneNumbers,
+      photoUrl: contact.photoUrl,
       },
     });
   }

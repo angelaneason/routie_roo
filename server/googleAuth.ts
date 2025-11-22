@@ -21,6 +21,13 @@ interface GoogleContact {
     formattedValue?: string;
     type?: string;
   }>;
+  phoneNumbers?: Array<{
+    value?: string;
+    type?: string;
+  }>;
+  photos?: Array<{
+    url?: string;
+  }>;
 }
 
 interface GooglePeopleResponse {
@@ -91,7 +98,7 @@ export async function fetchGoogleContacts(accessToken: string): Promise<GoogleCo
 
   do {
     const params = new URLSearchParams({
-      personFields: "names,emailAddresses,addresses",
+      personFields: "names,emailAddresses,addresses,phoneNumbers,photos",
       pageSize: "1000",
     });
 
@@ -135,14 +142,23 @@ export function parseGoogleContacts(googleContacts: GoogleContact[]) {
       const name = contact.names?.[0]?.displayName || "Unknown";
       const email = contact.emailAddresses?.[0]?.value || null;
       const address = contact.addresses?.[0]?.formattedValue || null;
-      const addressType = contact.addresses?.[0]?.type || "other";
+      
+      // Parse phone numbers with labels
+      const phoneNumbers = contact.phoneNumbers?.map(phone => ({
+        value: phone.value || "",
+        label: phone.type || "other",
+      })) || [];
+      
+      // Get photo URL
+      const photoUrl = contact.photos?.[0]?.url || null;
 
       return {
         resourceName: contact.resourceName,
         name,
         email,
         address,
-        addressType,
+        phoneNumbers: JSON.stringify(phoneNumbers),
+        photoUrl,
       };
     })
     .filter(contact => contact.address); // Only return contacts with addresses

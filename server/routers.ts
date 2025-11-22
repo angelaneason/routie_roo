@@ -156,12 +156,12 @@ export const appRouter = router({
           // Cache new contacts
           const contactsToCache = parsedContacts.map(contact => ({
             userId: input.userId,
-            resourceName: contact.resourceName,
+            googleResourceName: contact.resourceName,
             name: contact.name,
             email: contact.email,
             address: contact.address,
-            addressType: contact.addressType,
-            lastSynced: new Date(),
+            phoneNumbers: contact.phoneNumbers,
+            photoUrl: contact.photoUrl,
           }));
           
           if (contactsToCache.length > 0) {

@@ -62,3 +62,14 @@
 - [x] Display routes grouped by folder
 - [x] Allow moving routes between folders
 - [x] Add folder management UI (create, rename, delete)
+
+## Contact Enhancement Features
+
+- [x] Update database schema to store phone numbers with labels
+- [x] Update database schema to store contact photos/avatars
+- [x] Fetch phone numbers from Google People API
+- [x] Fetch contact photos from Google People API
+- [x] Display contact photos in contact list
+- [x] Display phone numbers with labels in contact list
+- [ ] Show contact photos on map markers
+- [ ] Include phone numbers in route waypoint details

@@ -60,13 +60,13 @@ export type InsertRouteWaypoint = typeof routeWaypoints.$inferInsert;
  */
 export const cachedContacts = mysqlTable("cached_contacts", {
   id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(), // Owner of the contacts
-  resourceName: varchar("resourceName", { length: 255 }).notNull(), // Google People API resource name
-  name: varchar("name", { length: 255 }), // Contact name
-  email: varchar("email", { length: 320 }), // Contact email
-  address: text("address"), // Full address string
-  addressType: varchar("addressType", { length: 64 }), // home, work, etc.
-  lastSynced: timestamp("lastSynced").defaultNow().notNull(), // When contact was last synced
+  userId: int("userId").notNull(), // Owner of the cached contact
+  googleResourceName: varchar("googleResourceName", { length: 255 }), // Google People API resource name
+  name: varchar("name", { length: 255 }),
+  email: varchar("email", { length: 320 }),
+  address: text("address"),
+  phoneNumbers: text("phoneNumbers"), // JSON array of {value, type, label}
+  photoUrl: text("photoUrl"), // Contact photo URL from Google
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

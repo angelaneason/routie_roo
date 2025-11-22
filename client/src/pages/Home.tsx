@@ -157,7 +157,7 @@ export default function Home() {
       waypoints,
       isPublic: false,
       optimizeRoute,
-      folderId: selectedFolderId ? parseInt(selectedFolderId) : undefined,
+      folderId: (selectedFolderId && selectedFolderId !== "none") ? parseInt(selectedFolderId) : undefined,
     });
   };
 
@@ -316,11 +316,40 @@ export default function Home() {
                           checked={selectedContacts.has(contact.id)}
                           onCheckedChange={() => handleToggleContact(contact.id)}
                         />
+                        {contact.photoUrl && (
+                          <img
+                            src={contact.photoUrl}
+                            alt={contact.name || "Contact"}
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
+                        )}
+                        {!contact.photoUrl && (
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span className="text-sm font-medium text-primary">
+                              {(contact.name || "?").charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="font-medium">{contact.name}</p>
                           <p className="text-sm text-muted-foreground truncate">
                             {contact.address}
                           </p>
+                          {contact.phoneNumbers && (() => {
+                            try {
+                              const phones = JSON.parse(contact.phoneNumbers);
+                              if (phones.length > 0) {
+                                return (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    📞 {phones[0].value} {phones[0].label && `(${phones[0].label})`}
+                                  </p>
+                                );
+                              }
+                            } catch (e) {
+                              return null;
+                            }
+                            return null;
+                          })()}
                         </div>
                       </div>
                     ))}
@@ -357,7 +386,7 @@ export default function Home() {
                           <SelectValue placeholder="No folder" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No folder</SelectItem>
+                          <SelectItem value="none">No folder</SelectItem>
                           {folders.map((folder) => (
                             <SelectItem key={folder.id} value={folder.id.toString()}>
                               <div className="flex items-center gap-2">
