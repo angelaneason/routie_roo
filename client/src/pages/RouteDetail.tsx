@@ -12,7 +12,8 @@ import { Link, useParams } from "wouter";
 import { toast } from "sonner";
 
 export default function RouteDetail() {
-  const { routeId } = useParams<{ routeId: string }>();
+  const { id } = useParams<{ id: string }>();
+  const routeId = id;
   const { isAuthenticated } = useAuth();
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);

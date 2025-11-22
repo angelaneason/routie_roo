@@ -115,3 +115,11 @@
 - [x] Add visible folder filter dropdown in routes section on Home page
 - [x] Create Settings page with preferences (calling service, distance unit, etc.)
 - [x] Add navigation link to Settings page
+
+
+## Bug Fixes
+
+- [x] Fix "Route Not Found" error when creating and viewing routes
+- [x] Investigate route creation database storage
+- [x] Fix route retrieval by ID
+- [x] Test complete route creation and viewing flow
