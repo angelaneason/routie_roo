@@ -432,7 +432,7 @@ export default function SharedRouteExecution() {
 
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground pb-8">
-          <p>Powered by Contact Route Mapper</p>
+          <p>Powered by RoutieRoo</p>
         </div>
       </main>
 

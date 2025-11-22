@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { APP_TITLE, getLoginUrl } from "@/const";
+import { APP_TITLE, APP_LOGO, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle } from "lucide-react";
 import { formatDistance } from "@shared/distance";
@@ -234,8 +234,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
         <header className="p-6">
           <div className="container flex items-center gap-3">
-            <MapPin className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">{APP_TITLE}</h1>
+            <img src={APP_LOGO} alt="RoutieRoo" className="h-12" />
           </div>
         </header>
         
@@ -330,8 +329,7 @@ export default function Home() {
       <header className="bg-white border-b">
         <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <MapPin className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">{APP_TITLE}</h1>
+            <img src={APP_LOGO} alt="RoutieRoo" className="h-10" />
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground">

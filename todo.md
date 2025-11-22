@@ -362,3 +362,11 @@
 - [x] Test phone call/text from shared route
 - [x] Test drag-and-drop reordering on shared route
 - [x] Verify all updates sync back to creator's account
+
+
+## Branding Updates
+
+- [x] Copy RoutieRoo logo to client/public directory
+- [x] Update APP_LOGO constant to use new logo
+- [x] Hide "Contact Route Mapper" text in header
+- [x] Test logo display across all pages
