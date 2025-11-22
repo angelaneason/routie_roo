@@ -6,6 +6,7 @@ import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy } from "lucide-react";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
+import { PhoneTextMenu } from "@/components/PhoneTextMenu";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
 import { toast } from "sonner";
@@ -215,14 +216,22 @@ export default function RouteDetail() {
                           {phoneNumbers.length > 0 && (
                             <div className="mt-2 space-y-1">
                               {phoneNumbers.map((phone: any, idx: number) => (
-                                <PhoneCallMenu
-                                  key={idx}
-                                  phoneNumber={phone.value}
-                                  label={phone.label || phone.type || 'Phone'}
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-7 text-xs"
-                                />
+                                <div key={idx} className="flex gap-2">
+                                  <PhoneCallMenu
+                                    phoneNumber={phone.value}
+                                    label={`Call ${phone.label || phone.type || 'Phone'}`}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 text-xs flex-1"
+                                  />
+                                  <PhoneTextMenu
+                                    phoneNumber={phone.value}
+                                    label="Text"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                  />
+                                </div>
                               ))}
                             </div>
                           )}

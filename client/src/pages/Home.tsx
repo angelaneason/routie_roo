@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { APP_TITLE, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { useState, useEffect } from "react";
@@ -32,7 +32,7 @@ export default function Home() {
   const [routeName, setRouteName] = useState("");
   const [optimizeRoute, setOptimizeRoute] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFolderFilter, setSelectedFolderFilter] = useState<number | null>(null);
+  const [selectedFolderFilter, setSelectedFolderFilter] = useState<string>("all");
   const [selectedFolderId, setSelectedFolderId] = useState<string>("");
   const [isCreatingRoute, setIsCreatingRoute] = useState(false);
   const [deleteRouteId, setDeleteRouteId] = useState<number | null>(null);
@@ -271,9 +271,11 @@ export default function Home() {
   });
   
   // Filter routes by folder
-  const filteredRoutes = selectedFolderFilter === null 
+  const filteredRoutes = selectedFolderFilter === "all" 
     ? routes 
-    : routes.filter(r => r.folderId === selectedFolderFilter);
+    : selectedFolderFilter === "none"
+    ? routes.filter(r => r.folderId === null)
+    : routes.filter(r => r.folderId === parseInt(selectedFolderFilter));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -287,6 +289,12 @@ export default function Home() {
             <span className="text-sm text-muted-foreground">
               {user?.name || user?.email}
             </span>
+            <Link href="/settings">
+              <Button variant="outline" size="sm">
+                <SettingsIcon className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -518,12 +526,33 @@ export default function Home() {
           <div>
             <Card>
               <CardHeader>
-                <CardTitle>Your Routes</CardTitle>
-                <CardDescription>
-                  {routes.length > 0 
-                    ? `${routes.length} saved route${routes.length !== 1 ? 's' : ''}`
-                    : "No routes created yet"}
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Your Routes</CardTitle>
+                    <CardDescription>
+                      {routes.length > 0 
+                        ? `${routes.length} saved route${routes.length !== 1 ? 's' : ''}`
+                        : "No routes created yet"}
+                    </CardDescription>
+                  </div>
+                  {folders.length > 0 && (
+                    <Select value={selectedFolderFilter} onValueChange={setSelectedFolderFilter}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="All Folders" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Folders</SelectItem>
+                        {folders.map((folder) => (
+                          <SelectItem key={folder.id} value={folder.id.toString()}>
+                            <Folder className="h-4 w-4 inline mr-2" />
+                            {folder.name}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="none">No Folder</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {routesQuery.isLoading ? (

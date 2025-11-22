@@ -481,6 +481,26 @@ export const appRouter = router({
 
         return { success: true };
       }),
+    
+    updatePreferences: protectedProcedure
+      .input(z.object({
+        preferredCallingService: z.enum(["phone", "google-voice", "whatsapp", "skype", "facetime"]).optional(),
+        distanceUnit: z.enum(["km", "miles"]).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        const updateData: any = {};
+        if (input.preferredCallingService) updateData.preferredCallingService = input.preferredCallingService;
+        if (input.distanceUnit) updateData.distanceUnit = input.distanceUnit;
+
+        await db.update(users)
+          .set(updateData)
+          .where(eq(users.id, ctx.user.id));
+
+        return { success: true };
+      }),
   }),
 });
 

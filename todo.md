@@ -101,3 +101,17 @@
 - [x] Update route creation to save contact phone numbers to waypoints
 - [x] Display phone numbers in route detail page waypoint list
 - [x] Add PhoneCallMenu to waypoints for click-to-call and text messaging
+
+## Separate Call and Text Actions
+
+- [ ] Create separate PhoneCallMenu component for calling only
+- [ ] Create separate PhoneTextMenu component for texting only
+- [ ] Update waypoint display to show both call and text buttons
+- [ ] Test that text button opens messaging app directly
+
+## UI Fixes
+
+- [x] Update RouteDetail to show separate Call and Text buttons for waypoints
+- [x] Add visible folder filter dropdown in routes section on Home page
+- [x] Create Settings page with preferences (calling service, distance unit, etc.)
+- [x] Add navigation link to Settings page

@@ -47,14 +47,7 @@ export function PhoneCallMenu({
         // FaceTime (iOS/macOS)
         url = `facetime:${cleanNumber}`;
         break;
-      case 'sms':
-        // SMS text message
-        url = `sms:${cleanNumber}`;
-        break;
-      case 'whatsapp-text':
-        // WhatsApp text message
-        url = `https://wa.me/${cleanNumber}`;
-        break;
+
     }
     
     if (url) {
@@ -102,15 +95,7 @@ export function PhoneCallMenu({
           </svg>
           FaceTime
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => handleCall('sms')}>
-          <MessageCircle className="h-4 w-4 mr-2" />
-          SMS Text
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleCall('whatsapp-text')}>
-          <MessageCircle className="h-4 w-4 mr-2" />
-          WhatsApp Text
-        </DropdownMenuItem>
+
       </DropdownMenuContent>
     </DropdownMenu>
   );
