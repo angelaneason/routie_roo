@@ -1,0 +1,49 @@
+# Contact Route Mapper - Project TODO
+
+## Phase 1: Database Schema & Setup
+- [x] Define routes table for storing generated routes
+- [x] Define contacts table for caching contact data
+- [x] Define route_waypoints table for storing route stops
+- [x] Push database schema changes
+
+## Phase 2: Google API Integration
+- [x] Request Google People API credentials from user
+- [x] Request Google Maps API key from user
+- [x] Implement Google OAuth flow for contacts access
+- [x] Create backend procedure to fetch contacts from Google People API
+- [x] Test contact retrieval and address extraction
+
+## Phase 3: Contact Selection & Route Creation
+- [x] Build contact list display UI
+- [x] Add contact selection checkboxes
+- [x] Filter contacts with valid addresses
+- [x] Create route generation form
+- [x] Implement backend route calculation with Google Maps Routes API
+- [x] Save generated routes to database
+
+## Phase 4: Map Visualization
+- [x] Integrate Google Maps component
+- [x] Display route polyline on map
+- [x] Add markers for each waypoint
+- [x] Show route details (distance, duration, optimized order)
+- [x] Add "Open in Google Maps" button with shareable URL
+
+## Phase 5: Route Sharing & Export
+- [x] Generate unique shareable route links
+- [x] Create public route view page
+- [x] Implement route privacy controls
+- [ ] Add export to GPX format
+- [ ] Add export to KML format
+- [x] Add copy link functionality
+
+## Phase 6: Testing & Documentation
+- [ ] Test complete user flow (login → select contacts → generate route → share)
+- [x] Write vitest tests for route generation procedures
+- [x] Create user setup guide for Google API credentials
+- [ ] Test on mobile browsers
+- [ ] Verify all sharing methods work
+
+## Phase 7: Deployment
+- [ ] Save project checkpoint
+- [ ] Create deployment documentation
+- [ ] Provide user guide for team testing

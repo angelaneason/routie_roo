@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, routes, routeWaypoints, cachedContacts, InsertRoute, InsertRouteWaypoint, InsertCachedContact } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,89 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Route management functions
+export async function createRoute(route: InsertRoute) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(routes).values(route);
+  return result;
+}
+
+export async function getRouteById(routeId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db.select().from(routes).where(eq(routes.id, routeId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getRouteByShareId(shareId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db.select().from(routes).where(eq(routes.shareId, shareId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserRoutes(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(routes).where(eq(routes.userId, userId)).orderBy(routes.createdAt);
+}
+
+// Route waypoints functions
+export async function createRouteWaypoints(waypoints: InsertRouteWaypoint[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  if (waypoints.length === 0) return;
+  return db.insert(routeWaypoints).values(waypoints);
+}
+
+export async function getRouteWaypoints(routeId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(routeWaypoints)
+    .where(eq(routeWaypoints.routeId, routeId))
+    .orderBy(routeWaypoints.position);
+}
+
+// Cached contacts functions
+export async function upsertCachedContacts(contacts: InsertCachedContact[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  if (contacts.length === 0) return;
+  
+  // Insert or update each contact
+  for (const contact of contacts) {
+    await db.insert(cachedContacts).values(contact).onDuplicateKeyUpdate({
+      set: {
+        name: contact.name,
+        email: contact.email,
+        address: contact.address,
+        addressType: contact.addressType,
+        lastSynced: contact.lastSynced,
+      },
+    });
+  }
+}
+
+export async function getUserCachedContacts(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(cachedContacts)
+    .where(eq(cachedContacts.userId, userId))
+    .orderBy(cachedContacts.name);
+}
+
+export async function clearUserCachedContacts(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db.delete(cachedContacts).where(eq(cachedContacts.userId, userId));
+}

@@ -1,17 +1,10 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
  */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -25,4 +18,56 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Routes table - stores generated driving routes
+ */
+export const routes = mysqlTable("routes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Owner of the route
+  name: varchar("name", { length: 255 }).notNull(), // User-defined route name
+  shareId: varchar("shareId", { length: 32 }).notNull().unique(), // Unique ID for sharing
+  isPublic: boolean("isPublic").default(false).notNull(), // Privacy control
+  totalDistance: int("totalDistance"), // Total distance in meters
+  totalDuration: int("totalDuration"), // Total duration in seconds
+  optimized: boolean("optimized").default(true).notNull(), // Whether waypoints were optimized
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Route = typeof routes.$inferSelect;
+export type InsertRoute = typeof routes.$inferInsert;
+
+/**
+ * Route waypoints table - stores individual stops in a route
+ */
+export const routeWaypoints = mysqlTable("route_waypoints", {
+  id: int("id").autoincrement().primaryKey(),
+  routeId: int("routeId").notNull(), // Foreign key to routes
+  position: int("position").notNull(), // Order in the route (0 = origin, last = destination)
+  contactName: varchar("contactName", { length: 255 }), // Name from contact (optional, for privacy)
+  address: text("address").notNull(), // Full address string
+  latitude: varchar("latitude", { length: 32 }), // Latitude coordinate
+  longitude: varchar("longitude", { length: 32 }), // Longitude coordinate
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type RouteWaypoint = typeof routeWaypoints.$inferSelect;
+export type InsertRouteWaypoint = typeof routeWaypoints.$inferInsert;
+
+/**
+ * Cached contacts table - stores user's Google contacts for faster access
+ */
+export const cachedContacts = mysqlTable("cached_contacts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Owner of the contacts
+  resourceName: varchar("resourceName", { length: 255 }).notNull(), // Google People API resource name
+  name: varchar("name", { length: 255 }), // Contact name
+  email: varchar("email", { length: 320 }), // Contact email
+  address: text("address"), // Full address string
+  addressType: varchar("addressType", { length: 64 }), // home, work, etc.
+  lastSynced: timestamp("lastSynced").defaultNow().notNull(), // When contact was last synced
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CachedContact = typeof cachedContacts.$inferSelect;
+export type InsertCachedContact = typeof cachedContacts.$inferInsert;
