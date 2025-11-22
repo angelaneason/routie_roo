@@ -11,6 +11,7 @@ import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar } from
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
+import { RouteExecutionPanel } from "@/components/RouteExecutionPanel";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
 import { toast } from "sonner";
@@ -286,6 +287,13 @@ export default function RouteDetail() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Route Execution Panel */}
+            <RouteExecutionPanel
+              routeId={parseInt(routeId!)}
+              waypoints={waypoints as any}
+              onUpdate={() => routeQuery.refetch()}
+            />
           </div>
         </div>
       </main>

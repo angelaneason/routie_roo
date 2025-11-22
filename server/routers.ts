@@ -29,7 +29,7 @@ import {
   createCalendarEvent
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
-import { users } from "../drizzle/schema";
+import { users, routes, routeWaypoints } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -551,6 +551,149 @@ export const appRouter = router({
 
         const redirectUri = `${ctx.req.protocol}://${ctx.req.get('host')}/api/oauth/google/calendar-callback`;
         return { url: getGoogleAuthUrl(redirectUri, state) };
+      }),
+
+    // Update waypoint status (for route execution)
+    updateWaypointStatus: protectedProcedure
+      .input(z.object({
+        waypointId: z.number(),
+        status: z.enum(["pending", "in_progress", "complete", "missed"]),
+        missedReason: z.string().optional(),
+        executionNotes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify waypoint belongs to user's route
+        const waypoint = await db.select().from(routeWaypoints).where(eq(routeWaypoints.id, input.waypointId)).limit(1);
+        if (!waypoint.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Waypoint not found" });
+        }
+
+        const route = await getRouteById(waypoint[0].routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        const updateData: any = {
+          status: input.status,
+        };
+
+        if (input.status === "complete") {
+          updateData.completedAt = new Date();
+        }
+
+        if (input.status === "missed") {
+          updateData.needsReschedule = 1;
+          if (input.missedReason) {
+            updateData.missedReason = input.missedReason;
+          }
+        }
+
+        if (input.executionNotes) {
+          updateData.executionNotes = input.executionNotes;
+        }
+
+        await db.update(routeWaypoints)
+          .set(updateData)
+          .where(eq(routeWaypoints.id, input.waypointId));
+
+        return { success: true };
+      }),
+
+    // Update waypoint execution order
+    updateWaypointOrder: protectedProcedure
+      .input(z.object({
+        waypointId: z.number(),
+        newOrder: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify waypoint belongs to user's route
+        const waypoint = await db.select().from(routeWaypoints).where(eq(routeWaypoints.id, input.waypointId)).limit(1);
+        if (!waypoint.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Waypoint not found" });
+        }
+
+        const route = await getRouteById(waypoint[0].routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        await db.update(routeWaypoints)
+          .set({ executionOrder: input.newOrder })
+          .where(eq(routeWaypoints.id, input.waypointId));
+
+        return { success: true };
+      }),
+
+    // Reschedule a missed waypoint
+    rescheduleWaypoint: protectedProcedure
+      .input(z.object({
+        waypointId: z.number(),
+        rescheduledDate: z.string(), // ISO date string
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify waypoint belongs to user's route
+        const waypoint = await db.select().from(routeWaypoints).where(eq(routeWaypoints.id, input.waypointId)).limit(1);
+        if (!waypoint.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Waypoint not found" });
+        }
+
+        const route = await getRouteById(waypoint[0].routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        await db.update(routeWaypoints)
+          .set({ 
+            rescheduledDate: new Date(input.rescheduledDate),
+            needsReschedule: 0,
+          })
+          .where(eq(routeWaypoints.id, input.waypointId));
+
+        return { success: true };
+      }),
+
+    // Get all missed waypoints that need rescheduling (for manager dashboard)
+    getMissedWaypoints: protectedProcedure
+      .query(async ({ ctx }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Get all routes for this user
+        const userRoutes = await db.select().from(routes).where(eq(routes.userId, ctx.user.id));
+        const routeIds = userRoutes.map(r => r.id);
+
+        if (routeIds.length === 0) {
+          return [];
+        }
+
+        // Get all missed waypoints from user's routes
+        const missedWaypoints = await db.select()
+          .from(routeWaypoints)
+          .where(eq(routeWaypoints.status, "missed"));
+
+        // Filter to only include waypoints from user's routes and join with route info
+        const result = [];
+        for (const wp of missedWaypoints) {
+          const route = userRoutes.find(r => r.id === wp.routeId);
+          if (route) {
+            result.push({
+              ...wp,
+              routeName: route.name,
+              routeId: route.id,
+            });
+          }
+        }
+
+        return result;
       }),
   }),
 

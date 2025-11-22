@@ -194,3 +194,64 @@
 - [x] Fix route list to show miles when user selects miles in settings
 - [x] Fix route detail page to show miles when user selects miles in settings
 - [x] Ensure unit conversion is applied consistently across all distance displays
+
+
+## Route Execution Workflow
+
+### Database Schema Updates
+- [x] Add status field to route_waypoints (pending, in_progress, complete, missed)
+- [x] Add completedAt timestamp to route_waypoints
+- [x] Add missedReason text field to route_waypoints
+- [x] Add rescheduledDate field to route_waypoints
+- [x] Add executionOrder field to route_waypoints (for reordering during execution)
+- [x] Add executionNotes field to route_waypoints
+- [x] Add needsReschedule boolean flag to route_waypoints
+- [x] Push database schema changes
+
+### Stop Status Tracking
+- [x] Create stop status badge component (pending/in-progress/complete/missed)
+- [x] Add status update buttons to route detail page
+- [x] Implement updateWaypointStatus tRPC procedure
+- [x] Add completion timestamp recording
+- [x] Add reason/notes input for missed stops
+- [x] Show stop completion progress indicator on route
+- [x] Add comments/notes field for route drivers
+
+### Stop Reordering
+- [ ] Add drag-and-drop reordering UI to route detail page
+- [x] Implement updateWaypointOrder tRPC procedure
+- [x] Save execution order separately from original order
+- [ ] Add "Reset to Original Order" button
+- [ ] Show visual indicator when order differs from original
+
+### Reschedule System
+- [x] Add "Reschedule" button for missed stops
+- [x] Create reschedule dialog with date/time picker
+- [ ] Integrate with Google Calendar API for reschedule events
+- [x] Mark stop as rescheduled when date is set
+- [x] Clear needsReschedule flag when rescheduled
+
+### Manager Dashboard
+- [x] Create "Missed Stops" dashboard view
+- [x] Show all missed stops across all routes
+- [x] Filter by: needs reschedule, rescheduled
+- [ ] Add bulk actions (assign, reschedule, mark resolved)
+- [x] Show route name and link to route detail
+- [ ] Add export to CSV functionality
+
+### Route Execution UI
+- [x] Create route execution panel component
+- [x] Show current stop with prominent highlight
+- [x] Show route progress (X of Y stops complete)
+- [x] Add quick action buttons (Complete, Miss, Add Note)
+- [x] Add execution notes dialog for each stop
+- [x] Display missed reason and reschedule date
+- [ ] Add "Next Stop" navigation button
+- [ ] Show estimated time remaining based on incomplete stops
+
+### Testing
+- [x] Write tests for waypoint status updates
+- [x] Write tests for stop reordering
+- [x] Write tests for reschedule workflow
+- [x] Test manager dashboard queries
+- [x] Test execution mode UI flows

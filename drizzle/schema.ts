@@ -55,6 +55,14 @@ export const routeWaypoints = mysqlTable("route_waypoints", {
   phoneNumbers: text("phoneNumbers"), // JSON array of {value, type, label}
   stopType: mysqlEnum("stopType", ["pickup", "delivery", "meeting", "visit", "other"]).default("other"), // Type of stop
   stopColor: varchar("stopColor", { length: 7 }).default("#3b82f6"), // Hex color for marker
+  // Execution workflow fields
+  status: mysqlEnum("status", ["pending", "in_progress", "complete", "missed"]).default("pending"), // Stop completion status
+  executionOrder: int("executionOrder"), // Order during execution (can differ from waypoint_order)
+  completedAt: timestamp("completedAt"), // When stop was completed
+  missedReason: text("missedReason"), // Reason for missing stop
+  executionNotes: text("executionNotes"), // Notes added during execution
+  rescheduledDate: timestamp("rescheduledDate"), // When missed stop is rescheduled for
+  needsReschedule: int("needsReschedule").default(0), // 1 if missed and needs rescheduling
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

@@ -71,6 +71,13 @@
       "when": 1763843177686,
       "tag": "0009_lovely_spirit",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1763846680628,
+      "tag": "0010_loose_wallop",
+      "breakpoints": true
     }
   ]
 }

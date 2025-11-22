@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { APP_TITLE, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { ContactEditDialog } from "@/components/ContactEditDialog";
@@ -331,6 +331,12 @@ export default function Home() {
             <span className="text-sm text-muted-foreground">
               {user?.name || user?.email}
             </span>
+            <Link href="/missed-stops">
+              <Button variant="outline" size="sm">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Missed Stops
+              </Button>
+            </Link>
             <Link href="/settings">
               <Button variant="outline" size="sm">
                 <SettingsIcon className="h-4 w-4 mr-2" />
