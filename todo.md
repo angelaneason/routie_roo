@@ -370,3 +370,8 @@
 - [x] Update APP_LOGO constant to use new logo
 - [x] Hide "Contact Route Mapper" text in header
 - [x] Test logo display across all pages
+
+
+## Logo Size Fix
+
+- [x] Increase logo size in header for better visibility

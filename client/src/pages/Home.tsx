@@ -234,7 +234,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
         <header className="p-6">
           <div className="container flex items-center gap-3">
-            <img src={APP_LOGO} alt="RoutieRoo" className="h-12" />
+            <img src={APP_LOGO} alt="RoutieRoo" className="h-20" />
           </div>
         </header>
         
@@ -329,7 +329,7 @@ export default function Home() {
       <header className="bg-white border-b">
         <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={APP_LOGO} alt="RoutieRoo" className="h-10" />
+            <img src={APP_LOGO} alt="RoutieRoo" className="h-16" />
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground">
