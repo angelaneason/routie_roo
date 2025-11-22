@@ -25,7 +25,8 @@ import {
   getGoogleAuthUrl, 
   exchangeCodeForToken, 
   fetchGoogleContacts, 
-  parseGoogleContacts 
+  parseGoogleContacts,
+  createCalendarEvent
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
 import { users } from "../drizzle/schema";
@@ -304,10 +305,13 @@ export const appRouter = router({
     create: protectedProcedure
       .input(z.object({
         name: z.string().min(1),
+        notes: z.string().optional(),
         waypoints: z.array(z.object({
           contactName: z.string().optional(),
           address: z.string(),
           phoneNumbers: z.string().optional(), // JSON string of phone numbers
+          stopType: z.enum(["pickup", "delivery", "meeting", "visit", "other"]).optional(),
+          stopColor: z.string().optional(),
         })).min(2),
         isPublic: z.boolean().default(false),
         optimizeRoute: z.boolean().default(true),
@@ -340,6 +344,7 @@ export const appRouter = router({
         const routeResult = await createRoute({
           userId: ctx.user.id,
           name: input.name,
+          notes: input.notes || null,
           shareId,
           isPublic: input.isPublic,
           totalDistance: routeData.distanceMeters,
@@ -377,6 +382,8 @@ export const appRouter = router({
             latitude: leg?.startLocation?.latLng?.latitude?.toString() || null,
             longitude: leg?.startLocation?.latLng?.longitude?.toString() || null,
             phoneNumbers: wp.phoneNumbers || null,
+            stopType: wp.stopType || "other",
+            stopColor: wp.stopColor || "#3b82f6",
           };
         });
 
@@ -517,6 +524,33 @@ export const appRouter = router({
 
         await updateRoute(input.routeId, { folderId: input.folderId });
         return { success: true };
+      }),
+
+    // Get calendar authorization URL
+    getCalendarAuthUrl: protectedProcedure
+      .input(z.object({
+        routeId: z.number(),
+        startTime: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const route = await getRouteById(input.routeId);
+        
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Route not found",
+          });
+        }
+
+        // Store route info in state for callback
+        const state = JSON.stringify({
+          userId: ctx.user.id,
+          routeId: input.routeId,
+          startTime: input.startTime,
+        });
+
+        const redirectUri = `${ctx.req.protocol}://${ctx.req.get('host')}/api/oauth/google/calendar-callback`;
+        return { url: getGoogleAuthUrl(redirectUri, state) };
       }),
   }),
 

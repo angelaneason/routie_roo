@@ -52,7 +52,7 @@ export function getGoogleAuthUrl(redirectUri: string, state?: string): string {
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: redirectUri,
     response_type: "code",
-    scope: "https://www.googleapis.com/auth/contacts.readonly",
+    scope: "https://www.googleapis.com/auth/contacts https://www.googleapis.com/auth/calendar.events",
     access_type: "offline",
     prompt: "consent",
   });
@@ -172,4 +172,114 @@ export function parseGoogleContacts(googleContacts: GoogleContact[]) {
         labels: JSON.stringify(labels),
       };
     });
+}
+
+/**
+ * Update a contact in Google Contacts
+ */
+export async function updateGoogleContact(
+  accessToken: string,
+  resourceName: string,
+  updates: {
+    name?: string;
+    email?: string;
+    address?: string;
+    phoneNumbers?: Array<{ value: string; label: string }>;
+  }
+): Promise<void> {
+  // First, fetch the current contact to get the etag
+  const getResponse = await fetch(
+    `https://people.googleapis.com/v1/${resourceName}?personFields=names,emailAddresses,addresses,phoneNumbers`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (!getResponse.ok) {
+    const error = await getResponse.text();
+    throw new Error(`Failed to fetch contact for update: ${error}`);
+  }
+
+  const currentContact = await getResponse.json();
+  const etag = currentContact.etag;
+
+  // Build the update payload
+  const updatePayload: any = {
+    etag,
+    names: updates.name ? [{ displayName: updates.name }] : currentContact.names,
+    emailAddresses: updates.email ? [{ value: updates.email }] : currentContact.emailAddresses,
+    addresses: updates.address ? [{ formattedValue: updates.address }] : currentContact.addresses,
+    phoneNumbers: updates.phoneNumbers 
+      ? updates.phoneNumbers.map(p => ({ value: p.value, type: p.label }))
+      : currentContact.phoneNumbers,
+  };
+
+  // Update the contact
+  const updateResponse = await fetch(
+    `https://people.googleapis.com/v1/${resourceName}:updateContact?updatePersonFields=names,emailAddresses,addresses,phoneNumbers`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatePayload),
+    }
+  );
+
+  if (!updateResponse.ok) {
+    const error = await updateResponse.text();
+    throw new Error(`Failed to update contact: ${error}`);
+  }
+}
+
+/**
+ * Create a Google Calendar event for a route
+ */
+export async function createCalendarEvent(
+  accessToken: string,
+  event: {
+    summary: string;
+    description?: string;
+    start: string; // ISO 8601 datetime
+    end: string; // ISO 8601 datetime
+    location?: string;
+  }
+): Promise<{ eventId: string; htmlLink: string }> {
+  const response = await fetch(
+    "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        summary: event.summary,
+        description: event.description,
+        start: {
+          dateTime: event.start,
+          timeZone: "UTC",
+        },
+        end: {
+          dateTime: event.end,
+          timeZone: "UTC",
+        },
+        location: event.location,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to create calendar event: ${error}`);
+  }
+
+  const data = await response.json();
+  return {
+    eventId: data.id,
+    htmlLink: data.htmlLink,
+  };
 }

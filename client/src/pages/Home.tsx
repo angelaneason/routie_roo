@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -22,6 +23,7 @@ import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder,
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { ContactEditDialog } from "@/components/ContactEditDialog";
+import { StopTypeSelector, getStopTypeConfig, type StopType } from "@/components/StopTypeSelector";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Link, useLocation } from "wouter";
@@ -30,7 +32,9 @@ export default function Home() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
+  const [contactStopTypes, setContactStopTypes] = useState<Map<number, { type: string; color: string }>>(new Map());
   const [routeName, setRouteName] = useState("");
+  const [routeNotes, setRouteNotes] = useState("");
   const [optimizeRoute, setOptimizeRoute] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFolderFilter, setSelectedFolderFilter] = useState<string>("all");
@@ -82,7 +86,9 @@ export default function Home() {
     onSuccess: (data) => {
       toast.success("Route created successfully!");
       setSelectedContacts(new Set());
+      setContactStopTypes(new Map());
       setRouteName("");
+      setRouteNotes("");
       setOptimizeRoute(true);
       setSelectedFolderId("");
       setIsCreatingRoute(false);
@@ -142,14 +148,22 @@ export default function Home() {
     }
   };
 
-  const handleToggleContact = (contactId: number) => {
+  const handleContactToggle = (contactId: number) => {
     const newSelected = new Set(selectedContacts);
+    const newStopTypes = new Map(contactStopTypes);
+    
     if (newSelected.has(contactId)) {
       newSelected.delete(contactId);
+      newStopTypes.delete(contactId);
     } else {
       newSelected.add(contactId);
+      // Initialize with default stop type
+      const defaultConfig = getStopTypeConfig("visit");
+      newStopTypes.set(contactId, { type: defaultConfig.type, color: defaultConfig.color });
     }
+    
     setSelectedContacts(newSelected);
+    setContactStopTypes(newStopTypes);
   };
 
   const handleCreateRoute = () => {
@@ -167,15 +181,21 @@ export default function Home() {
     const waypoints = Array.from(selectedContacts)
       .map(id => contacts.find(c => c.id === id))
       .filter(c => c)
-      .map(c => ({
-        contactName: c!.name || undefined,
-        address: c!.address!,
-        phoneNumbers: c!.phoneNumbers || undefined,
-      }));
+      .map(c => {
+        const stopTypeInfo = contactStopTypes.get(c!.id) || { type: "visit", color: "#3b82f6" };
+        return {
+          contactName: c!.name || undefined,
+          address: c!.address!,
+          phoneNumbers: c!.phoneNumbers || undefined,
+          stopType: stopTypeInfo.type as "pickup" | "delivery" | "meeting" | "visit" | "other",
+          stopColor: stopTypeInfo.color,
+        };
+      });
 
     setIsCreatingRoute(true);
     createRouteMutation.mutate({
       name: routeName,
+      notes: routeNotes || undefined,
       waypoints,
       isPublic: false,
       optimizeRoute,
@@ -394,11 +414,11 @@ export default function Home() {
                       <div
                         key={contact.id}
                         className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer"
-                        onClick={() => handleToggleContact(contact.id)}
+                        onClick={() => handleContactToggle(contact.id)}
                       >
                         <Checkbox
                           checked={selectedContacts.has(contact.id)}
-                          onCheckedChange={() => handleToggleContact(contact.id)}
+                          onCheckedChange={() => handleContactToggle(contact.id)}
                         />
                         {contact.photoUrl && (
                           <img
@@ -521,6 +541,17 @@ export default function Home() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="routeNotes">Notes (Optional)</Label>
+                    <Textarea
+                      id="routeNotes"
+                      placeholder="Add any notes or details about this route..."
+                      value={routeNotes}
+                      onChange={(e) => setRouteNotes(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="folder">Folder (Optional)</Label>
                     <div className="flex gap-2">
                       <Select value={selectedFolderId} onValueChange={setSelectedFolderId}>
@@ -583,6 +614,36 @@ export default function Home() {
                   <div className="text-sm text-muted-foreground">
                     {selectedContacts.size} contact{selectedContacts.size !== 1 ? 's' : ''} selected
                   </div>
+
+                  {selectedContacts.size > 0 && (
+                    <div className="space-y-2">
+                      <Label>Stop Types</Label>
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {Array.from(selectedContacts).map(contactId => {
+                          const contact = contacts.find(c => c.id === contactId);
+                          if (!contact) return null;
+                          const stopTypeInfo = contactStopTypes.get(contactId) || { type: "visit", color: "#3b82f6" };
+                          return (
+                            <div key={contactId} className="flex items-center gap-2 p-2 bg-muted rounded">
+                              <span className="text-sm flex-1 truncate">{contact.name}</span>
+                              <div className="w-32">
+                                <StopTypeSelector
+                                  value={stopTypeInfo.type as StopType}
+                                  onChange={(newType) => {
+                                    const config = getStopTypeConfig(newType);
+                                    const newStopTypes = new Map(contactStopTypes);
+                                    newStopTypes.set(contactId, { type: config.type, color: config.color });
+                                    setContactStopTypes(newStopTypes);
+                                  }}
+                                  size="sm"
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   <Button
                     className="w-full"

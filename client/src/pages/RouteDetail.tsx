@@ -1,10 +1,13 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { MapView } from "@/components/Map";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar } from "lucide-react";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
 import { useEffect, useState } from "react";
@@ -17,6 +20,8 @@ export default function RouteDetail() {
   const { isAuthenticated } = useAuth();
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+  const [showCalendarDialog, setShowCalendarDialog] = useState(false);
+  const [calendarStartTime, setCalendarStartTime] = useState("");
 
   const routeQuery = trpc.routes.get.useQuery(
     { routeId: parseInt(routeId!) },
@@ -90,6 +95,33 @@ export default function RouteDetail() {
     }
   };
 
+  const calendarMutation = trpc.routes.getCalendarAuthUrl.useMutation({
+    onSuccess: (data) => {
+      window.location.href = data.url;
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to add to calendar");
+    },
+  });
+
+  const handleAddToCalendar = () => {
+    // Set default start time to now
+    const now = new Date();
+    now.setMinutes(Math.ceil(now.getMinutes() / 15) * 15); // Round to next 15 minutes
+    const defaultTime = now.toISOString().slice(0, 16);
+    setCalendarStartTime(defaultTime);
+    setShowCalendarDialog(true);
+  };
+
+  const handleConfirmAddToCalendar = () => {
+    if (!calendarStartTime || !routeId) return;
+    
+    calendarMutation.mutate({
+      routeId: parseInt(routeId),
+      startTime: new Date(calendarStartTime).toISOString(),
+    });
+  };
+
   if (routeQuery.isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -141,6 +173,10 @@ export default function RouteDetail() {
                 <Copy className="h-4 w-4 mr-2" />
                 Copy Link
               </Button>
+              <Button variant="outline" size="sm" onClick={handleAddToCalendar}>
+                <Calendar className="h-4 w-4 mr-2" />
+                Add to Calendar
+              </Button>
               <Button size="sm" onClick={handleOpenInGoogleMaps}>
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Open in Google Maps
@@ -190,6 +226,12 @@ export default function RouteDetail() {
                   <p className="text-sm text-muted-foreground">Stops</p>
                   <p className="text-2xl font-bold">{waypoints.length}</p>
                 </div>
+                {route.notes && (
+                  <div className="pt-4 border-t">
+                    <p className="text-sm text-muted-foreground mb-2">Notes</p>
+                    <p className="text-sm whitespace-pre-wrap">{route.notes}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -246,6 +288,43 @@ export default function RouteDetail() {
           </div>
         </div>
       </main>
+
+      {/* Calendar Dialog */}
+      <Dialog open={showCalendarDialog} onOpenChange={setShowCalendarDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Route to Google Calendar</DialogTitle>
+            <DialogDescription>
+              Select when you want to start this route
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="start-time">Start Time</Label>
+              <Input
+                id="start-time"
+                type="datetime-local"
+                value={calendarStartTime}
+                onChange={(e) => setCalendarStartTime(e.target.value)}
+              />
+            </div>
+            {route && (
+              <div className="text-sm text-muted-foreground">
+                <p>Duration: {Math.round(route.totalDuration! / 60)} minutes</p>
+                <p>Distance: {(route.totalDistance! / 1000).toFixed(1)} km</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCalendarDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmAddToCalendar} disabled={!calendarStartTime}>
+              Add to Calendar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

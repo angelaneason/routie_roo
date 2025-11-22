@@ -57,6 +57,20 @@
       "when": 1763841657785,
       "tag": "0007_blue_shriek",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1763843051364,
+      "tag": "0008_futuristic_retro_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1763843177686,
+      "tag": "0009_lovely_spirit",
+      "breakpoints": true
     }
   ]
 }

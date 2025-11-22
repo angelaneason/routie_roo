@@ -150,3 +150,39 @@
 - [ ] Implement Google People API update endpoint
 - [ ] Sync local contact changes back to Google Contacts
 - [ ] Add validation for address and phone number fields
+
+
+## New Feature Requests - Phase 2
+
+### Google People API Write Functionality
+- [x] Update Google OAuth scope to include write permissions
+- [x] Implement updateGoogleContact function in googleAuth.ts
+- [ ] Note: Google People API write requires service account or different auth approach
+- [ ] Consider alternative: Export contacts to CSV/vCard for manual import
+
+### Route Notes
+- [x] Add notes field to routes table in database schema
+- [x] Update route creation form to include notes textarea
+- [x] Display notes in route detail page
+- [ ] Add edit notes functionality to existing routes
+- [x] Push database schema changes
+- [x] Test route notes feature
+
+### Google Calendar Integration
+- [x] Add Google Calendar OAuth scope to existing auth
+- [x] Implement createCalendarEvent function
+- [x] Add "Add to Calendar" button on route detail page
+- [x] Create calendar dialog for selecting start time
+- [x] Generate calendar event with route details (name, waypoints, time, notes)
+- [x] Handle calendar OAuth callback
+- [x] Test calendar event creation
+
+### Stop Types with Color Codes and Shapes
+- [x] Add stopType field to route_waypoints table (pickup, delivery, meeting, visit, other)
+- [x] Add stopColor field to route_waypoints table
+- [x] Create stop type selector component
+- [x] Add stop type selector in route creation UI
+- [ ] Update map markers to show different shapes/colors based on stop type
+- [ ] Add legend showing stop type meanings
+- [ ] Update waypoint list to display stop type badges
+- [x] Push database schema changes

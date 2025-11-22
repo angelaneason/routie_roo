@@ -33,6 +33,7 @@ export const routes = mysqlTable("routes", {
   totalDuration: int("totalDuration"), // Total duration in seconds
   optimized: boolean("optimized").default(true).notNull(), // Whether waypoints were optimized
   folderId: int("folderId"), // Optional folder/category ID
+  notes: text("notes"), // Optional notes/description for the route
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -52,6 +53,8 @@ export const routeWaypoints = mysqlTable("route_waypoints", {
   latitude: varchar("latitude", { length: 32 }), // Latitude coordinate
   longitude: varchar("longitude", { length: 32 }), // Longitude coordinate
   phoneNumbers: text("phoneNumbers"), // JSON array of {value, type, label}
+  stopType: mysqlEnum("stopType", ["pickup", "delivery", "meeting", "visit", "other"]).default("other"), // Type of stop
+  stopColor: varchar("stopColor", { length: 7 }).default("#3b82f6"), // Hex color for marker
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

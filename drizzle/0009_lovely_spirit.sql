@@ -1,0 +1,2 @@
+ALTER TABLE `route_waypoints` ADD `stopType` enum('pickup','delivery','meeting','visit','other') DEFAULT 'other';--> statement-breakpoint
+ALTER TABLE `route_waypoints` ADD `stopColor` varchar(7) DEFAULT '#3b82f6';
