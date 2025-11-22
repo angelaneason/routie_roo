@@ -123,3 +123,13 @@
 - [x] Investigate route creation database storage
 - [x] Fix route retrieval by ID
 - [x] Test complete route creation and viewing flow
+
+
+## Phone Number Formatting Fix
+
+- [x] Create utility function to format US phone numbers as (XXX) XXX-XXXX
+- [x] Clean phone numbers for click-to-call (remove formatting characters)
+- [x] Update Home.tsx to use formatted phone numbers
+- [x] Update RouteDetail.tsx to use formatted phone numbers
+- [x] Update PhoneCallMenu to handle formatted numbers correctly
+- [x] Update PhoneTextMenu to handle formatted numbers correctly

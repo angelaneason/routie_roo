@@ -1,6 +1,7 @@
 import { Phone, MessageCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { cleanPhoneNumber, formatUSPhoneNumber } from "@shared/phoneFormat";
 
 interface PhoneCallMenuProps {
   phoneNumber: string;
@@ -19,8 +20,8 @@ export function PhoneCallMenu({
   className = "",
   preferredService = "phone"
 }: PhoneCallMenuProps) {
-  // Clean phone number (remove spaces, dashes, parentheses)
-  const cleanNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
+  const cleanNumber = cleanPhoneNumber(phoneNumber);
+  const displayNumber = formatUSPhoneNumber(phoneNumber);
   
   const handleCall = (service?: string) => {
     const serviceToUse = service || preferredService;
@@ -65,7 +66,7 @@ export function PhoneCallMenu({
           onClick={(e) => e.stopPropagation()}
         >
           <Phone className="h-4 w-4 mr-1" />
-          {label || phoneNumber}
+          {label || displayNumber}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>

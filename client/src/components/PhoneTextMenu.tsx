@@ -1,6 +1,7 @@
 import { MessageCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { cleanPhoneNumber, formatUSPhoneNumber } from "@shared/phoneFormat";
 
 interface PhoneTextMenuProps {
   phoneNumber: string;
@@ -17,8 +18,10 @@ export function PhoneTextMenu({
   size = "default",
   className = ""
 }: PhoneTextMenuProps) {
+  const cleanNumber = cleanPhoneNumber(phoneNumber);
+  const displayNumber = formatUSPhoneNumber(phoneNumber);
+  
   const handleText = (service: string) => {
-    const cleanNumber = phoneNumber.replace(/[^\d+]/g, '');
     let url = '';
     
     switch (service) {
@@ -47,7 +50,7 @@ export function PhoneTextMenu({
           onClick={(e) => e.stopPropagation()}
         >
           <MessageCircle className="h-4 w-4 mr-1" />
-          {label || phoneNumber}
+          {label || displayNumber}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
