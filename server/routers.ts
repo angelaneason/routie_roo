@@ -253,6 +253,7 @@ export const appRouter = router({
         waypoints: z.array(z.object({
           contactName: z.string().optional(),
           address: z.string(),
+          phoneNumbers: z.string().optional(), // JSON string of phone numbers
         })).min(2),
         isPublic: z.boolean().default(false),
         optimizeRoute: z.boolean().default(true),
@@ -321,6 +322,7 @@ export const appRouter = router({
             address: wp.address,
             latitude: leg?.startLocation?.latLng?.latitude?.toString() || null,
             longitude: leg?.startLocation?.latLng?.longitude?.toString() || null,
+            phoneNumbers: wp.phoneNumbers || null,
           };
         });
 

@@ -5,6 +5,7 @@ import { MapView } from "@/components/Map";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy } from "lucide-react";
+import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
 import { toast } from "sonner";
@@ -197,21 +198,38 @@ export default function RouteDetail() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {waypoints.map((waypoint, index) => (
-                    <div key={waypoint.id} className="flex gap-3">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-                        {index + 1}
+                  {waypoints.map((waypoint, index) => {
+                    const phoneNumbers = waypoint.phoneNumbers ? JSON.parse(waypoint.phoneNumbers) : [];
+                    return (
+                      <div key={waypoint.id} className="flex gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          {waypoint.contactName && (
+                            <p className="font-medium">{waypoint.contactName}</p>
+                          )}
+                          <p className="text-sm text-muted-foreground">
+                            {waypoint.address}
+                          </p>
+                          {phoneNumbers.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {phoneNumbers.map((phone: any, idx: number) => (
+                                <PhoneCallMenu
+                                  key={idx}
+                                  phoneNumber={phone.value}
+                                  label={phone.label || phone.type || 'Phone'}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 text-xs"
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        {waypoint.contactName && (
-                          <p className="font-medium">{waypoint.contactName}</p>
-                        )}
-                        <p className="text-sm text-muted-foreground">
-                          {waypoint.address}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>

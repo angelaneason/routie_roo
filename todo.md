@@ -94,3 +94,10 @@
 - [x] Add text messaging options (SMS, WhatsApp text)
 - [x] Add distance unit preference (KM vs Miles)
 - [x] Convert all distance displays based on user preference
+
+## Waypoint Phone Numbers
+
+- [x] Add phone numbers field to route_waypoints table
+- [x] Update route creation to save contact phone numbers to waypoints
+- [x] Display phone numbers in route detail page waypoint list
+- [x] Add PhoneCallMenu to waypoints for click-to-call and text messaging

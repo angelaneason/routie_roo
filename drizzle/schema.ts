@@ -51,6 +51,7 @@ export const routeWaypoints = mysqlTable("route_waypoints", {
   address: text("address").notNull(), // Full address string
   latitude: varchar("latitude", { length: 32 }), // Latitude coordinate
   longitude: varchar("longitude", { length: 32 }), // Longitude coordinate
+  phoneNumbers: text("phoneNumbers"), // JSON array of {value, type, label}
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

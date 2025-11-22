@@ -153,6 +153,7 @@ export default function Home() {
       .map(c => ({
         contactName: c!.name || undefined,
         address: c!.address!,
+        phoneNumbers: c!.phoneNumbers || undefined,
       }));
 
     setIsCreatingRoute(true);
