@@ -255,3 +255,14 @@
 - [x] Write tests for reschedule workflow
 - [x] Test manager dashboard queries
 - [x] Test execution mode UI flows
+
+
+## UI Integration Improvements
+
+### Waypoint and Route Completion Integration
+- [x] Merge execution controls into main waypoints list
+- [x] Show stop status badges inline with waypoint details
+- [x] Add execution action buttons (Complete, Miss, Add Note) to each waypoint card
+- [x] Display execution notes and missed reasons inline
+- [x] Show progress bar at top of waypoints section
+- [x] Remove separate RouteExecutionPanel component
