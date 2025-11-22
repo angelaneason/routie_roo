@@ -29,6 +29,10 @@ export function PhoneTextMenu({
         // SMS text message
         url = `sms:${cleanNumber}`;
         break;
+      case 'voice':
+        // Google Voice text message
+        url = `https://voice.google.com/u/0/messages?itemId=t.${cleanNumber.replace(/\+/g, '')}`;
+        break;
       case 'whatsapp':
         // WhatsApp text message
         url = `https://wa.me/${cleanNumber}`;
@@ -57,6 +61,10 @@ export function PhoneTextMenu({
         <DropdownMenuItem onClick={() => handleText('sms')}>
           <MessageCircle className="h-4 w-4 mr-2" />
           SMS Text
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleText('voice')}>
+          <MessageCircle className="h-4 w-4 mr-2" />
+          Google Voice Text
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleText('whatsapp')}>
           <MessageCircle className="h-4 w-4 mr-2" />

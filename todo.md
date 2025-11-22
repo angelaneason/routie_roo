@@ -413,3 +413,10 @@
 
 - [x] Fix route creation validation error when contacts have null addresses
 - [x] Prevent selection of contacts without addresses in route creation UI
+
+## UX Improvements - Contact Address Management
+
+- [x] Add visual warning indicator (icon) on contact cards missing addresses
+- [x] Add quick "Add Address" button on contact cards for faster editing
+- [x] Create "Contacts Without Addresses" filter option
+- [x] Fix PhoneTextMenu to include Google Voice as a texting option

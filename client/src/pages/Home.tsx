@@ -2,6 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { APP_TITLE, APP_LOGO, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { ContactEditDialog } from "@/components/ContactEditDialog";
@@ -45,6 +46,7 @@ export default function Home() {
   const [showNewFolderInput, setShowNewFolderInput] = useState(false);
   const [editingContact, setEditingContact] = useState<any | null>(null);
   const [showInactive, setShowInactive] = useState(false);
+  const [showMissingAddresses, setShowMissingAddresses] = useState(false);
 
   // Check for OAuth callback status
   useEffect(() => {
@@ -311,6 +313,12 @@ export default function Home() {
       if (!isActive) return false;
     }
     
+    // Filter by missing addresses
+    if (showMissingAddresses) {
+      const hasAddress = contact.address && contact.address.trim() !== "";
+      if (hasAddress) return false; // Only show contacts WITHOUT addresses
+    }
+    
     // Filter by search query
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
@@ -402,17 +410,31 @@ export default function Home() {
                       className="pl-10"
                     />
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="show-inactive"
-                      checked={showInactive}
-                      onChange={(e) => setShowInactive(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                    <label htmlFor="show-inactive" className="text-sm text-muted-foreground cursor-pointer">
-                      Show inactive contacts
-                    </label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="show-inactive"
+                        checked={showInactive}
+                        onChange={(e) => setShowInactive(e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <label htmlFor="show-inactive" className="text-sm text-muted-foreground cursor-pointer">
+                        Show inactive contacts
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="show-missing-addresses"
+                        checked={showMissingAddresses}
+                        onChange={(e) => setShowMissingAddresses(e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <label htmlFor="show-missing-addresses" className="text-sm text-muted-foreground cursor-pointer">
+                        Show contacts without addresses
+                      </label>
+                    </div>
                   </div>
                 </div>
                 {filteredContacts.length === 0 && !searchQuery ? (
@@ -454,7 +476,19 @@ export default function Home() {
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium">{contact.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{contact.name}</p>
+                            {(!contact.address || contact.address.trim() === "") && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <AlertCircle className="h-4 w-4 text-orange-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>No address</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
                           {contact.labels && (() => {
                             try {
                               const labels = JSON.parse(contact.labels);
@@ -510,6 +544,16 @@ export default function Home() {
                           })()}
                         </div>
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                          {(!contact.address || contact.address.trim() === "") && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs"
+                              onClick={() => setEditingContact(contact)}
+                            >
+                              Add Address
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"
