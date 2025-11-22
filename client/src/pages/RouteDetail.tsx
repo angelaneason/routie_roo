@@ -7,14 +7,32 @@ import { Label } from "@/components/ui/label";
 import { MapView } from "@/components/Map";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
 import { StopStatusBadge, type StopStatus } from "@/components/StopStatusBadge";
+import { SortableWaypointItem } from "@/components/SortableWaypointItem";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
 import { toast } from "sonner";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export default function RouteDetail() {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +47,14 @@ export default function RouteDetail() {
   const [missedReason, setMissedReason] = useState("");
   const [executionNotes, setExecutionNotes] = useState("");
   const [rescheduledDate, setRescheduledDate] = useState("");
+  const [localWaypoints, setLocalWaypoints] = useState<any[]>([]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const routeQuery = trpc.routes.get.useQuery(
     { routeId: parseInt(routeId!) },
@@ -42,6 +68,13 @@ export default function RouteDetail() {
 
   const route = routeQuery.data?.route;
   const waypoints = routeQuery.data?.waypoints || [];
+
+  // Update local waypoints when data changes
+  useEffect(() => {
+    if (waypoints.length > 0) {
+      setLocalWaypoints(waypoints);
+    }
+  }, [waypoints]);
 
   const updateStatusMutation = trpc.routes.updateWaypointStatus.useMutation({
     onSuccess: () => {
@@ -107,6 +140,18 @@ export default function RouteDetail() {
         waypointId: selectedWaypoint.id,
         status: selectedWaypoint.status,
         executionNotes: executionNotes || undefined,
+      });
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setLocalWaypoints((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
       });
     }
   };
@@ -320,147 +365,109 @@ export default function RouteDetail() {
                 </CardTitle>
                 <CardDescription>Track your route progress</CardDescription>
                 {waypoints.length > 0 && (
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                    <div
-                      className="bg-green-500 h-2 rounded-full transition-all"
-                      style={{ 
-                        width: `${(waypoints.filter((w: any) => w.status === "complete").length / waypoints.length) * 100}%` 
-                      }}
-                    />
-                  </div>
+                  <>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div
+                        className="bg-green-500 h-2 rounded-full transition-all"
+                        style={{ 
+                          width: `${(waypoints.filter((w: any) => w.status === "complete").length / waypoints.length) * 100}%` 
+                        }}
+                      />
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const pendingWaypoints = localWaypoints.filter(w => w.status === "pending");
+                          if (pendingWaypoints.length === 0) {
+                            toast.info("No pending stops to complete");
+                            return;
+                          }
+                          if (confirm(`Complete all ${pendingWaypoints.length} remaining stops?`)) {
+                            pendingWaypoints.forEach(waypoint => {
+                              updateStatusMutation.mutate({
+                                waypointId: waypoint.id,
+                                status: "complete",
+                              });
+                            });
+                          }
+                        }}
+                        className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        Complete All Remaining
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const pendingWaypoints = localWaypoints.filter(w => w.status === "pending");
+                          if (pendingWaypoints.length === 0) {
+                            toast.info("No pending stops to mark as missed");
+                            return;
+                          }
+                          const reason = prompt(`Mark all ${pendingWaypoints.length} remaining stops as missed?\n\nEnter reason:`);
+                          if (reason) {
+                            pendingWaypoints.forEach(waypoint => {
+                              updateStatusMutation.mutate({
+                                waypointId: waypoint.id,
+                                status: "missed",
+                                missedReason: reason,
+                              });
+                            });
+                          }
+                        }}
+                        className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300"
+                      >
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Mark All as Missed
+                      </Button>
+                    </div>
+                  </>
                 )}
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                  {waypoints.map((waypoint: any, index) => {
-                    const phoneNumbers = waypoint.phoneNumbers ? JSON.parse(waypoint.phoneNumbers) : [];
-                    return (
-                      <div key={waypoint.id} className="border rounded-lg p-4 space-y-3">
-                        <div className="flex gap-3">
-                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-                            {index + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              {waypoint.contactName && (
-                                <p className="font-medium">{waypoint.contactName}</p>
-                              )}
-                              <StopStatusBadge status={waypoint.status || "pending"} />
-                              {waypoint.needsReschedule === 1 && (
-                                <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
-                                  Needs Reschedule
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {waypoint.address}
-                            </p>
-                            {waypoint.executionNotes && (
-                              <div className="mt-2 text-sm bg-blue-50 p-2 rounded">
-                                <p className="font-medium text-blue-900">Notes:</p>
-                                <p className="text-blue-700">{waypoint.executionNotes}</p>
-                              </div>
-                            )}
-                            {waypoint.missedReason && (
-                              <div className="mt-2 text-sm bg-red-50 p-2 rounded">
-                                <p className="font-medium text-red-900">Missed Reason:</p>
-                                <p className="text-red-700">{waypoint.missedReason}</p>
-                              </div>
-                            )}
-                            {waypoint.rescheduledDate && (
-                              <div className="mt-2 text-sm bg-purple-50 p-2 rounded">
-                                <p className="font-medium text-purple-900">Rescheduled for:</p>
-                                <p className="text-purple-700">
-                                  {new Date(waypoint.rescheduledDate).toLocaleString()}
-                                </p>
-                              </div>
-                            )}
-                            {phoneNumbers.length > 0 && (
-                              <div className="mt-2 space-y-1">
-                                {phoneNumbers.map((phone: any, idx: number) => (
-                                  <div key={idx} className="flex gap-2">
-                                    <PhoneCallMenu
-                                      phoneNumber={phone.value}
-                                      label={`Call ${phone.label || phone.type || 'Phone'}`}
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-7 text-xs flex-1"
-                                    />
-                                    <PhoneTextMenu
-                                      phoneNumber={phone.value}
-                                      label="Text"
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-7 text-xs"
-                                    />
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Execution Controls */}
-                        <div className="flex gap-2 flex-wrap pt-2 border-t">
-                          {waypoint.status === "pending" && (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedWaypoint(waypoint);
-                                  setActionType("complete");
-                                  setExecutionNotes(waypoint.executionNotes || "");
-                                }}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                <CheckCircle2 className="h-4 w-4 mr-1" />
-                                Complete
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => {
-                                  setSelectedWaypoint(waypoint);
-                                  setActionType("miss");
-                                  setMissedReason(waypoint.missedReason || "");
-                                }}
-                              >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Miss
-                              </Button>
-                            </>
-                          )}
-                          {waypoint.status === "missed" && waypoint.needsReschedule === 1 && (
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                setSelectedWaypoint(waypoint);
-                                setActionType("reschedule");
-                                setRescheduledDate(waypoint.rescheduledDate ? new Date(waypoint.rescheduledDate).toISOString().slice(0, 16) : "");
-                              }}
-                              className="bg-purple-600 hover:bg-purple-700"
-                            >
-                              <Calendar className="h-4 w-4 mr-1" />
-                              Reschedule
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedWaypoint(waypoint);
-                              setActionType("note");
-                              setExecutionNotes(waypoint.executionNotes || "");
-                            }}
-                          >
-                            <MessageSquare className="h-4 w-4 mr-1" />
-                            {waypoint.executionNotes ? "Edit Note" : "Add Note"}
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={localWaypoints.map(w => w.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                      {localWaypoints.map((waypoint: any, index) => (
+                        <SortableWaypointItem
+                          key={waypoint.id}
+                          waypoint={waypoint}
+                          index={index}
+                          onComplete={() => {
+                            setSelectedWaypoint(waypoint);
+                            setActionType("complete");
+                            setExecutionNotes(waypoint.executionNotes || "");
+                          }}
+                          onMiss={() => {
+                            setSelectedWaypoint(waypoint);
+                            setActionType("miss");
+                            setMissedReason(waypoint.missedReason || "");
+                          }}
+                          onNote={() => {
+                            setSelectedWaypoint(waypoint);
+                            setActionType("note");
+                            setExecutionNotes(waypoint.executionNotes || "");
+                          }}
+                          onReschedule={() => {
+                            setSelectedWaypoint(waypoint);
+                            setActionType("reschedule");
+                            setRescheduledDate(waypoint.rescheduledDate ? new Date(waypoint.rescheduledDate).toISOString().slice(0, 16) : "");
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
               </CardContent>
             </Card>
           </div>

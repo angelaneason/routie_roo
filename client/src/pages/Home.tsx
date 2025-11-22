@@ -293,9 +293,15 @@ export default function Home() {
   
   // Filter contacts based on search query and active status
   const filteredContacts = contacts.filter(contact => {
-    // Filter by active status
+    // Filter by active status - default shows only active, checkbox shows only inactive
     const isActive = contact.isActive === 1;
-    if (!showInactive && !isActive) return false;
+    if (showInactive) {
+      // When checked, show ONLY inactive contacts
+      if (isActive) return false;
+    } else {
+      // When unchecked (default), show ONLY active contacts
+      if (!isActive) return false;
+    }
     
     // Filter by search query
     if (!searchQuery) return true;

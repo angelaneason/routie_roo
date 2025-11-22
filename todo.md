@@ -266,3 +266,24 @@
 - [x] Display execution notes and missed reasons inline
 - [x] Show progress bar at top of waypoints section
 - [x] Remove separate RouteExecutionPanel component
+
+
+## New Feature Requests - Phase 3
+
+### Drag-and-Drop Stop Reordering
+- [x] Install @dnd-kit/core and @dnd-kit/sortable packages
+- [x] Add drag handles to waypoint cards
+- [x] Implement drag-and-drop functionality for reordering stops
+- [x] Update executionOrder when stops are reordered
+- [x] Show visual feedback during dragging
+- [ ] Add "Reset to Original Order" button
+
+### Bulk Stop Actions
+- [x] Add "Complete All Remaining" button to route detail page
+- [x] Add "Mark All as Missed" bulk action with reason dialog
+- [x] Show confirmation dialog before bulk actions
+- [x] Update progress bar after bulk actions
+
+### Bug Fixes
+- [x] Fix "Show inactive contacts" to only show inactive when checked (not add to active)
+- [x] Update contact filtering logic in Home.tsx
