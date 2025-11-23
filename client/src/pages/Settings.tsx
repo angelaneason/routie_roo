@@ -6,16 +6,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { APP_TITLE } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Loader2, MapPin, Settings as SettingsIcon } from "lucide-react";
+import { ArrowLeft, Loader2, MapPin, Settings as SettingsIcon, Plus, Trash2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
+import React from "react";
 import StopTypesSettings from "./StopTypesSettings";
 
 export default function Settings() {
   const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
+  const [newPointName, setNewPointName] = React.useState("");
+  const [newPointAddress, setNewPointAddress] = React.useState("");
   
   const userQuery = trpc.auth.me.useQuery();
+  const startingPointsQuery = trpc.settings.listStartingPoints.useQuery();
   const updateSettingsMutation = trpc.settings.updatePreferences.useMutation({
     onSuccess: () => {
       toast.success("Settings updated successfully!");
@@ -177,6 +181,97 @@ export default function Settings() {
                     <p className="text-sm text-muted-foreground">
                       This address will be used as the starting point for all new routes (e.g., your home or office)
                     </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Saved Starting Points */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Saved Starting Points</CardTitle>
+                  <CardDescription>Manage frequently-used starting locations</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Add new starting point */}
+                  <div className="space-y-3 p-4 border rounded-lg bg-muted/50">
+                    <div className="space-y-2">
+                      <Label htmlFor="point-name">Location Name</Label>
+                      <Input
+                        id="point-name"
+                        placeholder="e.g., Home, Office, Warehouse"
+                        value={newPointName}
+                        onChange={(e) => setNewPointName(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="point-address">Address</Label>
+                      <Input
+                        id="point-address"
+                        placeholder="e.g., 123 Main St, City, State ZIP"
+                        value={newPointAddress}
+                        onChange={(e) => setNewPointAddress(e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      onClick={() => {
+                        if (!newPointName.trim() || !newPointAddress.trim()) {
+                          toast.error("Please enter both name and address");
+                          return;
+                        }
+                        trpc.settings.createStartingPoint.useMutation({
+                          onSuccess: () => {
+                            toast.success("Starting point saved!");
+                            setNewPointName("");
+                            setNewPointAddress("");
+                            startingPointsQuery.refetch();
+                          },
+                          onError: (error) => {
+                            toast.error(error.message || "Failed to save starting point");
+                          }
+                        }).mutate({ name: newPointName.trim(), address: newPointAddress.trim() });
+                      }}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Save Starting Point
+                    </Button>
+                  </div>
+
+                  {/* List of saved starting points */}
+                  <div className="space-y-2">
+                    {startingPointsQuery.data?.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No saved starting points yet. Add one above!
+                      </p>
+                    ) : (
+                      startingPointsQuery.data?.map((point) => (
+                        <div key={point.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{point.name}</p>
+                            <p className="text-sm text-muted-foreground">{point.address}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (confirm(`Delete "${point.name}"?`)) {
+                                trpc.settings.deleteStartingPoint.useMutation({
+                                  onSuccess: () => {
+                                    toast.success("Starting point deleted");
+                                    startingPointsQuery.refetch();
+                                  },
+                                  onError: (error) => {
+                                    toast.error(error.message || "Failed to delete starting point");
+                                  }
+                                }).mutate({ id: point.id });
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>

@@ -466,7 +466,7 @@
 - [x] Add startingPointAddress field to routes table
 - [x] Create starting point dropdown in route creation UI
 - [x] Allow selecting from saved starting points or entering custom address
-- [ ] Add manage starting points UI in Settings
+- [x] Add manage starting points UI in Settings
 - [x] Fix shared route map to center on route's starting point
 - [x] Store route owner's distance unit preference with route for shared views
 
