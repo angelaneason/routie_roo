@@ -480,3 +480,5 @@
 - [x] Keep professional balance - playful but not gimmicky
 
 - [x] Replace all instances of "Contact Route Mapper" with "Routie Roo" in codebase
+
+- [x] Fix Select.Item empty value error preventing login

@@ -218,7 +218,7 @@ export default function Home() {
     // Add starting point if provided
     const finalStartingPoint = startingPoint === "custom" 
       ? customStartingPoint.trim() 
-      : startingPoint.trim();
+      : (startingPoint === "none" || !startingPoint) ? "" : startingPoint.trim();
     
     if (finalStartingPoint) {
       waypoints = [
@@ -667,7 +667,7 @@ export default function Home() {
                         <SelectValue placeholder="Select or enter starting point" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="none">None</SelectItem>
                         <SelectItem value="custom">Enter custom address...</SelectItem>
                         {startingPointsQuery.data?.map((point) => (
                           <SelectItem key={point.id} value={point.address}>
