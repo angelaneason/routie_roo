@@ -486,3 +486,5 @@
 - [x] Add visible logout button to header navigation
 
 - [x] Fix save button for starting locations not working when clicked
+
+- [x] Add edit functionality for saved starting points (update name and address)

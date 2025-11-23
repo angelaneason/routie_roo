@@ -1212,6 +1212,36 @@ export const appRouter = router({
 
         return { success: true };
       }),
+
+    updateStartingPoint: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1),
+        address: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify ownership
+        const point = await db.select()
+          .from(savedStartingPoints)
+          .where(eq(savedStartingPoints.id, input.id))
+          .limit(1);
+
+        if (!point.length || point[0].userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        await db.update(savedStartingPoints)
+          .set({
+            name: input.name,
+            address: input.address,
+          })
+          .where(eq(savedStartingPoints.id, input.id));
+
+        return { success: true };
+      }),
   }),
 
   stopTypes: router({    // Get user's stop types

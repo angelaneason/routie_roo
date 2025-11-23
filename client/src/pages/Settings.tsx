@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { APP_TITLE } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Loader2, MapPin, Settings as SettingsIcon, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, MapPin, Settings as SettingsIcon, Plus, Trash2, Edit2, Check, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import React from "react";
@@ -17,6 +17,9 @@ export default function Settings() {
   const [, navigate] = useLocation();
   const [newPointName, setNewPointName] = React.useState("");
   const [newPointAddress, setNewPointAddress] = React.useState("");
+  const [editingId, setEditingId] = React.useState<number | null>(null);
+  const [editName, setEditName] = React.useState("");
+  const [editAddress, setEditAddress] = React.useState("");
   
   const userQuery = trpc.auth.me.useQuery();
   const startingPointsQuery = trpc.settings.listStartingPoints.useQuery();
@@ -30,6 +33,17 @@ export default function Settings() {
     },
     onError: (error) => {
       toast.error(error.message || "Failed to save starting point");
+    }
+  });
+  
+  const updateStartingPointMutation = trpc.settings.updateStartingPoint.useMutation({
+    onSuccess: () => {
+      toast.success("Starting point updated! 🦘");
+      setEditingId(null);
+      startingPointsQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update starting point");
     }
   });
   
@@ -252,30 +266,90 @@ export default function Settings() {
                       </p>
                     ) : (
                       startingPointsQuery.data?.map((point) => (
-                        <div key={point.id} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div>
-                            <p className="font-medium">{point.name}</p>
-                            <p className="text-sm text-muted-foreground">{point.address}</p>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              if (confirm(`Delete "${point.name}"?`)) {
-                                trpc.settings.deleteStartingPoint.useMutation({
-                                  onSuccess: () => {
-                                    toast.success("Starting point deleted");
-                                    startingPointsQuery.refetch();
-                                  },
-                                  onError: (error) => {
-                                    toast.error(error.message || "Failed to delete starting point");
-                                  }
-                                }).mutate({ id: point.id });
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <div key={point.id} className="p-3 border rounded-lg">
+                          {editingId === point.id ? (
+                            // Edit mode
+                            <div className="space-y-2">
+                              <Input
+                                value={editName}
+                                onChange={(e) => setEditName(e.target.value)}
+                                placeholder="Location name"
+                              />
+                              <Input
+                                value={editAddress}
+                                onChange={(e) => setEditAddress(e.target.value)}
+                                placeholder="Address"
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    if (!editName.trim() || !editAddress.trim()) {
+                                      toast.error("Please enter both name and address");
+                                      return;
+                                    }
+                                    updateStartingPointMutation.mutate({
+                                      id: point.id,
+                                      name: editName.trim(),
+                                      address: editAddress.trim(),
+                                    });
+                                  }}
+                                  disabled={updateStartingPointMutation.isPending}
+                                >
+                                  <Check className="h-4 w-4 mr-1" />
+                                  Save
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setEditingId(null)}
+                                >
+                                  <X className="h-4 w-4 mr-1" />
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            // View mode
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">{point.name}</p>
+                                <p className="text-sm text-muted-foreground">{point.address}</p>
+                              </div>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setEditingId(point.id);
+                                    setEditName(point.name);
+                                    setEditAddress(point.address);
+                                  }}
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    if (confirm(`Delete "${point.name}"?`)) {
+                                      trpc.settings.deleteStartingPoint.useMutation({
+                                        onSuccess: () => {
+                                          toast.success("Starting point deleted");
+                                          startingPointsQuery.refetch();
+                                        },
+                                        onError: (error) => {
+                                          toast.error(error.message || "Failed to delete starting point");
+                                        }
+                                      }).mutate({ id: point.id });
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))
                     )}
