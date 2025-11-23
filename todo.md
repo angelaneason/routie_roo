@@ -482,3 +482,5 @@
 - [x] Replace all instances of "Contact Route Mapper" with "Routie Roo" in codebase
 
 - [x] Fix Select.Item empty value error preventing login
+
+- [x] Add visible logout button to header navigation

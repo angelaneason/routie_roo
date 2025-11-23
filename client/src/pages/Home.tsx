@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { APP_TITLE, APP_LOGO, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { ContactEditDialog } from "@/components/ContactEditDialog";
@@ -125,6 +125,13 @@ export default function Home() {
     onError: (error) => {
       toast.error(error.message || "Couldn't delete route");
       setDeleteRouteId(null);
+    },
+  });
+
+  // Logout mutation
+  const logoutMutation = trpc.auth.logout.useMutation({
+    onSuccess: () => {
+      window.location.href = "/";
     },
   });
 
@@ -396,6 +403,14 @@ export default function Home() {
                 Settings
               </Button>
             </Link>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => logoutMutation.mutate()}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Log Out
+            </Button>
           </div>
         </div>
       </header>
