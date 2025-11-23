@@ -35,6 +35,8 @@ export const routes = mysqlTable("routes", {
   optimized: boolean("optimized").default(true).notNull(), // Whether waypoints were optimized
   folderId: int("folderId"), // Optional folder/category ID
   notes: text("notes"), // Optional notes/description for the route
+  startingPointAddress: text("startingPointAddress"), // Starting point address for this route
+  distanceUnit: mysqlEnum("distanceUnit", ["km", "miles"]).default("km"), // Owner's preferred distance unit
   // Shared execution fields
   shareToken: varchar("shareToken", { length: 36 }).unique(), // UUID for public access
   isPubliclyAccessible: boolean("isPubliclyAccessible").default(false).notNull(), // Allow unauthenticated access
@@ -126,3 +128,17 @@ export const stopTypes = mysqlTable("stop_types", {
 
 export type StopType = typeof stopTypes.$inferSelect;
 export type InsertStopType = typeof stopTypes.$inferInsert;
+
+/**
+ * Saved starting points table - frequently used starting locations
+ */
+export const savedStartingPoints = mysqlTable("saved_starting_points", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Owner of the starting point
+  name: varchar("name", { length: 100 }).notNull(), // Name (e.g., "Home", "Office", "Warehouse")
+  address: text("address").notNull(), // Full address
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SavedStartingPoint = typeof savedStartingPoints.$inferSelect;
+export type InsertSavedStartingPoint = typeof savedStartingPoints.$inferInsert;

@@ -29,7 +29,7 @@ import {
   createCalendarEvent
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
-import { users, routes, routeWaypoints, stopTypes } from "../drizzle/schema";
+import { users, routes, routeWaypoints, stopTypes, savedStartingPoints } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -316,6 +316,8 @@ export const appRouter = router({
         isPublic: z.boolean().default(false),
         optimizeRoute: z.boolean().default(true),
         folderId: z.number().optional(),
+        startingPointAddress: z.string().optional(),
+        distanceUnit: z.enum(["km", "miles"]).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         let routeData;
@@ -351,6 +353,8 @@ export const appRouter = router({
           totalDuration: parseInt(routeData.duration.replace('s', '')),
           optimized: input.optimizeRoute,
           folderId: input.folderId || null,
+          startingPointAddress: input.startingPointAddress || null,
+          distanceUnit: input.distanceUnit || "km",
         });
 
         const routeId = Number(routeResult[0].insertId);
@@ -1150,6 +1154,61 @@ export const appRouter = router({
         await db.update(users)
           .set(updateData)
           .where(eq(users.id, ctx.user.id));
+
+        return { success: true };
+      }),
+
+    // Saved starting points management
+    listStartingPoints: protectedProcedure
+      .query(async ({ ctx }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        const points = await db.select()
+          .from(savedStartingPoints)
+          .where(eq(savedStartingPoints.userId, ctx.user.id));
+
+        return points;
+      }),
+
+    createStartingPoint: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(100),
+        address: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        await db.insert(savedStartingPoints).values({
+          userId: ctx.user.id,
+          name: input.name,
+          address: input.address,
+        });
+
+        return { success: true };
+      }),
+
+    deleteStartingPoint: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify ownership
+        const point = await db.select()
+          .from(savedStartingPoints)
+          .where(eq(savedStartingPoints.id, input.id))
+          .limit(1);
+
+        if (!point.length || point[0].userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        await db.delete(savedStartingPoints)
+          .where(eq(savedStartingPoints.id, input.id));
 
         return { success: true };
       }),

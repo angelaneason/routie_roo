@@ -453,3 +453,19 @@
 - [x] Add backend logic to automatically mark route as completed when all waypoints are completed/missed
 - [x] Display route completion status badge on route detail page
 - [x] Show completion timestamp when route is completed
+
+## Bug Fixes - Shared Routes
+
+- [x] Fix shared route map showing wrong starting location (San Francisco instead of route's starting point)
+- [x] Fix shared route displaying distance in km instead of owner's preferred unit (miles)
+
+## Starting Point System
+
+- [x] Create saved starting points table (name, address, user)
+- [x] Add backend procedures to manage saved starting points (create, list, delete)
+- [x] Add startingPointAddress field to routes table
+- [x] Create starting point dropdown in route creation UI
+- [x] Allow selecting from saved starting points or entering custom address
+- [ ] Add manage starting points UI in Settings
+- [x] Fix shared route map to center on route's starting point
+- [x] Store route owner's distance unit preference with route for shared views

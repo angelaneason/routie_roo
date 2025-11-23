@@ -37,6 +37,7 @@ export default function Home() {
   const [routeName, setRouteName] = useState("");
   const [routeNotes, setRouteNotes] = useState("");
   const [startingPoint, setStartingPoint] = useState("");
+  const [customStartingPoint, setCustomStartingPoint] = useState("");
   const [optimizeRoute, setOptimizeRoute] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFolderFilter, setSelectedFolderFilter] = useState<string>("all");
@@ -81,6 +82,11 @@ export default function Home() {
 
   // Fetch folders
   const foldersQuery = trpc.folders.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  // Fetch saved starting points
+  const startingPointsQuery = trpc.settings.listStartingPoints.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
@@ -210,7 +216,10 @@ export default function Home() {
     });
 
     // Add starting point if provided
-    const finalStartingPoint = startingPoint.trim() || userQuery.data?.defaultStartingPoint;
+    const finalStartingPoint = startingPoint === "custom" 
+      ? customStartingPoint.trim() 
+      : startingPoint.trim();
+    
     if (finalStartingPoint) {
       waypoints = [
         {
@@ -232,6 +241,8 @@ export default function Home() {
       isPublic: false,
       optimizeRoute,
       folderId: (selectedFolderId && selectedFolderId !== "none") ? parseInt(selectedFolderId) : undefined,
+      startingPointAddress: finalStartingPoint || undefined,
+      distanceUnit: userQuery.data?.distanceUnit || "km",
     });
   };
 
@@ -637,14 +648,33 @@ export default function Home() {
 
                   <div className="space-y-2">
                     <Label htmlFor="startingPoint">Starting Point (Optional)</Label>
-                    <Input
-                      id="startingPoint"
-                      placeholder={userQuery.data?.defaultStartingPoint || "e.g., 123 Main St, City, State"}
-                      value={startingPoint}
-                      onChange={(e) => setStartingPoint(e.target.value)}
-                    />
+                    <Select value={startingPoint} onValueChange={(val) => {
+                      setStartingPoint(val);
+                      if (val !== "custom") setCustomStartingPoint("");
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select or enter starting point" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="custom">Enter custom address...</SelectItem>
+                        {startingPointsQuery.data?.map((point) => (
+                          <SelectItem key={point.id} value={point.address}>
+                            {point.name} - {point.address}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {startingPoint === "custom" && (
+                      <Input
+                        placeholder="Enter custom starting address"
+                        value={customStartingPoint}
+                        onChange={(e) => setCustomStartingPoint(e.target.value)}
+                        className="mt-2"
+                      />
+                    )}
                     <p className="text-xs text-muted-foreground">
-                      Leave empty to use your default starting point from Settings
+                      Choose a saved location or enter a custom address
                     </p>
                   </div>
 

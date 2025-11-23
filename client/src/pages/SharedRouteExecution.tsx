@@ -251,7 +251,15 @@ export default function SharedRouteExecution() {
         {/* Map */}
         <Card>
           <CardContent className="p-0">
-            <MapView onMapReady={handleMapReady} className="w-full h-[300px] sm:h-[400px] md:h-[500px] rounded-lg" />
+            <MapView 
+              onMapReady={handleMapReady} 
+              initialCenter={waypoints.length > 0 && waypoints[0].latitude && waypoints[0].longitude 
+                ? { lat: parseFloat(waypoints[0].latitude), lng: parseFloat(waypoints[0].longitude) }
+                : undefined
+              }
+              initialZoom={13}
+              className="w-full h-[300px] sm:h-[400px] md:h-[500px] rounded-lg" 
+            />
           </CardContent>
         </Card>
 
@@ -263,7 +271,7 @@ export default function SharedRouteExecution() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">
-                {formatDistance(route.totalDistance || 0, "km")}
+                {formatDistance(route.totalDistance || 0, route.distanceUnit || "km")}
               </p>
             </CardContent>
           </Card>
