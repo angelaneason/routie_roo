@@ -469,3 +469,12 @@
 - [ ] Add manage starting points UI in Settings
 - [x] Fix shared route map to center on route's starting point
 - [x] Store route owner's distance unit preference with route for shared views
+
+## Routie Roo Rebranding
+
+- [x] Update app name to "Routie Roo" (user can change in Settings → General)
+- [x] Add playful microcopy to button labels and CTAs
+- [x] Update empty states with friendly Routie messages
+- [x] Add personality to toast notifications
+- [x] Update success/error messages with encouraging tone
+- [x] Keep professional balance - playful but not gimmicky

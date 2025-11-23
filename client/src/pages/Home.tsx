@@ -56,11 +56,11 @@ export default function Home() {
     const syncStatus = params.get("sync");
     
     if (syncStatus === "success") {
-      toast.success("Contacts synced successfully!");
+      toast.success("Contacts synced! Routie's ready to help 🦘");
       window.history.replaceState({}, "", "/");
       contactsQuery.refetch();
     } else if (syncStatus === "error") {
-      toast.error("Failed to sync contacts. Please try again.");
+      toast.error("Oops! Couldn't sync contacts. Let's try again");
       window.history.replaceState({}, "", "/");
     }
   }, []);
@@ -98,7 +98,7 @@ export default function Home() {
   // Create route mutation
   const createRouteMutation = trpc.routes.create.useMutation({
     onSuccess: (data) => {
-      toast.success("Route created successfully!");
+      toast.success("Route planned! Let's hop to it 🦘");
       setSelectedContacts(new Set());
       setContactStopTypes(new Map());
       setRouteName("");
@@ -110,7 +110,7 @@ export default function Home() {
       navigate(`/route/${data.routeId}`);
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to create route");
+      toast.error(error.message || "Couldn't create route. Try again?");
       setIsCreatingRoute(false);
     },
   });
@@ -118,12 +118,12 @@ export default function Home() {
   // Delete route mutation
   const deleteRouteMutation = trpc.routes.delete.useMutation({
     onSuccess: () => {
-      toast.success("Route deleted successfully!");
+      toast.success("Route removed!");
       setDeleteRouteId(null);
       routesQuery.refetch();
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to delete route");
+      toast.error(error.message || "Couldn't delete route");
       setDeleteRouteId(null);
     },
   });
@@ -151,7 +151,7 @@ export default function Home() {
       foldersQuery.refetch();
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to create folder");
+      toast.error(error.message || "Couldn't create folder");
     },
   });
 
@@ -182,12 +182,12 @@ export default function Home() {
 
   const handleCreateRoute = () => {
     if (!routeName.trim()) {
-      toast.error("Please enter a route name");
+      toast.error("Don't forget to name your route!");
       return;
     }
 
     if (selectedContacts.size < 2) {
-      toast.error("Please select at least 2 contacts");
+      toast.error("Pick at least 2 stops for your route");
       return;
     }
 
@@ -258,7 +258,7 @@ export default function Home() {
 
   const handleCreateFolder = () => {
     if (!newFolderName.trim()) {
-      toast.error("Please enter a folder name");
+      toast.error("Don't forget to name your folder!");
       return;
     }
     createFolderMutation.mutate({ name: newFolderName });
@@ -426,7 +426,7 @@ export default function Home() {
                     ) : (
                       <RefreshCw className="h-4 w-4" />
                     )}
-                    <span className="ml-2">{hasContacts ? "Refresh" : "Sync Contacts"}</span>
+                    <span className="ml-2">{hasContacts ? "Refresh" : "Sync Your Contacts"}</span>
                   </Button>
                 </div>
               </CardHeader>
@@ -475,11 +475,22 @@ export default function Home() {
                   </div>
                 ) : !hasContacts ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    <p>Click "Sync Contacts" to import your Gmail contacts</p>
+                    <p>Let's hop to it! Sync your Gmail contacts to get started 🦘</p>
                   </div>
                 ) : filteredContacts.length === 0 && searchQuery ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    <p>No contacts found matching "{searchQuery}"</p>
+                    <p>Routie couldn't find any contacts matching "{searchQuery}"</p>
+                    <p className="text-sm mt-2">Try a different search term</p>
+                  </div>
+                ) : filteredContacts.length === 0 && showMissingAddresses ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>Great news! All your contacts have addresses 🎉</p>
+                    <p className="text-sm mt-2">Routie's ready to plan routes anytime</p>
+                  </div>
+                ) : filteredContacts.length === 0 && !showInactive ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>No active contacts yet</p>
+                    <p className="text-sm mt-2">Sync your contacts or check "Show inactive contacts"</p>
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -785,7 +796,7 @@ export default function Home() {
                     ) : (
                       <>
                         <RouteIcon className="h-4 w-4 mr-2" />
-                        Create Route
+                        Plan My Route
                       </>
                     )}
                   </Button>
@@ -831,9 +842,10 @@ export default function Home() {
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                   </div>
-                ) : routes.length === 0 ? (
+                ) : filteredRoutes.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    <p>Create your first route to get started</p>
+                    <p>No routes yet!</p>
+                    <p className="text-sm mt-2">Create your first route above to get started</p>
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -881,9 +893,9 @@ export default function Home() {
       <AlertDialog open={deleteRouteId !== null} onOpenChange={() => setDeleteRouteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Route?</AlertDialogTitle>
+            <AlertDialogTitle>Delete This Route?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the route and all its waypoints.
+              Routie will permanently remove this route and all its stops. This can't be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
