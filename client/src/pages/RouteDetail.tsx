@@ -104,10 +104,23 @@ export default function RouteDetail() {
     },
   });
 
+  const recalculateRouteMutation = trpc.routes.recalculateRoute.useMutation({
+    onSuccess: (data) => {
+      routeQuery.refetch();
+    },
+    onError: (error) => {
+      console.error("Failed to recalculate route:", error.message);
+    },
+  });
+
   const removeWaypointMutation = trpc.routes.removeWaypoint.useMutation({
     onSuccess: () => {
       toast.success("Waypoint removed");
       routeQuery.refetch();
+      // Recalculate route after removing waypoint
+      if (routeId) {
+        recalculateRouteMutation.mutate({ routeId: parseInt(routeId) });
+      }
     },
     onError: (error) => {
       toast.error(`Failed to remove waypoint: ${error.message}`);
@@ -120,6 +133,10 @@ export default function RouteDetail() {
       setEditingWaypointId(null);
       setEditingAddress("");
       routeQuery.refetch();
+      // Recalculate route after updating address
+      if (routeId) {
+        recalculateRouteMutation.mutate({ routeId: parseInt(routeId) });
+      }
     },
     onError: (error) => {
       toast.error(`Failed to update address: ${error.message}`);
@@ -812,6 +829,10 @@ export default function RouteDetail() {
               setShowAddContactDialog(false);
               routeQuery.refetch();
               toast.success("Contact added to route");
+              // Recalculate route after adding waypoint
+              if (routeId) {
+                recalculateRouteMutation.mutate({ routeId: parseInt(routeId) });
+              }
             }}
           />
         </DialogContent>

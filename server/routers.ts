@@ -1017,6 +1017,53 @@ export const appRouter = router({
         return { routeId: newRouteId };
       }),
 
+    // Recalculate route distance and duration
+    recalculateRoute: protectedProcedure
+      .input(z.object({
+        routeId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Get route and verify ownership
+        const route = await getRouteById(input.routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        // Get current waypoints
+        const waypoints = await db.select()
+          .from(routeWaypoints)
+          .where(eq(routeWaypoints.routeId, input.routeId))
+          .orderBy(routeWaypoints.position);
+
+        if (waypoints.length < 2) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Route must have at least 2 waypoints" });
+        }
+
+        // Recalculate using Google Maps API
+        const routeData = await calculateRoute(
+          waypoints.map(wp => ({
+            address: wp.address,
+            name: wp.contactName || undefined,
+          }))
+        );
+
+        // Update route with new distance and duration
+        await db.update(routes)
+          .set({
+            totalDistance: routeData.distanceMeters,
+            totalDuration: parseInt(routeData.duration.replace('s', '')),
+          })
+          .where(eq(routes.id, input.routeId));
+
+        return {
+          totalDistance: routeData.distanceMeters,
+          totalDuration: parseInt(routeData.duration.replace('s', '')),
+        };
+      }),
+
     // Get all missed waypoints that need rescheduling (for manager dashboard)
     getMissedWaypoints: protectedProcedure
       .query(async ({ ctx }) => {

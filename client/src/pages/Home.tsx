@@ -36,6 +36,7 @@ export default function Home() {
   const [contactStopTypes, setContactStopTypes] = useState<Map<number, { type: string; color: string }>>(new Map());
   const [routeName, setRouteName] = useState("");
   const [routeNotes, setRouteNotes] = useState("");
+  const [startingPoint, setStartingPoint] = useState("");
   const [optimizeRoute, setOptimizeRoute] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFolderFilter, setSelectedFolderFilter] = useState<string>("all");
@@ -62,6 +63,11 @@ export default function Home() {
       window.history.replaceState({}, "", "/");
     }
   }, []);
+
+  // Fetch user data
+  const userQuery = trpc.auth.me.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
 
   // Fetch contacts
   const contactsQuery = trpc.contacts.list.useQuery(undefined, {
@@ -192,7 +198,7 @@ export default function Home() {
       return;
     }
 
-    const waypoints = selectedContactsList.map(c => {
+    let waypoints = selectedContactsList.map(c => {
       const stopTypeInfo = contactStopTypes.get(c!.id) || { type: "visit", color: "#3b82f6" };
       return {
         contactName: c!.name || undefined,
@@ -202,6 +208,21 @@ export default function Home() {
         stopColor: stopTypeInfo.color,
       };
     });
+
+    // Add starting point if provided
+    const finalStartingPoint = startingPoint.trim() || userQuery.data?.defaultStartingPoint;
+    if (finalStartingPoint) {
+      waypoints = [
+        {
+          contactName: "Starting Point",
+          address: finalStartingPoint,
+          phoneNumbers: undefined,
+          stopType: "other" as const,
+          stopColor: "#10b981",
+        },
+        ...waypoints,
+      ];
+    }
 
     setIsCreatingRoute(true);
     createRouteMutation.mutate({
@@ -612,6 +633,19 @@ export default function Home() {
                       onChange={(e) => setRouteNotes(e.target.value)}
                       rows={3}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="startingPoint">Starting Point (Optional)</Label>
+                    <Input
+                      id="startingPoint"
+                      placeholder={userQuery.data?.defaultStartingPoint || "e.g., 123 Main St, City, State"}
+                      value={startingPoint}
+                      onChange={(e) => setStartingPoint(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Leave empty to use your default starting point from Settings
+                    </p>
                   </div>
 
                   <div className="space-y-2">

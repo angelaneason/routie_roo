@@ -424,7 +424,7 @@
 ## Critical Route Fixes - Priority
 
 - [x] Add starting point field to routes (home/office address)
-- [ ] Add starting point selection in route creation UI
+- [x] Add starting point selection in route creation UI
 - [x] Store user's default starting point in settings
 - [x] Fix mobile responsiveness for shared route pages
 - [x] Fix map display on mobile devices
@@ -443,6 +443,6 @@
 - [x] Add inline address editing for waypoints
 - [x] Auto-refresh map when waypoints are added/removed/reordered
 - [x] Auto-refresh map when addresses are edited
-- [ ] Recalculate route distance/duration after changes
+- [x] Recalculate route distance/duration after changes
 
 - [x] Add "Copy Route" button to duplicate existing routes
