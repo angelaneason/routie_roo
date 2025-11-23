@@ -1,8 +1,8 @@
-# Contact Route Mapper - User Guide
+# Routie Roo - User Guide
 
 ## Overview
 
-Contact Route Mapper is a web application that creates optimized driving routes from your Gmail contacts. Perfect for sales professionals, service providers, real estate agents, and anyone who needs to visit multiple locations efficiently.
+Routie Roo is a web application that creates optimized driving routes from your Gmail contacts. Perfect for sales professionals, service providers, real estate agents, and anyone who needs to visit multiple locations efficiently.
 
 ## Features
 

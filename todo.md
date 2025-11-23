@@ -1,4 +1,4 @@
-# Contact Route Mapper - Project TODO
+# Routie Roo - Project TODO
 
 ## Phase 1: Database Schema & Setup
 - [x] Define routes table for storing generated routes
@@ -322,7 +322,7 @@
 - [x] Create public route execution page (/share/:token)
 - [x] Show route details and waypoints without requiring login
 - [x] Allow marking stops as complete/missed on shared routes
-- [x] Add "Powered by Contact Route Mapper" footer on public pages
+- [x] Add "Powered by Routie Roo" footer on public pages
 
 ### Security & Privacy
 - [x] Ensure share tokens are cryptographically secure (UUID v4)
@@ -368,7 +368,7 @@
 
 - [x] Copy RoutieRoo logo to client/public directory
 - [x] Update APP_LOGO constant to use new logo
-- [x] Hide "Contact Route Mapper" text in header
+- [x] Hide "Routie Roo" text in header
 - [x] Test logo display across all pages
 
 
@@ -478,3 +478,5 @@
 - [x] Add personality to toast notifications
 - [x] Update success/error messages with encouraging tone
 - [x] Keep professional balance - playful but not gimmicky
+
+- [x] Replace all instances of "Contact Route Mapper" with "Routie Roo" in codebase
