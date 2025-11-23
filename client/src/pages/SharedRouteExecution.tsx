@@ -239,7 +239,7 @@ export default function SharedRouteExecution() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto p-4 space-y-6">
+      <main className="container mx-auto p-2 sm:p-4 space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4">
           <div>
@@ -251,7 +251,7 @@ export default function SharedRouteExecution() {
         {/* Map */}
         <Card>
           <CardContent className="p-0">
-            <MapView onMapReady={handleMapReady} className="w-full h-[400px] rounded-lg" />
+            <MapView onMapReady={handleMapReady} className="w-full h-[300px] sm:h-[400px] md:h-[500px] rounded-lg" />
           </CardContent>
         </Card>
 
@@ -336,7 +336,7 @@ export default function SharedRouteExecution() {
                     };
 
                     return (
-              <div ref={setNodeRef} style={style} key={waypoint.id} className="flex gap-4 p-4 border rounded-lg">
+              <div ref={setNodeRef} style={style} key={waypoint.id} className="flex gap-2 sm:gap-4 p-3 sm:p-4 border rounded-lg">
                 <div className="flex-shrink-0 cursor-grab active:cursor-grabbing" {...attributes} {...listeners}>
                   <GripVertical className="h-6 w-6 text-muted-foreground" />
                 </div>

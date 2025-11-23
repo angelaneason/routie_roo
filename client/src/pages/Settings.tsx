@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { APP_TITLE } from "@/const";
@@ -145,6 +146,36 @@ export default function Settings() {
                     </Select>
                     <p className="text-sm text-muted-foreground">
                       All route distances will be displayed in your preferred unit
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Starting Point */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Default Starting Point</CardTitle>
+                  <CardDescription>Set your default starting address for routes</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="starting-point">Starting Address</Label>
+                    <Input
+                      id="starting-point"
+                      type="text"
+                      placeholder="e.g., 123 Main St, City, State ZIP"
+                      defaultValue={currentUser?.defaultStartingPoint || ""}
+                      onBlur={(e) => {
+                        const value = e.target.value.trim();
+                        if (value !== currentUser?.defaultStartingPoint) {
+                          updateSettingsMutation.mutate({
+                            defaultStartingPoint: value || undefined
+                          });
+                        }
+                      }}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      This address will be used as the starting point for all new routes (e.g., your home or office)
                     </p>
                   </div>
                 </CardContent>

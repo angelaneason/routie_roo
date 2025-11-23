@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { MapView } from "@/components/Map";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
@@ -50,6 +50,10 @@ export default function RouteDetail() {
   const [localWaypoints, setLocalWaypoints] = useState<any[]>([]);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [shareToken, setShareToken] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [showAddContactDialog, setShowAddContactDialog] = useState(false);
+  const [editingWaypointId, setEditingWaypointId] = useState<number | null>(null);
+  const [editingAddress, setEditingAddress] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -97,6 +101,28 @@ export default function RouteDetail() {
     },
     onError: (error) => {
       toast.error(`Failed to reschedule: ${error.message}`);
+    },
+  });
+
+  const removeWaypointMutation = trpc.routes.removeWaypoint.useMutation({
+    onSuccess: () => {
+      toast.success("Waypoint removed");
+      routeQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Failed to remove waypoint: ${error.message}`);
+    },
+  });
+
+  const updateAddressMutation = trpc.routes.updateWaypointAddress.useMutation({
+    onSuccess: () => {
+      toast.success("Address updated");
+      setEditingWaypointId(null);
+      setEditingAddress("");
+      routeQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Failed to update address: ${error.message}`);
     },
   });
 
@@ -236,6 +262,16 @@ export default function RouteDetail() {
     },
   });
 
+  const copyRouteMutation = trpc.routes.copyRoute.useMutation({
+    onSuccess: (data) => {
+      toast.success("Route copied successfully!");
+      window.location.href = `/routes/${data.routeId}`;
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to copy route");
+    },
+  });
+
   const handleAddToCalendar = () => {
     // Set default start time to now
     const now = new Date();
@@ -252,6 +288,11 @@ export default function RouteDetail() {
       routeId: parseInt(routeId),
       startTime: new Date(calendarStartTime).toISOString(),
     });
+  };
+
+  const handleCopyRoute = () => {
+    if (!routeId) return;
+    copyRouteMutation.mutate({ routeId: parseInt(routeId) });
   };
 
   if (routeQuery.isLoading) {
@@ -301,22 +342,49 @@ export default function RouteDetail() {
               <h1 className="text-xl font-bold">{route.name}</h1>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleCopyShareLink}>
-                <Copy className="h-4 w-4 mr-2" />
-                Copy Link
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)}>
-                <Share2 className="h-4 w-4 mr-2" />
-                Share for Execution
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleAddToCalendar}>
-                <Calendar className="h-4 w-4 mr-2" />
-                Add to Calendar
-              </Button>
-              <Button size="sm" onClick={handleOpenInGoogleMaps}>
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Open in Google Maps
-              </Button>
+              {isEditMode ? (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => setIsEditMode(false)}>
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button size="sm" variant="default" onClick={() => {
+                    setIsEditMode(false);
+                    routeQuery.refetch();
+                    toast.success("Route updated");
+                  }}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => setIsEditMode(true)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Route
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleCopyRoute}>
+                    <CopyIcon className="h-4 w-4 mr-2" />
+                    Copy Route
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleCopyShareLink}>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy Link
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)}>
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share for Execution
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleAddToCalendar}>
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Add to Calendar
+                  </Button>
+                  <Button size="sm" onClick={handleOpenInGoogleMaps}>
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open in Google Maps
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -379,8 +447,21 @@ export default function RouteDetail() {
                     {waypoints.filter((w: any) => w.status === "complete").length} of {waypoints.length} complete
                   </span>
                 </CardTitle>
-                <CardDescription>Track your route progress</CardDescription>
-                {waypoints.length > 0 && (
+                <CardDescription>
+                  {isEditMode ? "Add or remove waypoints" : "Track your route progress"}
+                </CardDescription>
+                {isEditMode && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-3 w-full"
+                    onClick={() => setShowAddContactDialog(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Contact to Route
+                  </Button>
+                )}
+                {!isEditMode && waypoints.length > 0 && (
                   <>
                     <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                       <div
@@ -478,6 +559,16 @@ export default function RouteDetail() {
                             setSelectedWaypoint(waypoint);
                             setActionType("reschedule");
                             setRescheduledDate(waypoint.rescheduledDate ? new Date(waypoint.rescheduledDate).toISOString().slice(0, 16) : "");
+                          }}
+                          isEditMode={isEditMode}
+                          onRemove={() => {
+                            if (confirm(`Remove ${waypoint.contactName || "this waypoint"}?`)) {
+                              removeWaypointMutation.mutate({ waypointId: waypoint.id });
+                            }
+                          }}
+                          onEditAddress={() => {
+                            setEditingWaypointId(waypoint.id);
+                            setEditingAddress(waypoint.address);
                           }}
                         />
                       ))}
@@ -662,6 +753,138 @@ export default function RouteDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Address Dialog */}
+      <Dialog open={editingWaypointId !== null} onOpenChange={(open) => !open && setEditingWaypointId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Waypoint Address</DialogTitle>
+            <DialogDescription>
+              Update the address for this stop
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-address">Address</Label>
+              <Input
+                id="edit-address"
+                value={editingAddress}
+                onChange={(e) => setEditingAddress(e.target.value)}
+                placeholder="Enter new address"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingWaypointId(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!editingAddress.trim()) {
+                  toast.error("Address cannot be empty");
+                  return;
+                }
+                updateAddressMutation.mutate({
+                  waypointId: editingWaypointId!,
+                  address: editingAddress,
+                });
+              }}
+              disabled={updateAddressMutation.isPending}
+            >
+              {updateAddressMutation.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Contact Dialog */}
+      <Dialog open={showAddContactDialog} onOpenChange={setShowAddContactDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Contact to Route</DialogTitle>
+            <DialogDescription>
+              Select a contact to add as a waypoint
+            </DialogDescription>
+          </DialogHeader>
+          <AddContactToRoute
+            routeId={parseInt(routeId!)}
+            onSuccess={() => {
+              setShowAddContactDialog(false);
+              routeQuery.refetch();
+              toast.success("Contact added to route");
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// Component for adding contacts to route
+function AddContactToRoute({ routeId, onSuccess }: { routeId: number; onSuccess: () => void }) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const contactsQuery = trpc.contacts.list.useQuery();
+  const addWaypointMutation = trpc.routes.addWaypoint.useMutation({
+    onSuccess,
+    onError: (error) => {
+      toast.error(`Failed to add contact: ${error.message}`);
+    },
+  });
+
+  const contacts = contactsQuery.data || [];
+  const filteredContacts = contacts.filter(contact => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      contact.name?.toLowerCase().includes(query) ||
+      contact.address?.toLowerCase().includes(query)
+    );
+  });
+
+  return (
+    <div className="space-y-4">
+      <Input
+        placeholder="Search contacts..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
+      <div className="space-y-2 max-h-[400px] overflow-y-auto">
+        {filteredContacts.map((contact) => (
+          <Card
+            key={contact.id}
+            className="cursor-pointer hover:bg-accent transition-colors"
+            onClick={() => {
+              if (!contact.address) {
+                toast.error(`${contact.name} has no address`);
+                return;
+              }
+              addWaypointMutation.mutate({
+                routeId,
+                contactName: contact.name || undefined,
+                address: contact.address,
+                phoneNumbers: contact.phoneNumbers || undefined,
+              });
+            }}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{contact.name}</p>
+                  <p className="text-sm text-muted-foreground">{contact.address || "No address"}</p>
+                </div>
+                {!contact.address && (
+                  <span className="text-xs text-orange-600 font-medium">No Address</span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        {filteredContacts.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            No contacts found
+          </div>
+        )}
+      </div>
     </div>
   );
 }

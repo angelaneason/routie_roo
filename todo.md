@@ -420,3 +420,29 @@
 - [x] Add quick "Add Address" button on contact cards for faster editing
 - [x] Create "Contacts Without Addresses" filter option
 - [x] Fix PhoneTextMenu to include Google Voice as a texting option
+
+## Critical Route Fixes - Priority
+
+- [x] Add starting point field to routes (home/office address)
+- [ ] Add starting point selection in route creation UI
+- [x] Store user's default starting point in settings
+- [x] Fix mobile responsiveness for shared route pages
+- [x] Fix map display on mobile devices
+- [x] Ensure touch interactions work on mobile
+- [ ] Implement numbered/lettered map markers (A, B, C)
+- [ ] Match marker labels to waypoint list order
+
+## Route Editing Features
+
+- [x] Add backend procedure to add waypoints to existing routes
+- [x] Add backend procedure to remove waypoints from routes
+- [x] Add backend procedure to update waypoint addresses
+- [x] Create route edit mode UI with "Edit Route" button
+- [x] Add contact selector to add new waypoints to route
+- [x] Add remove button for each waypoint in edit mode
+- [x] Add inline address editing for waypoints
+- [x] Auto-refresh map when waypoints are added/removed/reordered
+- [x] Auto-refresh map when addresses are edited
+- [ ] Recalculate route distance/duration after changes
+
+- [x] Add "Copy Route" button to duplicate existing routes

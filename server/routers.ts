@@ -861,6 +861,162 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Add waypoint to existing route
+    addWaypoint: protectedProcedure
+      .input(z.object({
+        routeId: z.number(),
+        contactName: z.string().optional(),
+        address: z.string(),
+        phoneNumbers: z.string().optional(),
+        stopType: z.enum(["pickup", "delivery", "meeting", "visit", "other"]).optional(),
+        stopColor: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify route ownership
+        const route = await getRouteById(input.routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        // Get current waypoints to determine order
+        const existingWaypoints = await getRouteWaypoints(input.routeId);
+        const nextOrder = existingWaypoints.length;
+
+        // Insert new waypoint
+        await db.insert(routeWaypoints).values({
+          routeId: input.routeId,
+          contactName: input.contactName || null,
+          address: input.address,
+          phoneNumbers: input.phoneNumbers || null,
+          stopType: input.stopType || "visit",
+          stopColor: input.stopColor || "#3b82f6",
+          position: nextOrder,
+          executionOrder: nextOrder,
+          status: "pending",
+        });
+
+        return { success: true };
+      }),
+
+    // Remove waypoint from route
+    removeWaypoint: protectedProcedure
+      .input(z.object({
+        waypointId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify waypoint belongs to user's route
+        const waypoint = await db.select().from(routeWaypoints).where(eq(routeWaypoints.id, input.waypointId)).limit(1);
+        if (!waypoint.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Waypoint not found" });
+        }
+
+        const route = await getRouteById(waypoint[0].routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        // Delete waypoint
+        await db.delete(routeWaypoints).where(eq(routeWaypoints.id, input.waypointId));
+
+        return { success: true };
+      }),
+
+    // Update waypoint address
+    updateWaypointAddress: protectedProcedure
+      .input(z.object({
+        waypointId: z.number(),
+        address: z.string(),
+        contactName: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify waypoint belongs to user's route
+        const waypoint = await db.select().from(routeWaypoints).where(eq(routeWaypoints.id, input.waypointId)).limit(1);
+        if (!waypoint.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Waypoint not found" });
+        }
+
+        const route = await getRouteById(waypoint[0].routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        // Update waypoint
+        const updateData: any = { address: input.address };
+        if (input.contactName !== undefined) {
+          updateData.contactName = input.contactName;
+        }
+
+        await db.update(routeWaypoints)
+          .set(updateData)
+          .where(eq(routeWaypoints.id, input.waypointId));
+
+        return { success: true };
+      }),
+
+    // Copy route
+    copyRoute: protectedProcedure
+      .input(z.object({
+        routeId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Get original route
+        const originalRoute = await getRouteById(input.routeId);
+        if (!originalRoute || originalRoute.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        // Create new route
+        const shareId = nanoid(12);
+        const newRoute = await createRoute({
+          userId: ctx.user.id,
+          name: `${originalRoute.name} (Copy)`,
+          shareId,
+          totalDistance: originalRoute.totalDistance,
+          totalDuration: originalRoute.totalDuration,
+          notes: originalRoute.notes,
+          isPublic: false,
+          optimized: originalRoute.optimized,
+          folderId: originalRoute.folderId,
+        });
+
+        const newRouteId = Number(newRoute[0].insertId);
+
+        // Get original waypoints
+        const originalWaypoints = await db.select()
+          .from(routeWaypoints)
+          .where(eq(routeWaypoints.routeId, input.routeId))
+          .orderBy(routeWaypoints.position);
+
+        // Copy waypoints
+        for (const wp of originalWaypoints) {
+          await db.insert(routeWaypoints).values({
+            routeId: newRouteId,
+            contactName: wp.contactName,
+            address: wp.address,
+            latitude: wp.latitude,
+            longitude: wp.longitude,
+            phoneNumbers: wp.phoneNumbers,
+            position: wp.position,
+            status: "pending", // Reset status
+            stopType: wp.stopType,
+          });
+        }
+
+        return { routeId: newRouteId };
+      }),
+
     // Get all missed waypoints that need rescheduling (for manager dashboard)
     getMissedWaypoints: protectedProcedure
       .query(async ({ ctx }) => {
@@ -917,6 +1073,7 @@ export const appRouter = router({
       .input(z.object({
         preferredCallingService: z.enum(["phone", "google-voice", "whatsapp", "skype", "facetime"]).optional(),
         distanceUnit: z.enum(["km", "miles"]).optional(),
+        defaultStartingPoint: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -925,6 +1082,7 @@ export const appRouter = router({
         const updateData: any = {};
         if (input.preferredCallingService) updateData.preferredCallingService = input.preferredCallingService;
         if (input.distanceUnit) updateData.distanceUnit = input.distanceUnit;
+        if (input.defaultStartingPoint !== undefined) updateData.defaultStartingPoint = input.defaultStartingPoint || null;
 
         await db.update(users)
           .set(updateData)

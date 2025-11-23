@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { StopStatusBadge } from "@/components/StopStatusBadge";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
-import { CheckCircle2, XCircle, MessageSquare, Calendar, GripVertical } from "lucide-react";
+import { CheckCircle2, XCircle, MessageSquare, Calendar, GripVertical, Trash2, Edit3 } from "lucide-react";
 
 interface SortableWaypointItemProps {
   waypoint: any;
@@ -13,6 +13,9 @@ interface SortableWaypointItemProps {
   onMiss: () => void;
   onNote: () => void;
   onReschedule: () => void;
+  isEditMode?: boolean;
+  onRemove?: () => void;
+  onEditAddress?: () => void;
 }
 
 export function SortableWaypointItem({
@@ -22,6 +25,9 @@ export function SortableWaypointItem({
   onMiss,
   onNote,
   onReschedule,
+  isEditMode = false,
+  onRemove,
+  onEditAddress,
 }: SortableWaypointItemProps) {
   const {
     attributes,
@@ -117,46 +123,69 @@ export function SortableWaypointItem({
         </div>
       </div>
       
-      {/* Execution Controls */}
+      {/* Controls */}
       <div className="flex gap-2 flex-wrap pt-2 border-t">
-        {waypoint.status === "pending" && (
+        {isEditMode ? (
           <>
             <Button
               size="sm"
-              onClick={onComplete}
-              className="bg-green-600 hover:bg-green-700"
+              variant="outline"
+              onClick={onEditAddress}
             >
-              <CheckCircle2 className="h-4 w-4 mr-1" />
-              Complete
+              <Edit3 className="h-4 w-4 mr-1" />
+              Edit Address
             </Button>
             <Button
               size="sm"
               variant="destructive"
-              onClick={onMiss}
+              onClick={onRemove}
             >
-              <XCircle className="h-4 w-4 mr-1" />
-              Miss
+              <Trash2 className="h-4 w-4 mr-1" />
+              Remove
+            </Button>
+          </>
+        ) : (
+          <>
+            {waypoint.status === "pending" && (
+              <>
+                <Button
+                  size="sm"
+                  onClick={onComplete}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                  Complete
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={onMiss}
+                >
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Miss
+                </Button>
+              </>
+            )}
+            {waypoint.status === "missed" && waypoint.needsReschedule === 1 && (
+              <Button
+                size="sm"
+                onClick={onReschedule}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <Calendar className="h-4 w-4 mr-1" />
+                Reschedule
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onNote}
+            >
+              <MessageSquare className="h-4 w-4 mr-1" />
+              {waypoint.executionNotes ? "Edit Note" : "Add Note"}
             </Button>
           </>
         )}
-        {waypoint.status === "missed" && waypoint.needsReschedule === 1 && (
-          <Button
-            size="sm"
-            onClick={onReschedule}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            <Calendar className="h-4 w-4 mr-1" />
-            Reschedule
-          </Button>
-        )}
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onNote}
-        >
-          <MessageSquare className="h-4 w-4 mr-1" />
-          {waypoint.executionNotes ? "Edit Note" : "Add Note"}
-        </Button>
       </div>
     </div>
   );
