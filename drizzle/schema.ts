@@ -39,6 +39,7 @@ export const routes = mysqlTable("routes", {
   shareToken: varchar("shareToken", { length: 36 }).unique(), // UUID for public access
   isPubliclyAccessible: boolean("isPubliclyAccessible").default(false).notNull(), // Allow unauthenticated access
   sharedAt: timestamp("sharedAt"), // When share link was generated
+  completedAt: timestamp("completedAt"), // When all waypoints were completed/missed
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

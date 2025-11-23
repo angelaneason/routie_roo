@@ -446,3 +446,10 @@
 - [x] Recalculate route distance/duration after changes
 
 - [x] Add "Copy Route" button to duplicate existing routes
+
+## Route Completion Status
+
+- [x] Add completedAt field to routes schema
+- [x] Add backend logic to automatically mark route as completed when all waypoints are completed/missed
+- [x] Display route completion status badge on route detail page
+- [x] Show completion timestamp when route is completed

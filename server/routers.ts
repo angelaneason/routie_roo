@@ -599,6 +599,22 @@ export const appRouter = router({
           .set(updateData)
           .where(eq(routeWaypoints.id, input.waypointId));
 
+        // Check if all waypoints are now completed or missed
+        const allWaypoints = await db.select()
+          .from(routeWaypoints)
+          .where(eq(routeWaypoints.routeId, waypoint[0].routeId));
+
+        const allFinished = allWaypoints.every(
+          wp => wp.status === "complete" || wp.status === "missed"
+        );
+
+        // Mark route as completed if all waypoints are finished
+        if (allFinished && !route.completedAt) {
+          await db.update(routes)
+            .set({ completedAt: new Date() })
+            .where(eq(routes.id, waypoint[0].routeId));
+        }
+
         return { success: true };
       }),
 

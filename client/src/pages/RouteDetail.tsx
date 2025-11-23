@@ -357,6 +357,12 @@ export default function RouteDetail() {
               </Link>
               <div className="h-6 w-px bg-border" />
               <h1 className="text-xl font-bold">{route.name}</h1>
+              {route.completedAt && (
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Completed
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-2">
               {isEditMode ? (
@@ -447,6 +453,14 @@ export default function RouteDetail() {
                   <p className="text-sm text-muted-foreground">Stops</p>
                   <p className="text-2xl font-bold">{waypoints.length}</p>
                 </div>
+                {route.completedAt && (
+                  <div className="pt-4 border-t">
+                    <p className="text-sm text-muted-foreground mb-1">Completed</p>
+                    <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                      {new Date(route.completedAt).toLocaleString()}
+                    </p>
+                  </div>
+                )}
                 {route.notes && (
                   <div className="pt-4 border-t">
                     <p className="text-sm text-muted-foreground mb-2">Notes</p>
