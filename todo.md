@@ -484,3 +484,5 @@
 - [x] Fix Select.Item empty value error preventing login
 
 - [x] Add visible logout button to header navigation
+
+- [x] Fix save button for starting locations not working when clicked

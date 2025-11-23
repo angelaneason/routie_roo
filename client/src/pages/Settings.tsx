@@ -20,6 +20,19 @@ export default function Settings() {
   
   const userQuery = trpc.auth.me.useQuery();
   const startingPointsQuery = trpc.settings.listStartingPoints.useQuery();
+  
+  const createStartingPointMutation = trpc.settings.createStartingPoint.useMutation({
+    onSuccess: () => {
+      toast.success("Starting point saved! 🦘");
+      setNewPointName("");
+      setNewPointAddress("");
+      startingPointsQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to save starting point");
+    }
+  });
+  
   const updateSettingsMutation = trpc.settings.updatePreferences.useMutation({
     onSuccess: () => {
       toast.success("Settings updated successfully!");
@@ -218,18 +231,12 @@ export default function Settings() {
                           toast.error("Please enter both name and address");
                           return;
                         }
-                        trpc.settings.createStartingPoint.useMutation({
-                          onSuccess: () => {
-                            toast.success("Starting point saved!");
-                            setNewPointName("");
-                            setNewPointAddress("");
-                            startingPointsQuery.refetch();
-                          },
-                          onError: (error) => {
-                            toast.error(error.message || "Failed to save starting point");
-                          }
-                        }).mutate({ name: newPointName.trim(), address: newPointAddress.trim() });
+                        createStartingPointMutation.mutate({ 
+                          name: newPointName.trim(), 
+                          address: newPointAddress.trim() 
+                        });
                       }}
+                      disabled={createStartingPointMutation.isPending}
                       className="w-full"
                     >
                       <Plus className="h-4 w-4 mr-2" />
