@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, name, email, labels FROM cached_contacts WHERE labels IS NOT NULL AND labels != '' AND labels != '[]' LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, name, email, labels FROM cached_contacts WHERE labels IS NOT NULL AND labels != '' AND labels != '[]' LIMIT 5;",
+  "rows": [
+    {
+      "id": "210001",
+      "name": "Ray Camacho",
+      "email": "camachomun@sbcglobal.net",
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "id": "210002",
+      "name": "Leon Montgomery",
+      "email": "leonmontgomery@sbcglobal.net",
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "id": "210003",
+      "name": "Marie Scheduling",
+      "email": "NULL",
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "id": "210004",
+      "name": "May Kim",
+      "email": "NULL",
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "id": "210005",
+      "name": "Jason Hammock",
+      "email": "jasonkhammock@gmail.com",
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\tlabels\n210001\tRay Camacho\tcamachomun@sbcglobal.net\t[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n210002\tLeon Montgomery\tleonmontgomery@sbcglobal.net\t[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n210003\tMarie Scheduling\tNULL\t[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n210004\tMay Kim\tNULL\t[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n210005\tJason Hammock\tjasonkhammock@gmail.com\t[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n",
+  "stderr": "",
+  "execution_time_ms": 110
+}

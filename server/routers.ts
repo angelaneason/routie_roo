@@ -25,6 +25,7 @@ import {
   getGoogleAuthUrl, 
   exchangeCodeForToken, 
   fetchGoogleContacts, 
+  fetchContactGroupNames,
   parseGoogleContacts,
   createCalendarEvent
 } from "./googleAuth";
@@ -148,11 +149,15 @@ export const appRouter = router({
           // Exchange code for token
           const tokenData = await exchangeCodeForToken(input.code, input.redirectUri);
           
+          // Fetch contact group names first
+          const groupNameMap = await fetchContactGroupNames(tokenData.access_token);
+          console.log('Fetched contact groups:', Array.from(groupNameMap.entries()));
+          
           // Fetch contacts
           const googleContacts = await fetchGoogleContacts(tokenData.access_token);
           
-          // Parse all contacts (including those without addresses)
-          const parsedContacts = parseGoogleContacts(googleContacts);
+          // Parse all contacts (including those without addresses), resolving group IDs to names
+          const parsedContacts = parseGoogleContacts(googleContacts, groupNameMap);
           
           // Clear old cached contacts
           await clearUserCachedContacts(input.userId);

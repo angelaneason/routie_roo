@@ -356,21 +356,10 @@ export default function Home() {
       try {
         const labels = JSON.parse(contact.labels);
         return labels
-          .map((label: string) => {
-            // Extract custom label name from contactGroups/ format
-            if (label.startsWith('contactGroups/')) {
-              // Extract the label name after the last slash
-              const parts = label.split('/');
-              return parts[parts.length - 1];
-            }
-            return label;
-          })
           .filter((label: string) => {
             const lower = label.toLowerCase();
-            // Exclude hex IDs, myContacts, and starred
-            return !/^[a-f0-9]{12,}$/i.test(label) &&
-                   lower !== 'mycontacts' &&
-                   lower !== 'starred';
+            // Exclude myContacts and starred (custom labels are now resolved names, not hex IDs)
+            return lower !== 'mycontacts' && lower !== 'starred';
           });
       } catch {
         return [];
@@ -648,26 +637,19 @@ export default function Home() {
                           {contact.labels && (() => {
                             try {
                               const labels = JSON.parse(contact.labels);
-                              // Filter out technical hex IDs, myContacts, and starred
+                              // Filter out myContacts and starred (labels are now resolved names)
                               const userFriendlyLabels = labels.filter((label: string) => {
-                                const labelName = label.split('/').pop() || label;
-                                const lower = labelName.toLowerCase();
-                                // Exclude hex IDs, myContacts, and starred
-                                return !/^[a-f0-9]{12,}$/i.test(labelName) &&
-                                       lower !== 'mycontacts' &&
-                                       lower !== 'starred';
+                                const lower = label.toLowerCase();
+                                return lower !== 'mycontacts' && lower !== 'starred';
                               });
                               if (userFriendlyLabels.length > 0) {
                                 return (
                                   <div className="flex flex-wrap gap-1 mt-1">
-                                    {userFriendlyLabels.slice(0, 3).map((label: string, idx: number) => {
-                                      const labelName = label.split('/').pop() || label;
-                                      return (
-                                        <span key={idx} className="inline-block px-2 py-0.5 text-xs bg-primary/10 text-primary rounded">
-                                          {labelName}
-                                        </span>
-                                      );
-                                    })}
+                                    {userFriendlyLabels.slice(0, 3).map((label: string, idx: number) => (
+                                      <span key={idx} className="inline-block px-2 py-0.5 text-xs bg-primary/10 text-primary rounded">
+                                        {label}
+                                      </span>
+                                    ))}
                                     {userFriendlyLabels.length > 3 && (
                                       <span className="inline-block px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded">
                                         +{userFriendlyLabels.length - 3}

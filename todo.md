@@ -595,3 +595,13 @@
 - [ ] Display recurring routes on calendar view
 - [ ] Allow editing/deleting single occurrence or entire series
 - [ ] Remove numbered marker from starting location (it's just an anchor, not a stop)
+
+## Custom Labels Not Displaying Issue
+
+- [x] Investigate what label data is stored in database for contacts
+- [x] Check label filtering logic in ContactCard.tsx
+- [x] Verify label extraction from Google Contact groups format
+- [x] Add fetchContactGroupNames function to resolve group IDs to names
+- [x] Update sync process to fetch and resolve group names
+- [x] Fix label display on contact cards and filter dropdown
+- [x] Update SortableWaypointItem to show resolved labels

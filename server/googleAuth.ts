@@ -138,9 +138,46 @@ export async function fetchGoogleContacts(accessToken: string): Promise<GoogleCo
 }
 
 /**
+ * Fetch contact group names from Google People API
+ */
+export async function fetchContactGroupNames(accessToken: string): Promise<Map<string, string>> {
+  const groupMap = new Map<string, string>();
+  
+  try {
+    const response = await fetch(
+      'https://people.googleapis.com/v1/contactGroups',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Failed to fetch contact groups:', await response.text());
+      return groupMap;
+    }
+
+    const data = await response.json();
+    
+    if (data.contactGroups) {
+      for (const group of data.contactGroups) {
+        if (group.resourceName && group.name) {
+          groupMap.set(group.resourceName, group.name);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching contact groups:', error);
+  }
+  
+  return groupMap;
+}
+
+/**
  * Parse Google contacts into our format
  */
-export function parseGoogleContacts(googleContacts: GoogleContact[]) {
+export function parseGoogleContacts(googleContacts: GoogleContact[], groupNameMap?: Map<string, string>) {
   return googleContacts
     // Filter out contact groups and other non-person entries
     .filter(contact => {
@@ -165,10 +202,21 @@ export function parseGoogleContacts(googleContacts: GoogleContact[]) {
       const photoUrl = contact.photos?.[0]?.url || null;
       
       // Parse contact labels/groups from memberships
-      const labels = contact.memberships
+      const labelResourceNames = contact.memberships
         ?.filter(m => m.contactGroupMembership)
         ?.map(m => m.contactGroupMembership?.contactGroupResourceName)
         ?.filter(Boolean) || [];
+      
+      // Resolve group IDs to names if groupNameMap is provided
+      const labels = groupNameMap 
+        ? labelResourceNames
+            .filter((rn): rn is string => !!rn)
+            .map(resourceName => {
+              const groupName = groupNameMap.get(resourceName);
+              // If we have a name, use it; otherwise keep the resource name
+              return groupName || resourceName;
+            })
+        : labelResourceNames;
 
       return {
         resourceName: contact.resourceName,
