@@ -509,3 +509,4 @@
 ## Layout Improvements
 
 - [x] Adjust route detail page layout - make map smaller and waypoint section wider for better visual balance
+- [x] Fine-tune layout proportions - current 1/3 map and 2/3 waypoints is too wide, find better balance
