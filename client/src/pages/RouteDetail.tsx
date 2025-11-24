@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { MapView } from "@/components/Map";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon, Download } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon, Download, Sparkles } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
@@ -108,9 +108,20 @@ export default function RouteDetail() {
   const recalculateRouteMutation = trpc.routes.recalculateRoute.useMutation({
     onSuccess: (data) => {
       routeQuery.refetch();
+      toast.success("Route recalculated");
     },
     onError: (error) => {
-      console.error("Failed to recalculate route:", error.message);
+      toast.error(`Failed to recalculate: ${error.message}`);
+    },
+  });
+
+  const reoptimizeRouteMutation = trpc.routes.reoptimizeRoute.useMutation({
+    onSuccess: (data) => {
+      routeQuery.refetch();
+      toast.success(data.message);
+    },
+    onError: (error) => {
+      toast.error(`Failed to re-optimize: ${error.message}`);
     },
   });
 
@@ -393,6 +404,11 @@ export default function RouteDetail() {
     copyRouteMutation.mutate({ routeId: parseInt(routeId) });
   };
 
+  const handleReoptimizeRoute = () => {
+    if (!routeId) return;
+    reoptimizeRouteMutation.mutate({ routeId: parseInt(routeId) });
+  };
+
   const handleExportToCSV = () => {
     if (!route || !waypoints) return;
 
@@ -547,6 +563,14 @@ export default function RouteDetail() {
                   <Button variant="outline" size="sm" onClick={handleCopyRoute}>
                     <CopyIcon className="h-4 w-4 mr-2" />
                     Copy Route
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleReoptimizeRoute} disabled={reoptimizeRouteMutation.isPending}>
+                    {reoptimizeRouteMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4 mr-2" />
+                    )}
+                    Re-optimize Route
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleCopyShareLink}>
                     <Copy className="h-4 w-4 mr-2" />

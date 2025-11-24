@@ -1168,6 +1168,112 @@ export const appRouter = router({
         };
       }),
 
+    // Re-optimize route by finding best positions for new stops
+    reoptimizeRoute: protectedProcedure
+      .input(z.object({
+        routeId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Get route and verify ownership
+        const route = await getRouteById(input.routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        // Get all waypoints
+        const allWaypoints = await db.select()
+          .from(routeWaypoints)
+          .where(eq(routeWaypoints.routeId, input.routeId))
+          .orderBy(routeWaypoints.position);
+
+        if (allWaypoints.length < 2) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Route must have at least 2 waypoints" });
+        }
+
+        // Identify "new" stops: waypoints added after route creation
+        const routeCreatedAt = new Date(route.createdAt);
+        const newStops = allWaypoints.filter(wp => new Date(wp.createdAt) > routeCreatedAt);
+        const existingStops = allWaypoints.filter(wp => new Date(wp.createdAt) <= routeCreatedAt);
+
+        if (newStops.length === 0) {
+          return { message: "No new stops to optimize", optimizedCount: 0 };
+        }
+
+        // For each new stop, find the best insertion position
+        let currentOrder = [...existingStops];
+        
+        for (const newStop of newStops) {
+          let bestPosition = currentOrder.length; // Default: append at end
+          let bestDistance = Infinity;
+
+          // Try inserting at each position
+          for (let i = 1; i < currentOrder.length; i++) { // Start at 1 to skip origin
+            const testOrder = [
+              ...currentOrder.slice(0, i),
+              newStop,
+              ...currentOrder.slice(i)
+            ];
+
+            try {
+              // Calculate route distance with this order
+              const routeData = await calculateRoute(
+                testOrder.map(wp => ({
+                  address: wp.address,
+                  name: wp.contactName || undefined,
+                }))
+              );
+
+              if (routeData.distanceMeters < bestDistance) {
+                bestDistance = routeData.distanceMeters;
+                bestPosition = i;
+              }
+            } catch (error) {
+              // Skip this position if route calculation fails
+              continue;
+            }
+          }
+
+          // Insert at best position
+          currentOrder = [
+            ...currentOrder.slice(0, bestPosition),
+            newStop,
+            ...currentOrder.slice(bestPosition)
+          ];
+        }
+
+        // Update waypoint positions in database
+        for (let i = 0; i < currentOrder.length; i++) {
+          await db.update(routeWaypoints)
+            .set({ position: i })
+            .where(eq(routeWaypoints.id, currentOrder[i].id));
+        }
+
+        // Recalculate final route distance and duration
+        const finalRouteData = await calculateRoute(
+          currentOrder.map(wp => ({
+            address: wp.address,
+            name: wp.contactName || undefined,
+          }))
+        );
+
+        await db.update(routes)
+          .set({
+            totalDistance: finalRouteData.distanceMeters,
+            totalDuration: parseInt(finalRouteData.duration.replace('s', '')),
+          })
+          .where(eq(routes.id, input.routeId));
+
+        return {
+          message: `Optimized ${newStops.length} new stop(s)`,
+          optimizedCount: newStops.length,
+          totalDistance: finalRouteData.distanceMeters,
+          totalDuration: parseInt(finalRouteData.duration.replace('s', '')),
+        };
+      }),
+
     // Get all missed waypoints that need rescheduling (for manager dashboard)
     getMissedWaypoints: protectedProcedure
       .query(async ({ ctx }) => {

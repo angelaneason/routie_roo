@@ -619,3 +619,12 @@
 - [x] Fixed map rendering by filtering waypoints without coordinates
 - [x] Added warning banner for missing coordinates
 - [x] Tested with actual shared route: https://routieroo.manus.space/share/74f21387-337f-4692-83c4-005d5c4638a3
+
+## Re-optimize Route with New Stops
+
+- [x] Add database field to track when waypoints were added (createdAt timestamp already exists)
+- [x] Implement algorithm to find optimal insertion points for new stops
+- [x] Add "Re-optimize Route" button to route detail page
+- [x] Calculate best position for each new stop without changing existing order
+- [x] Update route distance and duration after re-optimization
+- [x] Write tests for re-optimization logic (4/4 tests passing)
