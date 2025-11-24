@@ -554,3 +554,7 @@
 - [x] Show label badges on waypoint cards with proper styling
 - [x] Fix Filter by Label dropdown not showing on home page
 - [x] Remove "myContacts" and "starred" from label display (show only custom labels)
+
+## Mobile Issues
+
+- [x] Fix map pins not showing on mobile devices when viewing shared execution link

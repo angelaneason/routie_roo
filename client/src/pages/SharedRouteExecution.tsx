@@ -92,6 +92,9 @@ export default function SharedRouteExecution() {
   useEffect(() => {
     if (!map || !directionsRenderer || waypoints.length < 2) return;
 
+    // Trigger map resize to ensure proper rendering on mobile
+    google.maps.event.trigger(map, 'resize');
+
     const directionsService = new google.maps.DirectionsService();
     const origin = waypoints[0];
     const destination = waypoints[waypoints.length - 1];
@@ -114,10 +117,12 @@ export default function SharedRouteExecution() {
           // Clear existing markers
           markers.forEach(marker => marker.setMap(null));
           
-          // Add numbered markers for each waypoint
-          const newMarkers: google.maps.Marker[] = [];
-          waypoints.forEach((waypoint, index) => {
-            const marker = new google.maps.Marker({
+          // Wait for map to be fully rendered before adding markers (helps on mobile)
+          setTimeout(() => {
+            // Add numbered markers for each waypoint
+            const newMarkers: google.maps.Marker[] = [];
+            waypoints.forEach((waypoint, index) => {
+              const marker = new google.maps.Marker({
               position: new google.maps.LatLng(
                 parseFloat(waypoint.latitude!),
                 parseFloat(waypoint.longitude!)
@@ -137,11 +142,12 @@ export default function SharedRouteExecution() {
                 strokeColor: "white",
                 strokeWeight: 2,
               },
+              });
+              newMarkers.push(marker);
             });
-            newMarkers.push(marker);
-          });
-          
-          setMarkers(newMarkers);
+            
+            setMarkers(newMarkers);
+          }, 100); // Small delay to ensure map is ready
         }
       }
     );
