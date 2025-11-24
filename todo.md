@@ -668,3 +668,10 @@
 ### Auto-Archive Logic
 - [ ] Implement auto-archive check (can be done via scheduled job or on-demand)
 - [ ] Auto-archive completed routes based on user's autoArchiveDays setting
+
+## Route Detail Header Layout
+
+- [x] Reorganize route detail page header buttons to wrap to multiple rows
+- [x] Group related buttons together (primary, sharing, secondary actions)
+- [x] Ensure responsive layout with flex-wrap that doesn't overflow on smaller screens
+- [x] Shortened button labels for cleaner appearance

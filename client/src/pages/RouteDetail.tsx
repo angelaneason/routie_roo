@@ -554,7 +554,7 @@ export default function RouteDetail() {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {isEditMode ? (
                 <>
                   <Button variant="outline" size="sm" onClick={() => setIsEditMode(false)}>
@@ -572,13 +572,10 @@ export default function RouteDetail() {
                 </>
               ) : (
                 <>
+                  {/* Primary Actions */}
                   <Button variant="outline" size="sm" onClick={() => setIsEditMode(true)}>
                     <Edit className="h-4 w-4 mr-2" />
                     Edit Route
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleCopyRoute}>
-                    <CopyIcon className="h-4 w-4 mr-2" />
-                    Copy Route
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleReoptimizeRoute} disabled={reoptimizeRouteMutation.isPending}>
                     {reoptimizeRouteMutation.isPending ? (
@@ -586,31 +583,39 @@ export default function RouteDetail() {
                     ) : (
                       <Sparkles className="h-4 w-4 mr-2" />
                     )}
-                    Re-optimize Route
+                    Re-optimize
                   </Button>
+                  <Button size="sm" onClick={handleOpenInGoogleMaps}>
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open in Maps
+                  </Button>
+                  
+                  {/* Sharing Actions */}
                   <Button variant="outline" size="sm" onClick={handleCopyShareLink}>
                     <Copy className="h-4 w-4 mr-2" />
                     Copy Link
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)}>
                     <Share2 className="h-4 w-4 mr-2" />
-                    Share for Execution
+                    Share
+                  </Button>
+                  
+                  {/* Secondary Actions */}
+                  <Button variant="outline" size="sm" onClick={handleCopyRoute}>
+                    <CopyIcon className="h-4 w-4 mr-2" />
+                    Copy
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleAddToCalendar}>
                     <Calendar className="h-4 w-4 mr-2" />
-                    Add to Calendar
+                    Calendar
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleExportToCSV}>
                     <Download className="h-4 w-4 mr-2" />
-                    Export to CSV
+                    Export
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleArchiveRoute} disabled={archiveRouteMutation.isPending}>
                     <Archive className="h-4 w-4 mr-2" />
                     Archive
-                  </Button>
-                  <Button size="sm" onClick={handleOpenInGoogleMaps}>
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Open in Google Maps
                   </Button>
                 </>
               )}
