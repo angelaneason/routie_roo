@@ -118,7 +118,31 @@ export async function getUserRoutes(userId: number) {
   const db = await getDb();
   if (!db) return [];
   
-  return db.select().from(routes).where(eq(routes.userId, userId)).orderBy(routes.createdAt);
+  const { sql } = await import('drizzle-orm');
+  
+  return db.select({
+    id: routes.id,
+    userId: routes.userId,
+    name: routes.name,
+    shareId: routes.shareId,
+    isPublic: routes.isPublic,
+    totalDistance: routes.totalDistance,
+    totalDuration: routes.totalDuration,
+    optimized: routes.optimized,
+    folderId: routes.folderId,
+    calendarId: routes.calendarId,
+    scheduledDate: routes.scheduledDate,
+    shareToken: routes.shareToken,
+    completedAt: routes.completedAt,
+    isArchived: routes.isArchived,
+    archivedAt: routes.archivedAt,
+    distanceUnit: routes.distanceUnit,
+    notes: routes.notes,
+    createdAt: routes.createdAt,
+    updatedAt: routes.updatedAt,
+    waypointCount: sql<number>`(SELECT COUNT(*) FROM route_waypoints WHERE route_waypoints.routeId = routes.id)`,
+    completedWaypointCount: sql<number>`(SELECT COUNT(*) FROM route_waypoints WHERE route_waypoints.routeId = routes.id AND route_waypoints.status = 'complete')`
+  }).from(routes).where(eq(routes.userId, userId)).orderBy(routes.createdAt);
 }
 
 // Route waypoints functions

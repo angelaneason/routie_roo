@@ -1030,6 +1030,17 @@ export default function Home() {
                                 {!route.optimized && (
                                   <span className="text-xs bg-muted px-2 py-0.5 rounded">Manual</span>
                                 )}
+                                {(route as any).waypointCount !== undefined && (route as any).waypointCount > 0 && (
+                                  <span className={`text-xs px-2 py-0.5 rounded ${
+                                    (route as any).completedWaypointCount === (route as any).waypointCount
+                                      ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                                      : (route as any).completedWaypointCount && (route as any).completedWaypointCount > 0
+                                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                                      : 'bg-muted'
+                                  }`}>
+                                    {(route as any).completedWaypointCount || 0}/{(route as any).waypointCount} stops
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </Link>

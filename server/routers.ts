@@ -31,7 +31,7 @@ import {
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
 import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes } from "../drizzle/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 // Helper to calculate route using Google Maps Routes API
@@ -487,17 +487,7 @@ export const appRouter = router({
 
     // List user's routes (excludes archived by default)
     list: protectedProcedure.query(async ({ ctx }) => {
-      const db = await getDb();
-      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-
-      const userRoutes = await db.select()
-        .from(routes)
-        .where(and(
-          eq(routes.userId, ctx.user.id),
-          eq(routes.isArchived, false)
-        ));
-
-      return userRoutes;
+      return await getUserRoutes(ctx.user.id);
     }),
 
     // Get route details
@@ -1335,7 +1325,29 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
-        const archivedRoutes = await db.select()
+        const archivedRoutes = await db.select({
+          id: routes.id,
+          userId: routes.userId,
+          name: routes.name,
+          shareId: routes.shareId,
+          isPublic: routes.isPublic,
+          totalDistance: routes.totalDistance,
+          totalDuration: routes.totalDuration,
+          optimized: routes.optimized,
+          folderId: routes.folderId,
+          calendarId: routes.calendarId,
+          scheduledDate: routes.scheduledDate,
+          shareToken: routes.shareToken,
+          completedAt: routes.completedAt,
+          isArchived: routes.isArchived,
+          archivedAt: routes.archivedAt,
+          distanceUnit: routes.distanceUnit,
+          notes: routes.notes,
+          createdAt: routes.createdAt,
+          updatedAt: routes.updatedAt,
+          waypointCount: sql<number>`(SELECT COUNT(*) FROM route_waypoints WHERE route_waypoints.routeId = routes.id)`,
+          completedWaypointCount: sql<number>`(SELECT COUNT(*) FROM route_waypoints WHERE route_waypoints.routeId = routes.id AND route_waypoints.status = 'complete')`
+        })
           .from(routes)
           .where(and(
             eq(routes.userId, ctx.user.id),

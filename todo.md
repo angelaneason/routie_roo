@@ -706,3 +706,10 @@
 - [x] Create dropdown/select for auto-archive timeframe (Never, 7 days, 30 days, 60 days, 90 days)
 - [x] Save autoArchiveDays preference to user settings
 - [x] Display current auto-archive setting
+
+## Route Completion Progress Badges
+
+- [x] Calculate completed stops vs total stops for each route using SQL subqueries
+- [x] Add progress badge to route cards in main list (e.g., "8/12 stops")
+- [x] Style badge with visual indicator (green=complete, blue=in progress, gray=not started)
+- [x] Show badge on both active and archived route lists
