@@ -550,11 +550,11 @@ export default function Home() {
                           {contact.labels && (() => {
                             try {
                               const labels = JSON.parse(contact.labels);
-                              // Filter out technical hex IDs (16+ character hex strings)
+                              // Filter out technical hex IDs (12+ character hex strings)
                               const userFriendlyLabels = labels.filter((label: string) => {
                                 const labelName = label.split('/').pop() || label;
-                                // Exclude if it looks like a hex ID (all lowercase alphanumeric, 16+ chars)
-                                return !/^[a-f0-9]{16,}$/i.test(labelName);
+                                // Exclude if it looks like a hex ID (all lowercase alphanumeric, 12+ chars)
+                                return !/^[a-f0-9]{12,}$/i.test(labelName);
                               });
                               if (userFriendlyLabels.length > 0) {
                                 return (
