@@ -558,3 +558,39 @@
 ## Mobile Issues
 
 - [x] Fix map pins not showing on mobile devices when viewing shared execution link
+
+## New Features - Route Scheduling & Completion
+
+### Route Scheduling Date Picker
+- [ ] Add date picker field to route creation form
+- [ ] Save scheduledDate when creating routes
+- [ ] Display scheduled routes on calendar view
+- [ ] Allow editing scheduled date from route detail page
+
+### Offline Mode for Route Execution
+- [ ] Implement local storage caching for route data
+- [ ] Cache waypoints and route details when route is loaded
+- [ ] Allow status updates (complete/miss) to work offline
+- [ ] Queue offline changes and sync when connection restored
+- [ ] Show offline indicator when no connection
+- [ ] Display sync status (pending/synced)
+
+### Route Completion Summary
+- [ ] Detect when all waypoints are complete
+- [ ] Display completion summary modal with statistics
+- [ ] Show total time, miles driven, completed vs missed stops
+- [ ] Add PDF export button for completion summary
+- [ ] Generate PDF report with route details and statistics
+- [x] Verify label dropdown shows when custom labels exist
+
+### Recurring/Repeat Dates (Google Calendar-style)
+- [ ] Add date picker for route scheduling
+- [ ] Create RecurrenceSelector component with:
+  - Repeat frequency (Daily, Weekly, Monthly, Yearly)
+  - Repeat interval (Every 1, 2, 3... weeks/months/etc)
+  - Days of week selector (for weekly recurrence)
+  - End options (Never, On date, After X occurrences)
+- [ ] Update database schema with recurrence fields
+- [ ] Generate recurring route instances based on pattern
+- [ ] Display recurring routes on calendar view
+- [ ] Allow editing/deleting single occurrence or entire series

@@ -353,14 +353,23 @@ export default function Home() {
       if (!contact.labels) return [];
       try {
         const labels = JSON.parse(contact.labels);
-        return labels.filter((label: string) => {
-          const lower = label.toLowerCase();
-          // Exclude system labels, hex IDs, myContacts, and starred
-          return !lower.startsWith('contactgroups/') && 
-                 !/^[a-f0-9]{12,}$/i.test(label) &&
-                 lower !== 'mycontacts' &&
-                 lower !== 'starred';
-        });
+        return labels
+          .map((label: string) => {
+            // Extract custom label name from contactGroups/ format
+            if (label.startsWith('contactGroups/')) {
+              // Extract the label name after the last slash
+              const parts = label.split('/');
+              return parts[parts.length - 1];
+            }
+            return label;
+          })
+          .filter((label: string) => {
+            const lower = label.toLowerCase();
+            // Exclude hex IDs, myContacts, and starred
+            return !/^[a-f0-9]{12,}$/i.test(label) &&
+                   lower !== 'mycontacts' &&
+                   lower !== 'starred';
+          });
       } catch {
         return [];
       }
@@ -390,7 +399,14 @@ export default function Home() {
       if (!contact.labels) return false;
       try {
         const labels = JSON.parse(contact.labels);
-        if (!labels.includes(selectedLabelFilter)) return false;
+        const extractedLabels = labels.map((label: string) => {
+          if (label.startsWith('contactGroups/')) {
+            const parts = label.split('/');
+            return parts[parts.length - 1];
+          }
+          return label;
+        });
+        if (!extractedLabels.includes(selectedLabelFilter)) return false;
       } catch {
         return false;
       }
