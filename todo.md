@@ -675,3 +675,27 @@
 - [x] Group related buttons together (primary, sharing, secondary actions)
 - [x] Ensure responsive layout with flex-wrap that doesn't overflow on smaller screens
 - [x] Shortened button labels for cleaner appearance
+
+## Route Notes/Comments System
+
+### Database Schema
+- [x] Create `route_notes` table with fields: id, routeId, userId, note (text), createdAt, updatedAt
+- [x] Run database migration
+
+### Backend Procedures
+- [x] Create `addNote` mutation to add new note to a route
+- [x] Create `getNotes` query to fetch all notes for a route (ordered by createdAt desc)
+- [x] Create `deleteNote` mutation to remove a note
+- [x] Create `updateNote` mutation to edit existing note
+
+### Frontend UI
+- [x] Add notes section to route detail page
+- [x] Create note input field with "Add Note" button
+- [x] Display notes list with timestamp and content
+- [x] Add edit/delete buttons for user's own notes
+- [x] Show relative timestamps (e.g., "2 hours ago", "Yesterday")
+- [x] Add empty state message when no notes exist
+
+### Testing
+- [x] Write tests for note CRUD operations (5/5 tests passing)
+- [x] Test note permissions (users can only edit/delete their own notes)

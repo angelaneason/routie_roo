@@ -148,6 +148,13 @@
       "when": 1764011512930,
       "tag": "0020_broken_wild_pack",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1764013791509,
+      "tag": "0021_magenta_bloodaxe",
+      "breakpoints": true
     }
   ]
 }

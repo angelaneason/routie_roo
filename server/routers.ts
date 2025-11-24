@@ -30,8 +30,8 @@ import {
   createCalendarEvent
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
-import { users, routes, routeWaypoints, stopTypes, savedStartingPoints } from "../drizzle/schema";
-import { eq, and } from "drizzle-orm";
+import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes } from "../drizzle/schema";
+import { eq, and, desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 // Helper to calculate route using Google Maps Routes API
@@ -1378,6 +1378,104 @@ export const appRouter = router({
         }
 
         return result;
+      }),
+
+    // Add note to route
+    addNote: protectedProcedure
+      .input(z.object({
+        routeId: z.number(),
+        note: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify route belongs to user
+        const route = await getRouteById(input.routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Route not found" });
+        }
+
+        await db.insert(routeNotes).values({
+          routeId: input.routeId,
+          userId: ctx.user.id,
+          note: input.note,
+        });
+
+        return { success: true };
+      }),
+
+    // Get notes for a route
+    getNotes: protectedProcedure
+      .input(z.object({
+        routeId: z.number(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify route belongs to user
+        const route = await getRouteById(input.routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Route not found" });
+        }
+
+        const notes = await db.select()
+          .from(routeNotes)
+          .where(eq(routeNotes.routeId, input.routeId))
+          .orderBy(desc(routeNotes.createdAt));
+
+        return notes;
+      }),
+
+    // Update note
+    updateNote: protectedProcedure
+      .input(z.object({
+        noteId: z.number(),
+        note: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify note belongs to user
+        const [note] = await db.select()
+          .from(routeNotes)
+          .where(eq(routeNotes.id, input.noteId));
+
+        if (!note || note.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Note not found" });
+        }
+
+        await db.update(routeNotes)
+          .set({ note: input.note })
+          .where(eq(routeNotes.id, input.noteId));
+
+        return { success: true };
+      }),
+
+    // Delete note
+    deleteNote: protectedProcedure
+      .input(z.object({
+        noteId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify note belongs to user
+        const [note] = await db.select()
+          .from(routeNotes)
+          .where(eq(routeNotes.id, input.noteId));
+
+        if (!note || note.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Note not found" });
+        }
+
+        await db.delete(routeNotes)
+          .where(eq(routeNotes.id, input.noteId));
+
+        return { success: true };
       }),
   }),
 

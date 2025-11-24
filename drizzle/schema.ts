@@ -164,3 +164,18 @@ export const calendars = mysqlTable("calendars", {
 
 export type Calendar = typeof calendars.$inferSelect;
 export type InsertCalendar = typeof calendars.$inferInsert;
+
+/**
+ * Route notes table - stores timestamped comments/notes for routes
+ */
+export const routeNotes = mysqlTable("route_notes", {
+  id: int("id").autoincrement().primaryKey(),
+  routeId: int("routeId").notNull(), // Route this note belongs to
+  userId: int("userId").notNull(), // User who created the note
+  note: text("note").notNull(), // Note content
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type RouteNote = typeof routeNotes.$inferSelect;
+export type InsertRouteNote = typeof routeNotes.$inferInsert;

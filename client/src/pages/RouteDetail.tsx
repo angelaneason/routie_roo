@@ -13,6 +13,7 @@ import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
 import { StopStatusBadge, type StopStatus } from "@/components/StopStatusBadge";
 import { SortableWaypointItem } from "@/components/SortableWaypointItem";
+import RouteNotes from "@/components/RouteNotes";
 import { useEffect, useState } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -817,6 +818,13 @@ export default function RouteDetail() {
                     </div>
                   </SortableContext>
                 </DndContext>
+              </CardContent>
+            </Card>
+
+            {/* Route Notes */}
+            <Card>
+              <CardContent className="pt-6">
+                <RouteNotes routeId={Number(routeId)} />
               </CardContent>
             </Card>
           </div>
