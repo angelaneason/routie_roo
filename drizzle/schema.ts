@@ -13,6 +13,7 @@ export const users = mysqlTable("users", {
   preferredCallingService: mysqlEnum("preferredCallingService", ["phone", "google-voice", "whatsapp", "skype", "facetime"]).default("phone"),
   distanceUnit: mysqlEnum("distanceUnit", ["km", "miles"]).default("km"),
   defaultStartingPoint: text("defaultStartingPoint"), // User's default starting address for routes
+  autoArchiveDays: int("autoArchiveDays"), // Days after completion to auto-archive (null = never)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -44,6 +45,8 @@ export const routes = mysqlTable("routes", {
   sharedAt: timestamp("sharedAt"), // When share link was generated
   completedAt: timestamp("completedAt"), // When all waypoints were completed/missed
   scheduledDate: timestamp("scheduledDate"), // When the route is scheduled to be executed
+  isArchived: boolean("isArchived").default(false).notNull(), // Whether route is archived
+  archivedAt: timestamp("archivedAt"), // When route was archived
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

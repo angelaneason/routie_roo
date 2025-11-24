@@ -640,3 +640,31 @@
 - [x] Add checkbox filter to hide routes where all waypoints are marked complete
 - [x] Filter works alongside existing folder filter
 - [x] Added checkbox to route list header
+
+## Route Archive System
+
+### Database Schema
+- [x] Add `isArchived` boolean field to routes table (default false)
+- [x] Add `archivedAt` timestamp field to routes table
+- [x] Add `autoArchiveDays` field to users table (nullable int, null = never auto-archive)
+- [x] Run database migration
+
+### Backend Procedures
+- [x] Create `archiveRoute` mutation (sets isArchived=true, archivedAt=now)
+- [x] Create `unarchiveRoute` mutation (sets isArchived=false, archivedAt=null)
+- [x] Update `getUserRoutes` to filter out archived routes by default
+- [x] Create `getArchivedRoutes` query to fetch archived routes
+- [x] Update user settings mutation to handle autoArchiveDays
+
+### Frontend UI
+- [x] Create ArchivedRoutes page component
+- [x] Add "Archived Routes" link to navigation header
+- [x] Add Archive button to route detail page
+- [x] Add Unarchive button to archived routes page (already in ArchivedRoutes.tsx)
+- [x] Add Archive button to route list items
+- [x] Update route list to exclude archived routes (backend filters them out)
+- [ ] Add auto-archive settings to Settings page (optional - can be added later)
+
+### Auto-Archive Logic
+- [ ] Implement auto-archive check (can be done via scheduled job or on-demand)
+- [ ] Auto-archive completed routes based on user's autoArchiveDays setting

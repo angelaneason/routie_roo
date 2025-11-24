@@ -10,6 +10,7 @@ import RouteDetail from "./pages/RouteDetail";
 import MissedStops from "./pages/MissedStops";
 import SharedRouteExecution from "./pages/SharedRouteExecution";
 import Calendar from "./pages/Calendar";
+import ArchivedRoutes from "./pages/ArchivedRoutes";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/calendar" component={Calendar} />
       <Route path="/route/:id" component={RouteDetail} />
       <Route path="/missed-stops" component={MissedStops} />
+      <Route path="/archived-routes" component={ArchivedRoutes} />
       <Route path="/share/:token" component={SharedRouteExecution} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

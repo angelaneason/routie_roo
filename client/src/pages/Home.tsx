@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { APP_TITLE, APP_LOGO, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon, Archive } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { ContactEditDialog } from "@/components/ContactEditDialog";
@@ -119,6 +119,17 @@ export default function Home() {
     onError: (error) => {
       toast.error(error.message || "Couldn't create route. Try again?");
       setIsCreatingRoute(false);
+    },
+  });
+
+  // Archive route mutation
+  const archiveRouteMutation = trpc.routes.archiveRoute.useMutation({
+    onSuccess: () => {
+      toast.success("Route archived");
+      routesQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Failed to archive: ${error.message}`);
     },
   });
 
@@ -278,6 +289,10 @@ export default function Home() {
     if (deleteRouteId) {
       deleteRouteMutation.mutate({ routeId: deleteRouteId });
     }
+  };
+
+  const handleArchiveRoute = (routeId: number) => {
+    archiveRouteMutation.mutate({ routeId });
   };
 
   const handleCreateFolder = () => {
@@ -470,6 +485,12 @@ export default function Home() {
               <Button variant="outline" size="sm">
                 <AlertTriangle className="h-4 w-4 mr-2" />
                 Missed Stops
+              </Button>
+            </Link>
+            <Link href="/archived-routes">
+              <Button variant="outline" size="sm">
+                <Archive className="h-4 w-4 mr-2" />
+                Archive
               </Button>
             </Link>
             <Link href="/settings">
@@ -1013,6 +1034,17 @@ export default function Home() {
                             </div>
                           </Link>
                           <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleArchiveRoute(route.id);
+                              }}
+                            >
+                              <Archive className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"

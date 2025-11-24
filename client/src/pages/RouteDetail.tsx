@@ -7,14 +7,14 @@ import { Label } from "@/components/ui/label";
 import { MapView } from "@/components/Map";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon, Download, Sparkles } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon, Download, Sparkles, Archive } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
 import { StopStatusBadge, type StopStatus } from "@/components/StopStatusBadge";
 import { SortableWaypointItem } from "@/components/SortableWaypointItem";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "wouter";
+import { Link, useParams, useLocation } from "wouter";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -37,6 +37,7 @@ import { CSS } from "@dnd-kit/utilities";
 export default function RouteDetail() {
   const { id } = useParams<{ id: string }>();
   const routeId = id;
+  const [, navigate] = useLocation();
   const { user, isAuthenticated } = useAuth();
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
@@ -112,6 +113,16 @@ export default function RouteDetail() {
     },
     onError: (error) => {
       toast.error(`Failed to recalculate: ${error.message}`);
+    },
+  });
+
+  const archiveRouteMutation = trpc.routes.archiveRoute.useMutation({
+    onSuccess: () => {
+      toast.success("Route archived");
+      navigate("/");
+    },
+    onError: (error) => {
+      toast.error(`Failed to archive: ${error.message}`);
     },
   });
 
@@ -404,6 +415,11 @@ export default function RouteDetail() {
     copyRouteMutation.mutate({ routeId: parseInt(routeId) });
   };
 
+  const handleArchiveRoute = () => {
+    if (!routeId) return;
+    archiveRouteMutation.mutate({ routeId: parseInt(routeId) });
+  };
+
   const handleReoptimizeRoute = () => {
     if (!routeId) return;
     reoptimizeRouteMutation.mutate({ routeId: parseInt(routeId) });
@@ -587,6 +603,10 @@ export default function RouteDetail() {
                   <Button variant="outline" size="sm" onClick={handleExportToCSV}>
                     <Download className="h-4 w-4 mr-2" />
                     Export to CSV
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleArchiveRoute} disabled={archiveRouteMutation.isPending}>
+                    <Archive className="h-4 w-4 mr-2" />
+                    Archive
                   </Button>
                   <Button size="sm" onClick={handleOpenInGoogleMaps}>
                     <ExternalLink className="h-4 w-4 mr-2" />

@@ -141,6 +141,13 @@
       "when": 1763985561147,
       "tag": "0019_flat_tigra",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1764011512930,
+      "tag": "0020_broken_wild_pack",
+      "breakpoints": true
     }
   ]
 }

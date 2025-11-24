@@ -31,7 +31,7 @@ import {
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
 import { users, routes, routeWaypoints, stopTypes, savedStartingPoints } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 // Helper to calculate route using Google Maps Routes API
@@ -485,10 +485,19 @@ export const appRouter = router({
         };
       }),
 
-    // List user's routes
+    // List user's routes (excludes archived by default)
     list: protectedProcedure.query(async ({ ctx }) => {
-      const routes = await getUserRoutes(ctx.user.id);
-      return routes;
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const userRoutes = await db.select()
+        .from(routes)
+        .where(and(
+          eq(routes.userId, ctx.user.id),
+          eq(routes.isArchived, false)
+        ));
+
+      return userRoutes;
     }),
 
     // Get route details
@@ -1274,6 +1283,68 @@ export const appRouter = router({
         };
       }),
 
+    // Archive a route
+    archiveRoute: protectedProcedure
+      .input(z.object({ routeId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify route ownership
+        const route = await getRouteById(input.routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        await db.update(routes)
+          .set({ 
+            isArchived: true, 
+            archivedAt: new Date() 
+          })
+          .where(eq(routes.id, input.routeId));
+
+        return { success: true };
+      }),
+
+    // Unarchive a route
+    unarchiveRoute: protectedProcedure
+      .input(z.object({ routeId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify route ownership
+        const route = await getRouteById(input.routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        await db.update(routes)
+          .set({ 
+            isArchived: false, 
+            archivedAt: null 
+          })
+          .where(eq(routes.id, input.routeId));
+
+        return { success: true };
+      }),
+
+    // Get archived routes
+    getArchivedRoutes: protectedProcedure
+      .query(async ({ ctx }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        const archivedRoutes = await db.select()
+          .from(routes)
+          .where(and(
+            eq(routes.userId, ctx.user.id),
+            eq(routes.isArchived, true)
+          ));
+
+        return archivedRoutes;
+      }),
+
     // Get all missed waypoints that need rescheduling (for manager dashboard)
     getMissedWaypoints: protectedProcedure
       .query(async ({ ctx }) => {
@@ -1331,6 +1402,7 @@ export const appRouter = router({
         preferredCallingService: z.enum(["phone", "google-voice", "whatsapp", "skype", "facetime"]).optional(),
         distanceUnit: z.enum(["km", "miles"]).optional(),
         defaultStartingPoint: z.string().optional(),
+        autoArchiveDays: z.number().nullable().optional(), // null = never auto-archive
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -1339,7 +1411,8 @@ export const appRouter = router({
         const updateData: any = {};
         if (input.preferredCallingService) updateData.preferredCallingService = input.preferredCallingService;
         if (input.distanceUnit) updateData.distanceUnit = input.distanceUnit;
-        if (input.defaultStartingPoint !== undefined) updateData.defaultStartingPoint = input.defaultStartingPoint || null;
+        if (input.defaultStartingPoint !== undefined) updateData.defaultStartingPoint = input.defaultStartingPoint;
+        if (input.autoArchiveDays !== undefined) updateData.autoArchiveDays = input.autoArchiveDays;
 
         await db.update(users)
           .set(updateData)
