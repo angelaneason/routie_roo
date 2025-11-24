@@ -611,3 +611,11 @@
 - [x] Add numbered markers to shared route execution map (they were rendering, just needed better zoom)
 - [x] Fix incorrect distance display in SharedRouteExecution (was showing meters as km)
 - [x] Verify distance calculation uses correct units (meters vs kilometers)
+
+## Shared Route Map Not Rendering
+
+- [x] Investigate why route line and markers are not showing on shared route execution page
+- [x] Check if route data is being fetched correctly from API
+- [x] Fixed map rendering by filtering waypoints without coordinates
+- [x] Added warning banner for missing coordinates
+- [x] Tested with actual shared route: https://routieroo.manus.space/share/74f21387-337f-4692-83c4-005d5c4638a3
