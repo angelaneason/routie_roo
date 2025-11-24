@@ -505,3 +505,7 @@
 
 - [x] Show actual phone numbers as text on route waypoint page (e.g., "(936) 900-1828 (Patient)")
 - [x] Remove technical metadata (group IDs like "10a5e7768dc5c4f2") from contact cards on home page
+
+## Layout Improvements
+
+- [x] Adjust route detail page layout - make map smaller and waypoint section wider for better visual balance

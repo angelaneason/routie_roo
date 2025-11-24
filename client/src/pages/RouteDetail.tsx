@@ -497,7 +497,7 @@ export default function RouteDetail() {
       <main className="container py-6">
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Map */}
-          <div className="lg:col-span-2 lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:col-span-1 lg:sticky lg:top-6 lg:self-start">
             <Card className="overflow-hidden">
               <div className="h-[600px]">
                 <MapView
@@ -512,7 +512,7 @@ export default function RouteDetail() {
           </div>
 
           {/* Route Info */}
-          <div className="space-y-6">
+          <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Route Details</CardTitle>
