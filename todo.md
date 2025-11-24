@@ -490,3 +490,6 @@
 - [x] Add edit functionality for saved starting points (update name and address)
 
 - [x] Make route map sticky/stationary while scrolling through waypoints list
+
+- [x] Add phone call/text icons back to contact cards on home page
+- [x] Display phone numbers on route detail screen for each waypoint
