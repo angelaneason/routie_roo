@@ -182,6 +182,41 @@ export default function Settings() {
                 </CardContent>
               </Card>
 
+              {/* Auto-Archive Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Auto-Archive Completed Routes</CardTitle>
+                  <CardDescription>Automatically archive completed routes after a set period</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="auto-archive">Archive completed routes after</Label>
+                    <Select
+                      value={currentUser?.autoArchiveDays?.toString() || "never"}
+                      onValueChange={(value) => {
+                        updateSettingsMutation.mutate({
+                          autoArchiveDays: value === "never" ? null : parseInt(value)
+                        });
+                      }}
+                    >
+                      <SelectTrigger id="auto-archive">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="never">Never (manual only)</SelectItem>
+                        <SelectItem value="7">7 days</SelectItem>
+                        <SelectItem value="30">30 days</SelectItem>
+                        <SelectItem value="60">60 days</SelectItem>
+                        <SelectItem value="90">90 days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground">
+                      Completed routes will automatically move to the Archive after the selected period. You can always manually archive or unarchive routes.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Starting Point */}
               <Card>
                 <CardHeader>

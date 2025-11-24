@@ -699,3 +699,10 @@
 ### Testing
 - [x] Write tests for note CRUD operations (5/5 tests passing)
 - [x] Test note permissions (users can only edit/delete their own notes)
+
+## Auto-Archive Settings UI
+
+- [x] Add auto-archive settings section to Settings page
+- [x] Create dropdown/select for auto-archive timeframe (Never, 7 days, 30 days, 60 days, 90 days)
+- [x] Save autoArchiveDays preference to user settings
+- [x] Display current auto-archive setting
