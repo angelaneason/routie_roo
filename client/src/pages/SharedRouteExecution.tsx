@@ -410,12 +410,40 @@ export default function SharedRouteExecution() {
                         </Button>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{waypoint.address}</p>
-                      {waypoint.phoneNumbers && (
-                        <div className="flex gap-2 mt-2">
-                          <PhoneCallMenu phoneNumber={waypoint.phoneNumbers} size="sm" />
-                          <PhoneTextMenu phoneNumber={waypoint.phoneNumbers} size="sm" />
-                        </div>
-                      )}
+                      {waypoint.phoneNumbers && (() => {
+                        try {
+                          const phoneNumbers = JSON.parse(waypoint.phoneNumbers);
+                          return (
+                            <div className="mt-2 space-y-2">
+                              {phoneNumbers.map((phone: any, idx: number) => (
+                                <div key={idx} className="space-y-1">
+                                  <p className="text-sm font-medium text-foreground">
+                                    📞 {phone.value} {phone.label || phone.type ? `(${phone.label || phone.type})` : ''}
+                                  </p>
+                                  <div className="flex gap-2">
+                                    <PhoneCallMenu
+                                      phoneNumber={phone.value}
+                                      label="Call"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 text-xs"
+                                    />
+                                    <PhoneTextMenu
+                                      phoneNumber={phone.value}
+                                      label="Text"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 text-xs"
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        } catch {
+                          return null;
+                        }
+                      })()}
                     </div>
                   </div>
 

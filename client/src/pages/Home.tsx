@@ -550,10 +550,16 @@ export default function Home() {
                           {contact.labels && (() => {
                             try {
                               const labels = JSON.parse(contact.labels);
-                              if (labels.length > 0) {
+                              // Filter out technical hex IDs (16+ character hex strings)
+                              const userFriendlyLabels = labels.filter((label: string) => {
+                                const labelName = label.split('/').pop() || label;
+                                // Exclude if it looks like a hex ID (all lowercase alphanumeric, 16+ chars)
+                                return !/^[a-f0-9]{16,}$/i.test(labelName);
+                              });
+                              if (userFriendlyLabels.length > 0) {
                                 return (
                                   <div className="flex flex-wrap gap-1 mt-1">
-                                    {labels.slice(0, 3).map((label: string, idx: number) => {
+                                    {userFriendlyLabels.slice(0, 3).map((label: string, idx: number) => {
                                       const labelName = label.split('/').pop() || label;
                                       return (
                                         <span key={idx} className="inline-block px-2 py-0.5 text-xs bg-primary/10 text-primary rounded">
@@ -561,9 +567,9 @@ export default function Home() {
                                         </span>
                                       );
                                     })}
-                                    {labels.length > 3 && (
+                                    {userFriendlyLabels.length > 3 && (
                                       <span className="inline-block px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded">
-                                        +{labels.length - 3}
+                                        +{userFriendlyLabels.length - 3}
                                       </span>
                                     )}
                                   </div>

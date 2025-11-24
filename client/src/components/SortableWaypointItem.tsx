@@ -112,23 +112,28 @@ export function SortableWaypointItem({
             </div>
           )}
           {phoneNumbers.length > 0 && (
-            <div className="mt-2 space-y-1">
+            <div className="mt-2 space-y-2">
               {phoneNumbers.map((phone: any, idx: number) => (
-                <div key={idx} className="flex gap-2">
-                  <PhoneCallMenu
-                    phoneNumber={phone.value}
-                    label={`Call ${phone.label || phone.type || 'Phone'}`}
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs flex-1"
-                  />
-                  <PhoneTextMenu
-                    phoneNumber={phone.value}
-                    label="Text"
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                  />
+                <div key={idx} className="space-y-1">
+                  <p className="text-sm font-medium text-foreground">
+                    📞 {phone.value} {phone.label || phone.type ? `(${phone.label || phone.type})` : ''}
+                  </p>
+                  <div className="flex gap-2">
+                    <PhoneCallMenu
+                      phoneNumber={phone.value}
+                      label="Call"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                    />
+                    <PhoneTextMenu
+                      phoneNumber={phone.value}
+                      label="Text"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                    />
+                  </div>
                 </div>
               ))}
             </div>

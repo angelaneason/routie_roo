@@ -500,3 +500,8 @@
 - [x] Update marker labels to show numbers instead of default pins
 - [x] Add Google Maps icon button to each waypoint in the list for quick navigation
 - [x] Ensure marker numbers stay synchronized when waypoints are reordered
+
+## Display Issues
+
+- [x] Show actual phone numbers as text on route waypoint page (e.g., "(936) 900-1828 (Patient)")
+- [x] Remove technical metadata (group IDs like "10a5e7768dc5c4f2") from contact cards on home page
