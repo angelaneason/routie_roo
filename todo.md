@@ -605,3 +605,9 @@
 - [x] Update sync process to fetch and resolve group names
 - [x] Fix label display on contact cards and filter dropdown
 - [x] Update SortableWaypointItem to show resolved labels
+
+## Shared Route Execution Map Issues
+
+- [x] Add numbered markers to shared route execution map (they were rendering, just needed better zoom)
+- [x] Fix incorrect distance display in SharedRouteExecution (was showing meters as km)
+- [x] Verify distance calculation uses correct units (meters vs kilometers)

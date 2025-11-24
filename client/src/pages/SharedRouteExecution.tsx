@@ -310,7 +310,7 @@ export default function SharedRouteExecution() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">
-                {formatDistance(route.totalDistance || 0, route.distanceUnit || "km")}
+                {formatDistance((route.totalDistance || 0) / 1000, route.distanceUnit || "km")}
               </p>
             </CardContent>
           </Card>

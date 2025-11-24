@@ -1,0 +1,15 @@
+{
+  "query": "SELECT shareId, name, totalDistance FROM routes WHERE shareId IS NOT NULL LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT shareId, name, totalDistance FROM routes WHERE shareId IS NOT NULL LIMIT 1;",
+  "rows": [
+    {
+      "shareId": "test-share-123",
+      "name": "Test Route",
+      "totalDistance": "10000"
+    }
+  ],
+  "messages": [],
+  "stdout": "shareId\tname\ttotalDistance\ntest-share-123\tTest Route\t10000\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}
