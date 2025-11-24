@@ -562,9 +562,9 @@
 ## New Features - Route Scheduling & Completion
 
 ### Route Scheduling Date Picker
-- [ ] Add date picker field to route creation form
-- [ ] Save scheduledDate when creating routes
-- [ ] Display scheduled routes on calendar view
+- [x] Add date picker field to route creation form
+- [x] Save scheduledDate when creating routes
+- [x] Display scheduled routes on calendar view
 - [ ] Allow editing scheduled date from route detail page
 
 ### Offline Mode for Route Execution
@@ -584,7 +584,7 @@
 - [x] Verify label dropdown shows when custom labels exist
 
 ### Recurring/Repeat Dates (Google Calendar-style)
-- [ ] Add date picker for route scheduling
+- [x] Add date picker for route scheduling
 - [ ] Create RecurrenceSelector component with:
   - Repeat frequency (Daily, Weekly, Monthly, Yearly)
   - Repeat interval (Every 1, 2, 3... weeks/months/etc)
@@ -594,3 +594,4 @@
 - [ ] Generate recurring route instances based on pattern
 - [ ] Display recurring routes on calendar view
 - [ ] Allow editing/deleting single occurrence or entire series
+- [ ] Remove numbered marker from starting location (it's just an anchor, not a stop)

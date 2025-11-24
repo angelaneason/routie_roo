@@ -54,6 +54,7 @@ export default function Home() {
   const [importPreview, setImportPreview] = useState<any[]>([]);
   const [showMissingAddresses, setShowMissingAddresses] = useState(false);
   const [selectedLabelFilter, setSelectedLabelFilter] = useState<string>("all");
+  const [scheduledDate, setScheduledDate] = useState<string>("");
 
   // Check for OAuth callback status
   useEffect(() => {
@@ -257,6 +258,7 @@ export default function Home() {
       folderId: (selectedFolderId && selectedFolderId !== "none") ? parseInt(selectedFolderId) : undefined,
       startingPointAddress: finalStartingPoint || undefined,
       distanceUnit: userQuery.data?.distanceUnit || "km",
+      scheduledDate: scheduledDate || undefined,
     });
   };
 
@@ -775,6 +777,19 @@ export default function Home() {
                       onChange={(e) => setRouteNotes(e.target.value)}
                       rows={3}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="scheduledDate">Scheduled Date (Optional)</Label>
+                    <Input
+                      id="scheduledDate"
+                      type="date"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Schedule this route for a specific date
+                    </p>
                   </div>
 
                   <div className="space-y-2">

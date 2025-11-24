@@ -394,6 +394,7 @@ export const appRouter = router({
         folderId: z.number().optional(),
         startingPointAddress: z.string().optional(),
         distanceUnit: z.enum(["km", "miles"]).optional(),
+        scheduledDate: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         let routeData;
@@ -431,6 +432,7 @@ export const appRouter = router({
           folderId: input.folderId || null,
           startingPointAddress: input.startingPointAddress || null,
           distanceUnit: input.distanceUnit || "km",
+          scheduledDate: input.scheduledDate ? new Date(input.scheduledDate) : null,
         });
 
         const routeId = Number(routeResult[0].insertId);
