@@ -1,0 +1,35 @@
+{
+  "query": "SELECT r.id, r.name, COUNT(rw.id) as waypoint_count \nFROM routes r \nLEFT JOIN route_waypoints rw ON r.id = rw.routeId \nWHERE rw.address NOT LIKE '%City, State%' \nGROUP BY r.id \nLIMIT 5",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT r.id, r.name, COUNT(rw.id) as waypoint_count \nFROM routes r \nLEFT JOIN route_waypoints rw ON r.id = rw.routeId \nWHERE rw.address NOT LIKE '%City, State%' \nGROUP BY r.id \nLIMIT 5",
+  "rows": [
+    {
+      "id": "30008",
+      "name": "Test Retrieve Route",
+      "waypoint_count": "1"
+    },
+    {
+      "id": "180033",
+      "name": "Test Retrieve Route",
+      "waypoint_count": "1"
+    },
+    {
+      "id": "300005",
+      "name": "Miles Route",
+      "waypoint_count": "2"
+    },
+    {
+      "id": "180017",
+      "name": "Route with Default Stop Type",
+      "waypoint_count": "1"
+    },
+    {
+      "id": "180036",
+      "name": "Route with Stop Types",
+      "waypoint_count": "2"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\twaypoint_count\n30008\tTest Retrieve Route\t1\n180033\tTest Retrieve Route\t1\n300005\tMiles Route\t2\n180017\tRoute with Default Stop Type\t1\n180036\tRoute with Stop Types\t2\n",
+  "stderr": "",
+  "execution_time_ms": 111
+}

@@ -37,6 +37,7 @@ export default function SharedRouteExecution() {
   const { token } = useParams<{ token: string }>();
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+  const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
   const [selectedWaypoint, setSelectedWaypoint] = useState<any | null>(null);
   const [actionType, setActionType] = useState<"complete" | "miss" | "note" | "reschedule" | null>(null);
   const [missedReason, setMissedReason] = useState("");
@@ -109,6 +110,38 @@ export default function SharedRouteExecution() {
       (result, status) => {
         if (status === google.maps.DirectionsStatus.OK && result) {
           directionsRenderer.setDirections(result);
+          
+          // Clear existing markers
+          markers.forEach(marker => marker.setMap(null));
+          
+          // Add numbered markers for each waypoint
+          const newMarkers: google.maps.Marker[] = [];
+          waypoints.forEach((waypoint, index) => {
+            const marker = new google.maps.Marker({
+              position: new google.maps.LatLng(
+                parseFloat(waypoint.latitude!),
+                parseFloat(waypoint.longitude!)
+              ),
+              map,
+              label: {
+                text: String(index + 1),
+                color: "white",
+                fontSize: "14px",
+                fontWeight: "bold",
+              },
+              icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 20,
+                fillColor: "#4F46E5",
+                fillOpacity: 1,
+                strokeColor: "white",
+                strokeWeight: 2,
+              },
+            });
+            newMarkers.push(marker);
+          });
+          
+          setMarkers(newMarkers);
         }
       }
     );
@@ -118,7 +151,7 @@ export default function SharedRouteExecution() {
     setMap(mapInstance);
     const renderer = new google.maps.DirectionsRenderer({
       map: mapInstance,
-      suppressMarkers: false,
+      suppressMarkers: true, // Hide default markers, we'll add numbered ones
     });
     setDirectionsRenderer(renderer);
   };
@@ -357,11 +390,24 @@ export default function SharedRouteExecution() {
                 <div className="flex-1 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         {waypoint.contactName && (
                           <h3 className="font-semibold">{waypoint.contactName}</h3>
                         )}
                         <StopStatusBadge status={waypoint.status as StopStatus} />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs ml-auto"
+                          onClick={() => {
+                            const encodedAddress = encodeURIComponent(waypoint.address);
+                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, "_blank");
+                          }}
+                          title="Open in Google Maps"
+                        >
+                          <MapPin className="h-3 w-3 mr-1" />
+                          Maps
+                        </Button>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{waypoint.address}</p>
                       {waypoint.phoneNumbers && (

@@ -40,6 +40,7 @@ export default function RouteDetail() {
   const { user, isAuthenticated } = useAuth();
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+  const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
   const [showCalendarDialog, setShowCalendarDialog] = useState(false);
   const [calendarStartTime, setCalendarStartTime] = useState("");
   const [selectedWaypoint, setSelectedWaypoint] = useState<any | null>(null);
@@ -208,7 +209,7 @@ export default function RouteDetail() {
     const directionsService = new google.maps.DirectionsService();
     const renderer = new google.maps.DirectionsRenderer({
       map,
-      suppressMarkers: false,
+      suppressMarkers: true, // Hide default markers, we'll add numbered ones
       polylineOptions: {
         strokeColor: "#4F46E5",
         strokeWeight: 5,
@@ -235,6 +236,85 @@ export default function RouteDetail() {
       (result, status) => {
         if (status === "OK" && result) {
           renderer.setDirections(result);
+          
+          // Clear existing markers
+          markers.forEach(marker => marker.setMap(null));
+          
+          // Add numbered markers for each waypoint using the route's leg coordinates
+          const newMarkers: google.maps.Marker[] = [];
+          const route = result.routes[0];
+          
+          if (route && route.legs) {
+            // First marker at the start location
+            const startMarker = new google.maps.Marker({
+              position: route.legs[0].start_location,
+              map,
+              label: {
+                text: "1",
+                color: "white",
+                fontSize: "14px",
+                fontWeight: "bold",
+              },
+              icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 20,
+                fillColor: "#4F46E5",
+                fillOpacity: 1,
+                strokeColor: "white",
+                strokeWeight: 2,
+              },
+            });
+            newMarkers.push(startMarker);
+            
+            // Intermediate waypoint markers
+            route.legs.forEach((leg, index) => {
+              if (index < route.legs.length - 1) {
+                const marker = new google.maps.Marker({
+                  position: leg.end_location,
+                  map,
+                  label: {
+                    text: String(index + 2),
+                    color: "white",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                  },
+                  icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 20,
+                    fillColor: "#4F46E5",
+                    fillOpacity: 1,
+                    strokeColor: "white",
+                    strokeWeight: 2,
+                  },
+                });
+                newMarkers.push(marker);
+              }
+            });
+            
+            // Last marker at the end location
+            const lastLeg = route.legs[route.legs.length - 1];
+            const endMarker = new google.maps.Marker({
+              position: lastLeg.end_location,
+              map,
+              label: {
+                text: String(waypoints.length),
+                color: "white",
+                fontSize: "14px",
+                fontWeight: "bold",
+              },
+              icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 20,
+                fillColor: "#4F46E5",
+                fillOpacity: 1,
+                strokeColor: "white",
+                strokeWeight: 2,
+              },
+            });
+            newMarkers.push(endMarker);
+          }
+          
+          setMarkers(newMarkers);
         } else {
           console.error("Directions request failed:", status);
           toast.error("Failed to display route on map");
@@ -244,6 +324,7 @@ export default function RouteDetail() {
 
     return () => {
       renderer.setMap(null);
+      markers.forEach(marker => marker.setMap(null));
     };
   }, [map, waypoints]);
 

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { StopStatusBadge } from "@/components/StopStatusBadge";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
-import { CheckCircle2, XCircle, MessageSquare, Calendar, GripVertical, Trash2, Edit3 } from "lucide-react";
+import { CheckCircle2, XCircle, MessageSquare, Calendar, GripVertical, Trash2, Edit3, MapPin } from "lucide-react";
 
 interface SortableWaypointItemProps {
   waypoint: any;
@@ -64,7 +64,7 @@ export function SortableWaypointItem({
           {index + 1}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             {waypoint.contactName && (
               <p className="font-medium">{waypoint.contactName}</p>
             )}
@@ -74,6 +74,19 @@ export function SortableWaypointItem({
                 Needs Reschedule
               </span>
             )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs ml-auto"
+              onClick={() => {
+                const encodedAddress = encodeURIComponent(waypoint.address);
+                window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, "_blank");
+              }}
+              title="Open in Google Maps"
+            >
+              <MapPin className="h-3 w-3 mr-1" />
+              Maps
+            </Button>
           </div>
           <p className="text-sm text-muted-foreground">
             {waypoint.address}

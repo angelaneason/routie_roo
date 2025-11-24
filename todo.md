@@ -493,3 +493,10 @@
 
 - [x] Add phone call/text icons back to contact cards on home page
 - [x] Display phone numbers on route detail screen for each waypoint
+
+## Map Marker Improvements
+
+- [x] Add numbered markers (1, 2, 3, etc.) to map matching waypoint list order
+- [x] Update marker labels to show numbers instead of default pins
+- [x] Add Google Maps icon button to each waypoint in the list for quick navigation
+- [x] Ensure marker numbers stay synchronized when waypoints are reordered
