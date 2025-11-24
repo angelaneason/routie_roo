@@ -488,3 +488,5 @@
 - [x] Fix save button for starting locations not working when clicked
 
 - [x] Add edit functionality for saved starting points (update name and address)
+
+- [x] Make route map sticky/stationary while scrolling through waypoints list
