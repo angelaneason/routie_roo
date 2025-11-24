@@ -540,3 +540,15 @@
 - [x] Add calendars table for users with multiple calendars (work, personal, etc.)
 - [x] Add calendarId field to routes table
 - [ ] Add calendar selector in route creation and calendar view (future enhancement)
+
+## Google Contact Labels Display
+
+- [x] Display Google Contact labels on waypoint cards in route detail page
+- [x] Add label filter dropdown to contact selection on home page
+- [x] Show label badges on waypoint cards with proper styling
+
+## Google Contact Labels Display
+
+- [x] Display Google Contact labels on waypoint cards in route detail page
+- [x] Add label filter dropdown to contact selection on home page
+- [x] Show label badges on waypoint cards with proper styling

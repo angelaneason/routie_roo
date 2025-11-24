@@ -385,6 +385,7 @@ export const appRouter = router({
           contactName: z.string().optional(),
           address: z.string(),
           phoneNumbers: z.string().optional(), // JSON string of phone numbers
+          contactLabels: z.string().optional(), // JSON string of contact labels
           stopType: z.enum(["pickup", "delivery", "meeting", "visit", "other"]).optional(),
           stopColor: z.string().optional(),
         })).min(2),
@@ -461,6 +462,7 @@ export const appRouter = router({
             latitude: leg?.startLocation?.latLng?.latitude?.toString() || null,
             longitude: leg?.startLocation?.latLng?.longitude?.toString() || null,
             phoneNumbers: wp.phoneNumbers || null,
+            contactLabels: wp.contactLabels || null,
             stopType: wp.stopType || "other",
             stopColor: wp.stopColor || "#3b82f6",
           };

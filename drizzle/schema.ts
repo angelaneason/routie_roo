@@ -63,6 +63,7 @@ export const routeWaypoints = mysqlTable("route_waypoints", {
   latitude: varchar("latitude", { length: 32 }), // Latitude coordinate
   longitude: varchar("longitude", { length: 32 }), // Longitude coordinate
   phoneNumbers: text("phoneNumbers"), // JSON array of {value, type, label}
+  contactLabels: text("contactLabels"), // JSON array of contact labels from Google
   stopType: mysqlEnum("stopType", ["pickup", "delivery", "meeting", "visit", "other"]).default("other"), // Type of stop
   stopColor: varchar("stopColor", { length: 7 }).default("#3b82f6"), // Hex color for marker
   // Execution workflow fields

@@ -53,6 +53,7 @@ export default function Home() {
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importPreview, setImportPreview] = useState<any[]>([]);
   const [showMissingAddresses, setShowMissingAddresses] = useState(false);
+  const [selectedLabelFilter, setSelectedLabelFilter] = useState<string>("all");
 
   // Check for OAuth callback status
   useEffect(() => {
@@ -221,6 +222,7 @@ export default function Home() {
         contactName: c!.name || undefined,
         address: c!.address!,
         phoneNumbers: c!.phoneNumbers || undefined,
+        contactLabels: c!.labels || undefined,
         stopType: stopTypeInfo.type as "pickup" | "delivery" | "meeting" | "visit" | "other",
         stopColor: stopTypeInfo.color,
       };
@@ -237,6 +239,7 @@ export default function Home() {
           contactName: "Starting Point",
           address: finalStartingPoint,
           phoneNumbers: undefined,
+          contactLabels: undefined,
           stopType: "other" as const,
           stopColor: "#10b981",
         },
@@ -344,7 +347,23 @@ export default function Home() {
   const folders = foldersQuery.data || [];
   const hasContacts = contacts.length > 0;
   
-  // Filter contacts based on search query and active status
+  // Get all unique labels from contacts
+  const allLabels = Array.from(new Set(
+    contacts.flatMap(contact => {
+      if (!contact.labels) return [];
+      try {
+        const labels = JSON.parse(contact.labels);
+        return labels.filter((label: string) => {
+          const lower = label.toLowerCase();
+          return !lower.startsWith('contactgroups/') && !/^[a-f0-9]{12,}$/i.test(label);
+        });
+      } catch {
+        return [];
+      }
+    })
+  )).sort();
+
+  // Filter contacts based on search query, active status, and labels
   const filteredContacts = contacts.filter(contact => {
     // Filter by active status - default shows only active, checkbox shows only inactive
     const isActive = contact.isActive === 1;
@@ -360,6 +379,17 @@ export default function Home() {
     if (showMissingAddresses) {
       const hasAddress = contact.address && contact.address.trim() !== "";
       if (hasAddress) return false; // Only show contacts WITHOUT addresses
+    }
+    
+    // Filter by label
+    if (selectedLabelFilter && selectedLabelFilter !== "all") {
+      if (!contact.labels) return false;
+      try {
+        const labels = JSON.parse(contact.labels);
+        if (!labels.includes(selectedLabelFilter)) return false;
+      } catch {
+        return false;
+      }
     }
     
     // Filter by search query
@@ -486,6 +516,24 @@ export default function Home() {
                     />
                   </div>
                   <div className="space-y-2">
+                    {allLabels.length > 0 && (
+                      <div className="space-y-1">
+                        <Label htmlFor="label-filter" className="text-sm">Filter by Label</Label>
+                        <Select value={selectedLabelFilter} onValueChange={setSelectedLabelFilter}>
+                          <SelectTrigger id="label-filter" className="w-full">
+                            <SelectValue placeholder="All Labels" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Labels</SelectItem>
+                            {allLabels.map((label) => (
+                              <SelectItem key={label} value={label}>
+                                {label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"

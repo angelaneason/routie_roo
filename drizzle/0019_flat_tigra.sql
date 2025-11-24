@@ -1,0 +1,1 @@
+ALTER TABLE `route_waypoints` ADD `contactLabels` text;

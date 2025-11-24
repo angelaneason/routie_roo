@@ -68,6 +68,22 @@ export function SortableWaypointItem({
             {waypoint.contactName && (
               <p className="font-medium">{waypoint.contactName}</p>
             )}
+            {waypoint.contactLabels && (() => {
+              try {
+                const labels = JSON.parse(waypoint.contactLabels);
+                const filteredLabels = labels.filter((label: string) => {
+                  const lower = label.toLowerCase();
+                  return !lower.startsWith('contactgroups/') && !/^[a-f0-9]{12,}$/i.test(label);
+                });
+                return filteredLabels.map((label: string) => (
+                  <span key={label} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                    {label}
+                  </span>
+                ));
+              } catch {
+                return null;
+              }
+            })()}
             <StopStatusBadge status={waypoint.status || "pending"} />
             {waypoint.needsReschedule === 1 && (
               <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
