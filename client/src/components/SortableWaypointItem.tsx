@@ -73,7 +73,10 @@ export function SortableWaypointItem({
                 const labels = JSON.parse(waypoint.contactLabels);
                 const filteredLabels = labels.filter((label: string) => {
                   const lower = label.toLowerCase();
-                  return !lower.startsWith('contactgroups/') && !/^[a-f0-9]{12,}$/i.test(label);
+                  return !lower.startsWith('contactgroups/') && 
+                         !/^[a-f0-9]{12,}$/i.test(label) &&
+                         lower !== 'mycontacts' &&
+                         lower !== 'starred';
                 });
                 return filteredLabels.map((label: string) => (
                   <span key={label} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">

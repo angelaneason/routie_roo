@@ -552,3 +552,5 @@
 - [x] Display Google Contact labels on waypoint cards in route detail page
 - [x] Add label filter dropdown to contact selection on home page
 - [x] Show label badges on waypoint cards with proper styling
+- [x] Fix Filter by Label dropdown not showing on home page
+- [x] Remove "myContacts" and "starred" from label display (show only custom labels)

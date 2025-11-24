@@ -347,7 +347,7 @@ export default function Home() {
   const folders = foldersQuery.data || [];
   const hasContacts = contacts.length > 0;
   
-  // Get all unique labels from contacts
+  // Get all unique labels from contacts (excluding default labels)
   const allLabels = Array.from(new Set(
     contacts.flatMap(contact => {
       if (!contact.labels) return [];
@@ -355,7 +355,11 @@ export default function Home() {
         const labels = JSON.parse(contact.labels);
         return labels.filter((label: string) => {
           const lower = label.toLowerCase();
-          return !lower.startsWith('contactgroups/') && !/^[a-f0-9]{12,}$/i.test(label);
+          // Exclude system labels, hex IDs, myContacts, and starred
+          return !lower.startsWith('contactgroups/') && 
+                 !/^[a-f0-9]{12,}$/i.test(label) &&
+                 lower !== 'mycontacts' &&
+                 lower !== 'starred';
         });
       } catch {
         return [];
@@ -626,11 +630,14 @@ export default function Home() {
                           {contact.labels && (() => {
                             try {
                               const labels = JSON.parse(contact.labels);
-                              // Filter out technical hex IDs (12+ character hex strings)
+                              // Filter out technical hex IDs, myContacts, and starred
                               const userFriendlyLabels = labels.filter((label: string) => {
                                 const labelName = label.split('/').pop() || label;
-                                // Exclude if it looks like a hex ID (all lowercase alphanumeric, 12+ chars)
-                                return !/^[a-f0-9]{12,}$/i.test(labelName);
+                                const lower = labelName.toLowerCase();
+                                // Exclude hex IDs, myContacts, and starred
+                                return !/^[a-f0-9]{12,}$/i.test(labelName) &&
+                                       lower !== 'mycontacts' &&
+                                       lower !== 'starred';
                               });
                               if (userFriendlyLabels.length > 0) {
                                 return (
