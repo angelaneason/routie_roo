@@ -628,3 +628,9 @@
 - [x] Calculate best position for each new stop without changing existing order
 - [x] Update route distance and duration after re-optimization
 - [x] Write tests for re-optimization logic (4/4 tests passing)
+
+## Auto-use Default Starting Point
+
+- [x] Update route creation logic to use user's default starting point from settings when "None" is selected
+- [x] Ensure custom starting point and saved starting points still override the default
+- [x] Implemented priority: custom > saved > default from settings > none

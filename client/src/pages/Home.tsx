@@ -230,9 +230,16 @@ export default function Home() {
     });
 
     // Add starting point if provided
-    const finalStartingPoint = startingPoint === "custom" 
-      ? customStartingPoint.trim() 
-      : (startingPoint === "none" || !startingPoint) ? "" : startingPoint.trim();
+    // Priority: custom > saved > default from settings > none
+    let finalStartingPoint = "";
+    if (startingPoint === "custom") {
+      finalStartingPoint = customStartingPoint.trim();
+    } else if (startingPoint && startingPoint !== "none") {
+      finalStartingPoint = startingPoint.trim();
+    } else if (startingPoint === "none" || !startingPoint) {
+      // Fall back to user's default starting point from settings
+      finalStartingPoint = userQuery.data?.defaultStartingPoint?.trim() || "";
+    }
     
     if (finalStartingPoint) {
       waypoints = [
