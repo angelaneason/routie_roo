@@ -116,7 +116,7 @@ export function SortableWaypointItem({
               {phoneNumbers.map((phone: any, idx: number) => (
                 <div key={idx} className="space-y-1">
                   <p className="text-sm font-medium text-foreground">
-                    📞 {phone.value} {phone.label || phone.type ? `(${phone.label || phone.type})` : ''}
+                    {phone.value} {phone.label || phone.type ? `(${phone.label || phone.type})` : ''}
                   </p>
                   <div className="flex gap-2">
                     <PhoneCallMenu
