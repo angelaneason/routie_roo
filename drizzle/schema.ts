@@ -34,6 +34,7 @@ export const routes = mysqlTable("routes", {
   totalDuration: int("totalDuration"), // Total duration in seconds
   optimized: boolean("optimized").default(true).notNull(), // Whether waypoints were optimized
   folderId: int("folderId"), // Optional folder/category ID
+  calendarId: int("calendarId"), // Optional calendar ID for scheduling
   notes: text("notes"), // Optional notes/description for the route
   startingPointAddress: text("startingPointAddress"), // Starting point address for this route
   distanceUnit: mysqlEnum("distanceUnit", ["km", "miles"]).default("km"), // Owner's preferred distance unit
@@ -42,6 +43,7 @@ export const routes = mysqlTable("routes", {
   isPubliclyAccessible: boolean("isPubliclyAccessible").default(false).notNull(), // Allow unauthenticated access
   sharedAt: timestamp("sharedAt"), // When share link was generated
   completedAt: timestamp("completedAt"), // When all waypoints were completed/missed
+  scheduledDate: timestamp("scheduledDate"), // When the route is scheduled to be executed
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -142,3 +144,19 @@ export const savedStartingPoints = mysqlTable("saved_starting_points", {
 
 export type SavedStartingPoint = typeof savedStartingPoints.$inferSelect;
 export type InsertSavedStartingPoint = typeof savedStartingPoints.$inferInsert;
+
+/**
+ * Calendars table - organize routes into different calendars (work, personal, etc.)
+ */
+export const calendars = mysqlTable("calendars", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Owner of the calendar
+  name: varchar("name", { length: 100 }).notNull(), // Calendar name (e.g., "Work", "Personal")
+  color: varchar("color", { length: 7 }).notNull().default("#3b82f6"), // Hex color code
+  isDefault: boolean("isDefault").default(false).notNull(), // Default calendar for new routes
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Calendar = typeof calendars.$inferSelect;
+export type InsertCalendar = typeof calendars.$inferInsert;

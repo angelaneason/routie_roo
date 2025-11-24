@@ -20,10 +20,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { APP_TITLE, APP_LOGO, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { ContactEditDialog } from "@/components/ContactEditDialog";
+import { ContactImportDialog } from "@/components/ContactImportDialog";
 import { StopTypeSelector, getStopTypeConfig, type StopType } from "@/components/StopTypeSelector";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -48,6 +49,9 @@ export default function Home() {
   const [showNewFolderInput, setShowNewFolderInput] = useState(false);
   const [editingContact, setEditingContact] = useState<any | null>(null);
   const [showInactive, setShowInactive] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importPreview, setImportPreview] = useState<any[]>([]);
   const [showMissingAddresses, setShowMissingAddresses] = useState(false);
 
   // Check for OAuth callback status
@@ -381,7 +385,15 @@ export default function Home() {
     : routes.filter(r => r.folderId === parseInt(selectedFolderFilter));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <>
+      <ContactImportDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        onSuccess={() => {
+          contactsQuery.refetch();
+        }}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <header className="bg-white border-b">
         <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -391,6 +403,12 @@ export default function Home() {
             <span className="text-sm text-muted-foreground">
               {user?.name || user?.email}
             </span>
+            <Link href="/calendar">
+              <Button variant="outline" size="sm">
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                Calendar
+              </Button>
+            </Link>
             <Link href="/missed-stops">
               <Button variant="outline" size="sm">
                 <AlertTriangle className="h-4 w-4 mr-2" />
@@ -430,19 +448,29 @@ export default function Home() {
                         : "Sync your Gmail contacts to get started"}
                     </CardDescription>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSyncContacts}
-                    disabled={googleAuthQuery.isFetching}
-                  >
-                    {googleAuthQuery.isFetching ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
-                    <span className="ml-2">{hasContacts ? "Refresh" : "Sync Your Contacts"}</span>
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSyncContacts}
+                      disabled={googleAuthQuery.isFetching}
+                    >
+                      {googleAuthQuery.isFetching ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4" />
+                      )}
+                      <span className="ml-2">{hasContacts ? "Refresh" : "Sync Your Contacts"}</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowImportDialog(true)}
+                    >
+                      <Upload className="h-4 w-4" />
+                      <span className="ml-2">Import CSV</span>
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
                 <CardContent>
@@ -944,5 +972,6 @@ export default function Home() {
         />
       )}
     </div>
+    </>
   );
 }

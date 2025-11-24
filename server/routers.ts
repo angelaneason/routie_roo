@@ -251,6 +251,81 @@ export const appRouter = router({
 
         return { success: true };
       }),
+
+    // Import contacts from CSV
+    importFromCSV: protectedProcedure
+      .input(z.object({
+        contacts: z.array(z.object({
+          name: z.string(),
+          email: z.string().optional(),
+          address: z.string(),
+          phoneNumbers: z.array(z.object({
+            value: z.string(),
+            label: z.string(),
+          })).optional(),
+        })),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        const { cachedContacts } = await import("../drizzle/schema");
+        
+        // Validate addresses using Google Maps Geocoding
+        const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+        if (!GOOGLE_MAPS_API_KEY) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Google Maps API key not configured",
+          });
+        }
+
+        const validatedContacts = [];
+        const errors = [];
+
+        for (let i = 0; i < input.contacts.length; i++) {
+          const contact = input.contacts[i];
+          
+          try {
+            // Validate address using Geocoding API
+            const geocodeResponse = await fetch(
+              `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(contact.address)}&key=${GOOGLE_MAPS_API_KEY}`
+            );
+            
+            const geocodeData = await geocodeResponse.json();
+            
+            if (geocodeData.status === "OK" && geocodeData.results.length > 0) {
+              validatedContacts.push({
+                userId: ctx.user.id,
+                name: contact.name,
+                email: contact.email || null,
+                address: geocodeData.results[0].formatted_address, // Use validated address
+                phoneNumbers: contact.phoneNumbers ? JSON.stringify(contact.phoneNumbers) : null,
+                googleResourceName: null,
+                photoUrl: null,
+                labels: null,
+                isActive: 1,
+              });
+            } else {
+              errors.push({ row: i + 1, name: contact.name, error: "Invalid address" });
+            }
+          } catch (error) {
+            errors.push({ row: i + 1, name: contact.name, error: "Geocoding failed" });
+          }
+        }
+
+        // Insert validated contacts
+        if (validatedContacts.length > 0) {
+          await upsertCachedContacts(validatedContacts);
+        }
+
+        return {
+          success: true,
+          imported: validatedContacts.length,
+          failed: errors.length,
+          errors,
+        };
+      }),
   }),
 
   folders: router({

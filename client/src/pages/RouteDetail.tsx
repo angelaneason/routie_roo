@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { MapView } from "@/components/Map";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon, Download } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
@@ -393,6 +393,83 @@ export default function RouteDetail() {
     copyRouteMutation.mutate({ routeId: parseInt(routeId) });
   };
 
+  const handleExportToCSV = () => {
+    if (!route || !waypoints) return;
+
+    // CSV headers
+    const headers = [
+      "Waypoint #",
+      "Contact Name",
+      "Address",
+      "Phone Numbers",
+      "Status",
+      "Notes",
+      "Missed Reason",
+      "Rescheduled Date"
+    ];
+
+    // CSV rows
+    const rows = waypoints.map((wp: any, index: number) => {
+      const phoneNumbers = wp.phoneNumbers
+        ? wp.phoneNumbers.map((p: any) => `${p.value} (${p.label || p.type})`).join("; ")
+        : "";
+      
+      return [
+        index + 1,
+        wp.contactName || "",
+        wp.address || "",
+        phoneNumbers,
+        wp.status || "pending",
+        wp.executionNotes || "",
+        wp.missedReason || "",
+        wp.rescheduledDate ? new Date(wp.rescheduledDate).toLocaleDateString() : ""
+      ];
+    });
+
+    // Add route metadata at the top
+    const metadata = [
+      ["Route Name", route.name || ""],
+      ["Total Distance", `${formatDistance(route.totalDistance! / 1000, user?.distanceUnit || "km")}`],
+      ["Estimated Time", `${Math.round(route.totalDuration! / 60)} min`],
+      ["Total Stops", waypoints.length.toString()],
+      ["Created", new Date(route.createdAt).toLocaleString()],
+      route.completedAt ? ["Completed", new Date(route.completedAt).toLocaleString()] : [],
+      [""], // Empty row
+    ].filter(row => row.length > 0);
+
+    // Combine all data
+    const csvData = [
+      ...metadata,
+      headers,
+      ...rows
+    ];
+
+    // Convert to CSV string
+    const csvContent = csvData
+      .map(row => row.map(cell => {
+        // Escape quotes and wrap in quotes if contains comma, quote, or newline
+        const cellStr = String(cell);
+        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+          return `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      }).join(','))
+      .join('\n');
+
+    // Create download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${route.name || 'route'}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Route exported to CSV!");
+  };
+
   if (routeQuery.isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -482,6 +559,10 @@ export default function RouteDetail() {
                   <Button variant="outline" size="sm" onClick={handleAddToCalendar}>
                     <Calendar className="h-4 w-4 mr-2" />
                     Add to Calendar
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleExportToCSV}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export to CSV
                   </Button>
                   <Button size="sm" onClick={handleOpenInGoogleMaps}>
                     <ExternalLink className="h-4 w-4 mr-2" />

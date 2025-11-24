@@ -512,3 +512,31 @@
 - [x] Fine-tune layout proportions - current 1/3 map and 2/3 waypoints is too wide, find better balance
 - [x] Remove redundant phone emoji from phone number display (Call button already has icon)
 - [x] Fix hex ID still showing in contact labels (e.g., "63c2ee10e427465")
+
+## New Features
+
+### Route Export
+- [x] Add "Export to CSV" button on route detail page
+- [x] Export route metadata (name, distance, duration, date)
+- [x] Export all waypoints with addresses, phone numbers, and completion status
+- [x] Generate downloadable CSV file
+
+### Contact Import
+- [x] Add "Import Contacts" button on home page
+- [x] Create CSV upload interface with file picker
+- [x] Parse CSV and validate required fields (name, address)
+- [x] Validate addresses using Google Maps Geocoding
+- [x] Show import preview with validation results
+- [x] Bulk insert validated contacts into database
+
+### Route Scheduling Calendar
+- [x] Create new Calendar page/view
+- [x] Display routes in monthly calendar grid
+- [x] Show route cards with name, distance, and time on scheduled dates
+- [ ] Implement drag-and-drop to reschedule routes (future enhancement)
+- [ ] Add conflict detection for overlapping routes on same day (future enhancement)
+- [ ] Show conflict warnings when routes overlap (future enhancement)
+- [x] Add navigation link to Calendar in main navigation
+- [x] Add calendars table for users with multiple calendars (work, personal, etc.)
+- [x] Add calendarId field to routes table
+- [ ] Add calendar selector in route creation and calendar view (future enhancement)
