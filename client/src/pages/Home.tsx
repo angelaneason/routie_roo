@@ -43,6 +43,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFolderFilter, setSelectedFolderFilter] = useState<string>("all");
   const [selectedFolderId, setSelectedFolderId] = useState<string>("");
+  const [hideCompletedRoutes, setHideCompletedRoutes] = useState(false);
   const [isCreatingRoute, setIsCreatingRoute] = useState(false);
   const [deleteRouteId, setDeleteRouteId] = useState<number | null>(null);
   const [newFolderName, setNewFolderName] = useState("");
@@ -426,11 +427,19 @@ export default function Home() {
   });
   
   // Filter routes by folder
-  const filteredRoutes = selectedFolderFilter === "all" 
+  let filteredRoutes = selectedFolderFilter === "all" 
     ? routes 
     : selectedFolderFilter === "none"
     ? routes.filter(r => r.folderId === null)
     : routes.filter(r => r.folderId === parseInt(selectedFolderFilter));
+  
+  // Filter out completed routes if checkbox is checked
+  if (hideCompletedRoutes) {
+    filteredRoutes = filteredRoutes.filter(route => {
+      // A route is completed if it has a completedAt timestamp
+      return !route.completedAt;
+    });
+  }
 
   return (
     <>
@@ -942,23 +951,38 @@ export default function Home() {
                         : "No routes created yet"}
                     </CardDescription>
                   </div>
-                  {folders.length > 0 && (
-                    <Select value={selectedFolderFilter} onValueChange={setSelectedFolderFilter}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="All Folders" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Folders</SelectItem>
-                        {folders.map((folder) => (
-                          <SelectItem key={folder.id} value={folder.id.toString()}>
-                            <Folder className="h-4 w-4 inline mr-2" />
-                            {folder.name}
-                          </SelectItem>
-                        ))}
-                        <SelectItem value="none">No Folder</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {folders.length > 0 && (
+                      <Select value={selectedFolderFilter} onValueChange={setSelectedFolderFilter}>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="All Folders" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Folders</SelectItem>
+                          {folders.map((folder) => (
+                            <SelectItem key={folder.id} value={folder.id.toString()}>
+                              <Folder className="h-4 w-4 inline mr-2" />
+                              {folder.name}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="none">No Folder</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id="hide-completed" 
+                        checked={hideCompletedRoutes}
+                        onCheckedChange={(checked) => setHideCompletedRoutes(checked as boolean)}
+                      />
+                      <label 
+                        htmlFor="hide-completed" 
+                        className="text-sm cursor-pointer select-none"
+                      >
+                        Hide completed
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>

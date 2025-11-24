@@ -634,3 +634,9 @@
 - [x] Update route creation logic to use user's default starting point from settings when "None" is selected
 - [x] Ensure custom starting point and saved starting points still override the default
 - [x] Implemented priority: custom > saved > default from settings > none
+
+## Hide Completed Routes Filter
+
+- [x] Add checkbox filter to hide routes where all waypoints are marked complete
+- [x] Filter works alongside existing folder filter
+- [x] Added checkbox to route list header
