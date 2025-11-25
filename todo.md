@@ -713,3 +713,12 @@
 - [x] Add progress badge to route cards in main list (e.g., "8/12 stops")
 - [x] Style badge with visual indicator (green=complete, blue=in progress, gray=not started)
 - [x] Show badge on both active and archived route lists
+
+
+## Railway Deployment OAuth Fix
+
+- [x] Replace Manus OAuth portal with direct Google OAuth implementation
+- [x] Update frontend login flow to use Google OAuth directly
+- [x] Install googleapis and jsonwebtoken packages
+- [x] Update ENV configuration with Google OAuth credentials
+- [ ] Test authentication on Railway deployment
