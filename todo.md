@@ -898,3 +898,11 @@
 - [x] Add backend procedure to clear googleCalendarId from route
 - [x] Display info message: "Calendar events won't update automatically"
 - [x] Allow user to delete old events and recreate with updated route
+
+
+## Remove Contact Button Fix
+
+- [x] Find where trash icon should be displayed on waypoints
+- [x] Add visible trash/delete button to each waypoint (always visible now)
+- [x] Wire up to removeWaypoint mutation
+- [ ] Test waypoint removal functionality
