@@ -162,6 +162,20 @@
       "when": 1764088287282,
       "tag": "0022_crazy_stryfe",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "5",
+      "when": 1764095028445,
+      "tag": "0023_rapid_power_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1764095514872,
+      "tag": "0024_premium_martin_li",
+      "breakpoints": true
     }
   ]
 }

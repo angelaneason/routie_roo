@@ -635,6 +635,16 @@ export const appRouter = router({
         const startDate = new Date(input.startTime);
         let currentTime = startDate.getTime();
         
+        // Get user's default stop duration (default to 30 minutes if not set)
+        const userStopDurationMinutes = ctx.user.defaultStopDuration || 30;
+        const stopDuration = userStopDurationMinutes * 60 * 1000; // Convert to milliseconds
+        
+        // Get user's event duration mode (default to stop_only)
+        const eventDurationMode = ctx.user.eventDurationMode || 'stop_only';
+        
+        // Calculate travel time per segment (rough estimate)
+        const travelTimePerSegment = (route.totalDuration! * 1000) / waypoints.length;
+        
         const createdEvents = [];
 
         // Create individual event for each waypoint
@@ -642,11 +652,22 @@ export const appRouter = router({
           const wp = waypoints[i];
           const isLast = i === waypoints.length - 1;
           
-          // Estimate 15 minutes per stop (can be customized later)
-          const stopDuration = 15 * 60 * 1000; // 15 minutes in milliseconds
+          let eventStart: Date;
+          let eventEnd: Date;
           
-          const eventStart = new Date(currentTime);
-          const eventEnd = new Date(currentTime + stopDuration);
+          if (eventDurationMode === 'include_drive') {
+            // Mode: Include drive time in event
+            // Event starts at current time (includes drive to this location)
+            // Event ends after stop duration
+            eventStart = new Date(currentTime);
+            eventEnd = new Date(currentTime + stopDuration + (i > 0 ? travelTimePerSegment : 0));
+          } else {
+            // Mode: Stop time only (default)
+            // Event shows just the time at the location
+            // Drive time is added between events
+            eventStart = new Date(currentTime);
+            eventEnd = new Date(currentTime + stopDuration);
+          }
           
           try {
             const { eventId, htmlLink } = await createCalendarEvent(
@@ -666,11 +687,15 @@ export const appRouter = router({
             console.error(`Failed to create event for waypoint ${wp.id}:`, error);
           }
           
-          // Add travel time to next stop (if not last waypoint)
+          // Move to next time slot
           if (!isLast) {
-            // Rough estimate: total duration / number of segments
-            const travelTime = (route.totalDuration! * 1000) / waypoints.length;
-            currentTime = eventEnd.getTime() + travelTime;
+            if (eventDurationMode === 'include_drive') {
+              // Next event starts right after this one ends
+              currentTime = eventEnd.getTime();
+            } else {
+              // Add travel time between events
+              currentTime = eventEnd.getTime() + travelTimePerSegment;
+            }
           }
         }
 
@@ -1592,6 +1617,8 @@ export const appRouter = router({
         preferredCallingService: z.enum(["phone", "google-voice", "whatsapp", "skype", "facetime"]).optional(),
         distanceUnit: z.enum(["km", "miles"]).optional(),
         defaultStartingPoint: z.string().optional(),
+        defaultStopDuration: z.number().optional(), // Stop duration in minutes
+        eventDurationMode: z.enum(["stop_only", "include_drive"]).optional(), // Calendar event duration mode
         autoArchiveDays: z.number().nullable().optional(), // null = never auto-archive
       }))
       .mutation(async ({ ctx, input }) => {
@@ -1602,6 +1629,8 @@ export const appRouter = router({
         if (input.preferredCallingService) updateData.preferredCallingService = input.preferredCallingService;
         if (input.distanceUnit) updateData.distanceUnit = input.distanceUnit;
         if (input.defaultStartingPoint !== undefined) updateData.defaultStartingPoint = input.defaultStartingPoint;
+        if (input.defaultStopDuration !== undefined) updateData.defaultStopDuration = input.defaultStopDuration;
+        if (input.eventDurationMode !== undefined) updateData.eventDurationMode = input.eventDurationMode;
         if (input.autoArchiveDays !== undefined) updateData.autoArchiveDays = input.autoArchiveDays;
 
         await db.update(users)
@@ -1694,6 +1723,47 @@ export const appRouter = router({
           .where(eq(savedStartingPoints.id, input.id));
 
         return { success: true };
+      }),
+  }),
+
+  calendar: router({
+    // Get calendar events for a specific month
+    getEvents: protectedProcedure
+      .input(z.object({
+        month: z.number().min(1).max(12),
+        year: z.number(),
+      }))
+      .query(async ({ ctx, input }) => {
+        // For now, return scheduled routes as calendar events
+        // In the future, this can fetch from Google Calendar API
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        
+        // Get first and last day of the month
+        const firstDay = new Date(input.year, input.month - 1, 1);
+        const lastDay = new Date(input.year, input.month, 0, 23, 59, 59);
+        
+        // Get all routes scheduled in this month
+        const scheduledRoutes = await db
+          .select()
+          .from(routes)
+          .where(
+            and(
+              eq(routes.userId, ctx.user.id),
+              sql`${routes.scheduledDate} >= ${firstDay}`,
+              sql`${routes.scheduledDate} <= ${lastDay}`
+            )
+          );
+        
+        // Convert routes to calendar events
+        return scheduledRoutes.map(route => ({
+          id: route.id,
+          routeId: route.id,
+          summary: route.name,
+          start: route.scheduledDate?.toISOString() || '',
+          end: route.scheduledDate ? new Date(route.scheduledDate.getTime() + (route.totalDuration || 0) * 1000).toISOString() : '',
+          type: 'route',
+        }));
       }),
   }),
 

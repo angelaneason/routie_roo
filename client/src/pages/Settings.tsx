@@ -182,6 +182,75 @@ export default function Settings() {
                 </CardContent>
               </Card>
 
+              {/* Stop Duration Preferences */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Default Stop Duration</CardTitle>
+                  <CardDescription>How long you typically spend at each stop</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="stop-duration">Default Stop Time</Label>
+                    <Select
+                      value={currentUser?.defaultStopDuration?.toString() || "30"}
+                      onValueChange={(value) => {
+                        updateSettingsMutation.mutate({
+                          defaultStopDuration: parseInt(value)
+                        });
+                      }}
+                    >
+                      <SelectTrigger id="stop-duration">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="45">45 minutes</SelectItem>
+                        <SelectItem value="60">1 hour</SelectItem>
+                        <SelectItem value="90">1.5 hours</SelectItem>
+                        <SelectItem value="120">2 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground">
+                      This duration is added to drive time when creating calendar events, giving you realistic scheduling
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Event Duration Mode */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Calendar Event Duration</CardTitle>
+                  <CardDescription>How calendar events should calculate time</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="event-duration-mode">Event Duration Mode</Label>
+                    <Select
+                      value={currentUser?.eventDurationMode || "stop_only"}
+                      onValueChange={(value) => {
+                        updateSettingsMutation.mutate({
+                          eventDurationMode: value as "stop_only" | "include_drive"
+                        });
+                      }}
+                    >
+                      <SelectTrigger id="event-duration-mode">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="stop_only">Stop time only (+ drive time between)</SelectItem>
+                        <SelectItem value="include_drive">Include drive time in event</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Stop time only:</strong> Each calendar event shows just your time at the location. Drive time is added between events.<br/>
+                      <strong>Include drive time:</strong> Each event includes both the drive to that location and your time there.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Auto-Archive Settings */}
               <Card>
                 <CardHeader>

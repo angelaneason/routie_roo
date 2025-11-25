@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `defaultStopDuration` int DEFAULT 30;

@@ -13,6 +13,8 @@ export const users = mysqlTable("users", {
   preferredCallingService: mysqlEnum("preferredCallingService", ["phone", "google-voice", "whatsapp", "skype", "facetime"]).default("phone"),
   distanceUnit: mysqlEnum("distanceUnit", ["km", "miles"]).default("km"),
   defaultStartingPoint: text("defaultStartingPoint"), // User's default starting address for routes
+  defaultStopDuration: int("defaultStopDuration").default(30), // Default stop duration in minutes (15, 30, 45, 60)
+  eventDurationMode: mysqlEnum("eventDurationMode", ["stop_only", "include_drive"]).default("stop_only"), // Calendar event duration mode
   autoArchiveDays: int("autoArchiveDays"), // Days after completion to auto-archive (null = never)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

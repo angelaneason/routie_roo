@@ -776,5 +776,48 @@
 - [x] Add calendar.readonly OAuth scope
 - [x] Add detailed error logging to calendar OAuth callback
 - [x] Add error logging to getCalendarList function
-- [ ] Test on published site to see actual error logs
-- [ ] Fix the underlying calendar API issue
+- [x] Test on published site to see actual error logs
+- [x] Fix the underlying calendar API issue - calendar.readonly scope was the fix!
+
+## Calendar View Component - Phase 2
+
+- [x] Create CalendarView page component (already exists as Calendar.tsx)
+- [x] Add backend procedure to fetch calendar events from Google Calendar API
+- [x] Display scheduled routes on calendar grid
+- [ ] Display contact birthdays from Google Contacts
+- [x] Add monthly navigation (previous/next month)
+- [x] Add event click to view route details
+- [x] Style calendar with color coding for different event types
+- [ ] Add filter to show/hide different event types
+
+## Bulk Scheduling Feature
+
+- [ ] Create bulk scheduling UI component
+- [ ] Add route selection checkboxes to route list
+- [ ] Implement smart time slot suggestion algorithm
+- [ ] Add date range picker for bulk scheduling
+- [ ] Add time spacing configuration (e.g., 2 hours between routes)
+- [ ] Create backend procedure to schedule multiple routes at once
+- [ ] Show preview of suggested schedule before confirming
+- [ ] Handle conflicts with existing calendar events
+- [ ] Add bulk calendar event creation
+
+
+## Default Stop Time Configuration
+
+- [x] Add defaultStopDuration field to user preferences (15, 30, 45, 60 minutes)
+- [x] Add stop duration setting to Settings page
+- [x] Update calendar event creation to include stop duration + drive time
+- [x] Calculate accurate event times: arrival + stop duration + drive to next stop
+- [ ] Show estimated schedule in calendar event creation dialog
+- [ ] Allow per-route override of default stop duration
+
+
+## Calendar Event Duration Mode
+
+- [x] Add eventDurationMode field to user preferences ("stop_only" | "include_drive")
+- [x] Add setting in Settings page to choose duration mode
+- [x] Update createWaypointEvents to support both modes:
+  - "stop_only": Event duration = stop duration, drive time added between events
+  - "include_drive": Event duration = stop duration + drive time to this location
+- [x] Add tooltip explaining the difference between modes
