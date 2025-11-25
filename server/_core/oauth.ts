@@ -24,7 +24,8 @@ export function registerOAuthRoutes(app: Express) {
   // Initiate Google OAuth flow
   app.get("/api/oauth/google", async (req: Request, res: Response) => {
     try {
-      const redirectUri = `${req.protocol}://${req.get("host")}/api/oauth/callback`;
+      // Use public URL from ENV to avoid internal Azure container address
+      const redirectUri = `${ENV.publicUrl}/api/oauth/callback`;
       const oauth2Client = getOAuth2Client(redirectUri);
 
       const authUrl = oauth2Client.generateAuthUrl({
@@ -55,7 +56,8 @@ export function registerOAuthRoutes(app: Express) {
     }
 
     try {
-      const redirectUri = `${req.protocol}://${req.get("host")}/api/oauth/callback`;
+      // Use public URL from ENV to avoid internal Azure container address
+      const redirectUri = `${ENV.publicUrl}/api/oauth/callback`;
       const oauth2Client = getOAuth2Client(redirectUri);
 
       // Exchange code for tokens

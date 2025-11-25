@@ -733,3 +733,9 @@
 - [x] Update routers.ts calendar OAuth URL generation to use ENV.publicUrl
 - [x] Add ENV import to routers.ts
 - [ ] Test calendar OAuth flow on Manus deployment
+
+## Main OAuth Login Redirect URI Fix
+
+- [x] Fix main OAuth login to use ENV.publicUrl instead of dynamic host
+- [x] Update oauth.ts or relevant OAuth route handler
+- [ ] Test login flow on Manus deployment
