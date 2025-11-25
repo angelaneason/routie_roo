@@ -847,3 +847,24 @@
 - [x] Update calendar connection to use same redirect URI as contacts sync
 - [x] Updated main callback to handle both contacts and calendar via action parameter
 - [ ] Test calendar connection with corrected redirect URI
+
+
+## Calendar View UX Improvements
+
+- [x] Fix color coding - routes are now blue (bg-blue-500), Google events are gray (bg-gray-300)
+- [x] Make "+X more" clickable to show all events for that day in a dialog
+- [x] Show event times for all events in dialog view
+- [x] Display event location and description in dialog
+- [ ] Add calendar selection filter to choose which calendars to display
+
+
+## Calendar Agenda View Redesign
+
+- [ ] Replace monthly grid with day/week agenda view (like Google Calendar)
+- [ ] Add time slots (hourly) on the left side
+- [ ] Display events as blocks with full titles and times
+- [ ] Add calendar selection sidebar with checkboxes
+- [ ] Implement view switcher (Day / Week / Month)
+- [ ] Color code events by calendar source
+- [ ] Show event details on hover
+- [ ] Make events clickable to view/edit

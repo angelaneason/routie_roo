@@ -1,6 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { trpc } from "@/lib/trpc";
 import { Loader2, ChevronLeft, ChevronRight, Calendar as CalendarIcon, MapPin } from "lucide-react";
 import { useState } from "react";
@@ -11,6 +12,8 @@ import { toast } from "sonner";
 export default function Calendar() {
   const { user, loading: authLoading } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showDayDialog, setShowDayDialog] = useState(false);
   
   const eventsQuery = trpc.calendar.getEvents.useQuery({
     month: currentDate.getMonth() + 1,
@@ -134,17 +137,20 @@ export default function Calendar() {
                   <div className="text-sm font-medium mb-1">{date.getDate()}</div>
                   <div className="space-y-1">
                     {dayEvents.slice(0, 3).map(event => {
-                      const bgColor = event.type === 'route' ? 'bg-blue-100 hover:bg-blue-200' : 'bg-gray-100 hover:bg-gray-200';
+                      // More distinct colors
+                      const bgColor = event.type === 'route' 
+                        ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                        : 'bg-gray-300 hover:bg-gray-400 text-gray-900';
                       const content = (
                         <div className={`text-xs p-1 ${bgColor} rounded cursor-pointer truncate`}>
                           <div className="font-medium truncate">{event.summary}</div>
                           {event.type === 'route' && event.routeId && (
-                            <div className="text-muted-foreground text-[10px]">
+                            <div className="text-[10px] opacity-90">
                               Route
                             </div>
                           )}
                           {event.type === 'google' && (
-                            <div className="text-muted-foreground text-[10px]">
+                            <div className="text-[10px] opacity-90">
                               {new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
                           )}
@@ -162,9 +168,15 @@ export default function Calendar() {
                       );
                     })}
                     {dayEvents.length > 3 && (
-                      <div className="text-xs text-muted-foreground">
+                      <button
+                        onClick={() => {
+                          setSelectedDate(date);
+                          setShowDayDialog(true);
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
+                      >
                         +{dayEvents.length - 3} more
-                      </div>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -180,16 +192,83 @@ export default function Calendar() {
                 <span>Today</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-blue-100 rounded" />
+                <div className="w-4 h-4 bg-blue-500 rounded" />
                 <span>Routie Roo Route</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-gray-100 rounded" />
+                <div className="w-4 h-4 bg-gray-300 rounded" />
                 <span>Google Calendar Event</span>
               </div>
             </div>
           </div>
         </Card>
+
+        {/* Day Events Dialog */}
+        <Dialog open={showDayDialog} onOpenChange={setShowDayDialog}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedDate && (
+                  <span>
+                    Events for {selectedDate.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </span>
+                )}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 mt-4">
+              {selectedDate && eventsByDate.get(selectedDate.toDateString())?.map(event => {
+                const bgColor = event.type === 'route' 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-300 text-gray-900';
+                const content = (
+                  <div className={`p-3 ${bgColor} rounded-lg`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="font-semibold">{event.summary}</div>
+                        {event.description && (
+                          <div className="text-sm mt-1 opacity-90">{event.description}</div>
+                        )}
+                        {event.location && (
+                          <div className="text-sm mt-1 opacity-90 flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {event.location}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-sm opacity-90 whitespace-nowrap">
+                        {new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {event.end && (
+                          <span> - {new Date(event.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        )}
+                      </div>
+                    </div>
+                    {event.type === 'route' && (
+                      <div className="text-xs mt-2 opacity-90">Routie Roo Route</div>
+                    )}
+                    {event.type === 'google' && event.calendarName && (
+                      <div className="text-xs mt-2 opacity-90">{event.calendarName}</div>
+                    )}
+                  </div>
+                );
+
+                return event.type === 'route' && event.routeId ? (
+                  <Link key={event.id} href={`/route/${event.routeId}`} onClick={() => setShowDayDialog(false)}>
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={event.id}>
+                    {content}
+                  </div>
+                );
+              })}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
