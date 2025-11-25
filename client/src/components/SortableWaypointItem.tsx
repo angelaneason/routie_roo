@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { StopStatusBadge } from "@/components/StopStatusBadge";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
-import { CheckCircle2, XCircle, MessageSquare, Calendar, GripVertical, Trash2, Edit3, MapPin } from "lucide-react";
+import { CheckCircle2, XCircle, MessageSquare, Calendar, GripVertical, Trash2, Edit3, MapPin, Flag } from "lucide-react";
 
 interface SortableWaypointItemProps {
   waypoint: any;
@@ -61,7 +61,11 @@ export function SortableWaypointItem({
           <GripVertical className="h-5 w-5 text-muted-foreground" />
         </div>
         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-          {index + 1}
+          {waypoint.position === 0 ? (
+            <Flag className="h-4 w-4" />
+          ) : (
+            index + 1
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -73,7 +77,7 @@ export function SortableWaypointItem({
                 const labels = JSON.parse(waypoint.contactLabels);
                 const filteredLabels = labels.filter((label: string) => {
                   const lower = label.toLowerCase();
-                  return lower !== 'mycontacts' && lower !== 'starred';
+                  return lower !== 'mycontacts' && lower !== 'starred' && !label.startsWith('contactGroups/');
                 });
                 return filteredLabels.map((label: string) => (
                   <span key={label} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">

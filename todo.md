@@ -905,4 +905,31 @@
 - [x] Find where trash icon should be displayed on waypoints
 - [x] Add visible trash/delete button to each waypoint (always visible now)
 - [x] Wire up to removeWaypoint mutation
-- [ ] Test waypoint removal functionality
+- [x] Test waypoint removal functionality
+
+
+## UI Fixes
+
+- [x] Remove number from starting point display (replaced with flag icon)
+- [x] Filter out labels starting with "contactGroups" from contact labels
+
+## Calendar Connection Debug
+
+- [x] Investigate why Google Calendar events aren't showing despite connection
+- [x] Implement automatic token refresh when access token expires
+- [x] Update calendar.getEvents to refresh token if expired
+- [ ] Test token refresh after 1 hour expiry
+- [ ] Check if googleCalendarAccessToken is being saved correctly
+- [ ] Verify calendar.getEvents is fetching from Google Calendar API
+- [ ] Add error logging to calendar event fetching
+
+## Calendar Agenda View Redesign
+
+- [ ] Design day/week view with hourly time slots (7am-9pm)
+- [ ] Add view switcher (Day / Week / Month)
+- [ ] Display events as blocks positioned by time
+- [ ] Add sidebar with mini calendar for date navigation
+- [ ] Show calendar list with checkboxes to filter calendars
+- [ ] Color code events by calendar
+- [ ] Handle overlapping events
+- [ ] Add current time indicator

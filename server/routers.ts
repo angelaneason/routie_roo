@@ -1853,9 +1853,34 @@ export const appRouter = router({
         // Fetch Google Calendar events if user has connected their calendar
         if (ctx.user.googleCalendarAccessToken) {
           try {
+            let accessToken = ctx.user.googleCalendarAccessToken;
+            
+            // Check if token is expired and refresh if needed
+            if (ctx.user.googleCalendarTokenExpiry && ctx.user.googleCalendarRefreshToken) {
+              const isExpired = new Date(ctx.user.googleCalendarTokenExpiry) < new Date();
+              
+              if (isExpired) {
+                console.log('[Calendar] Access token expired, refreshing...');
+                const { refreshAccessToken } = await import('./googleAuth');
+                const newToken = await refreshAccessToken(ctx.user.googleCalendarRefreshToken);
+                
+                // Update token in database
+                const expiryDate = new Date(Date.now() + newToken.expires_in * 1000);
+                await db.update(users)
+                  .set({
+                    googleCalendarAccessToken: newToken.access_token,
+                    googleCalendarTokenExpiry: expiryDate,
+                  })
+                  .where(eq(users.id, ctx.user.id));
+                
+                accessToken = newToken.access_token;
+                console.log('[Calendar] Token refreshed successfully');
+              }
+            }
+            
             const { getAllCalendarEvents } = await import('./googleAuth');
             const googleEvents = await getAllCalendarEvents(
-              ctx.user.googleCalendarAccessToken,
+              accessToken,
               firstDay.toISOString(),
               lastDay.toISOString()
             );
@@ -1876,7 +1901,7 @@ export const appRouter = router({
               });
             });
           } catch (error) {
-            console.error('Failed to fetch Google Calendar events:', error);
+            console.error('[Calendar] Failed to fetch Google Calendar events:', error);
             // Continue without Google Calendar events
           }
         }

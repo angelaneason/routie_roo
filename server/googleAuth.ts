@@ -472,3 +472,40 @@ export async function getAllCalendarEvents(
     .flat()
     .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 }
+
+
+/**
+ * Refresh an expired Google OAuth access token
+ */
+export async function refreshAccessToken(refreshToken: string): Promise<{
+  access_token: string;
+  expires_in: number;
+}> {
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    throw new Error("Google OAuth credentials not configured");
+  }
+
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token",
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to refresh token: ${error}`);
+  }
+
+  const data = await response.json();
+  return {
+    access_token: data.access_token,
+    expires_in: data.expires_in,
+  };
+}
