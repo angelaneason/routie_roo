@@ -2,9 +2,10 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { trpc } from "@/lib/trpc";
-import { Loader2, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
-import { useState } from "react";
+import { Loader2, ChevronLeft, ChevronRight, MapPin, ChevronDown, ChevronRight as ChevronRightIcon } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { formatDistance } from "@shared/distance";
 
@@ -17,6 +18,21 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [selectedDayEvents, setSelectedDayEvents] = useState<any[]>([]);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [visibleCalendars, setVisibleCalendars] = useState<string[]>([]);
+  
+  // Fetch calendar list
+  const calendarsQuery = trpc.calendar.getCalendarList.useQuery(undefined, {
+    enabled: !!user,
+  });
+  
+  // Initialize visible calendars when calendars are loaded
+  const calendars = calendarsQuery.data || [];
+  useEffect(() => {
+    if (calendars.length > 0 && visibleCalendars.length === 0) {
+      setVisibleCalendars(calendars.map(c => c.id));
+    }
+  }, [calendars.length]);
   
   const eventsQuery = trpc.calendar.getEvents.useQuery({
     month: currentDate.getMonth() + 1,
@@ -33,7 +49,14 @@ export default function Calendar() {
     );
   }
 
-  const events = eventsQuery.data || [];
+  // Filter events based on visible calendars
+  const allEvents = eventsQuery.data || [];
+  const events = allEvents.filter(event => {
+    // Always show Routie Roo routes (they don't have a calendarId)
+    if (event.type === 'route') return true;
+    // Filter Google Calendar events by visibility
+    return event.calendarId && visibleCalendars.includes(event.calendarId);
+  });
 
   // Navigation functions
   const navigatePrevious = () => {
@@ -97,6 +120,16 @@ export default function Calendar() {
     return new Date(d.setDate(diff));
   };
 
+  // Get event color based on calendar
+  const getEventColor = (event: any) => {
+    if (event.type === 'route') {
+      return 'bg-blue-500';
+    }
+    // Find calendar and use its color
+    const calendar = calendars.find(c => c.id === event.calendarId);
+    return calendar?.backgroundColor || 'bg-gray-400';
+  };
+
   // Render day view
   const renderDayView = () => {
     const hours = Array.from({ length: 17 }, (_, i) => i + 6); // 6 AM to 10 PM
@@ -156,13 +189,17 @@ export default function Calendar() {
               const duration = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
               const height = Math.max((duration / 60) * 64, 32);
               
-              const bgColor = event.type === 'route' ? 'bg-blue-500' : 'bg-gray-400';
+              const bgColor = getEventColor(event);
               
               return (
                 <div
                   key={event.id}
-                  className={`absolute left-2 right-2 ${bgColor} text-white rounded px-2 py-1 text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-opacity`}
-                  style={{ top: `${top}px`, height: `${height}px` }}
+                  className={`absolute left-2 right-2 text-white rounded px-2 py-1 text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-opacity`}
+                  style={{ 
+                    top: `${top}px`, 
+                    height: `${height}px`,
+                    backgroundColor: bgColor.replace('bg-', '')
+                  }}
                   onClick={() => {
                     if (event.routeId) {
                       window.location.href = `/route/${event.routeId}`;
@@ -258,13 +295,17 @@ export default function Calendar() {
                     const duration = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
                     const height = Math.max((duration / 60) * 64, 24);
                     
-                    const bgColor = event.type === 'route' ? 'bg-blue-500' : 'bg-gray-400';
+                    const bgColor = getEventColor(event);
                     
                     return (
                       <div
                         key={event.id}
-                        className={`absolute left-0.5 right-0.5 ${bgColor} text-white rounded px-1 py-0.5 text-xs overflow-hidden cursor-pointer hover:opacity-90 transition-opacity`}
-                        style={{ top: `${top}px`, height: `${height}px` }}
+                        className={`absolute left-0.5 right-0.5 text-white rounded px-1 py-0.5 text-xs overflow-hidden cursor-pointer hover:opacity-90 transition-opacity`}
+                        style={{ 
+                          top: `${top}px`, 
+                          height: `${height}px`,
+                          backgroundColor: bgColor.replace('bg-', '')
+                        }}
                         onClick={() => {
                           if (event.routeId) {
                             window.location.href = `/route/${event.routeId}`;
@@ -349,11 +390,12 @@ export default function Calendar() {
                 </div>
                 <div className="space-y-1">
                   {dayEvents.slice(0, 3).map(event => {
-                    const bgColor = event.type === 'route' ? 'bg-blue-500' : 'bg-gray-300';
+                    const bgColor = getEventColor(event);
                     return (
                       <div
                         key={event.id}
-                        className={`text-xs ${bgColor} text-white px-2 py-1 rounded truncate cursor-pointer hover:opacity-80`}
+                        className={`text-xs text-white px-2 py-1 rounded truncate cursor-pointer hover:opacity-80`}
+                        style={{ backgroundColor: bgColor.replace('bg-', '') }}
                         onClick={() => {
                           if (event.routeId) {
                             window.location.href = `/route/${event.routeId}`;
@@ -399,73 +441,126 @@ export default function Calendar() {
           </Link>
         </div>
 
-        <Card className="p-6">
-          {/* Calendar Header */}
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={navigatePrevious}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={goToToday}>
-                Today
-              </Button>
-              <Button variant="outline" size="sm" onClick={navigateNext}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <h2 className="text-xl font-semibold ml-4">{getDisplayTitle()}</h2>
-            </div>
-
-            {/* View switcher */}
-            <div className="flex gap-2">
-              <Button
-                variant={viewMode === "day" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("day")}
-              >
-                Day
-              </Button>
-              <Button
-                variant={viewMode === "week" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("week")}
-              >
-                Week
-              </Button>
-              <Button
-                variant={viewMode === "month" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("month")}
-              >
-                Month
-              </Button>
-            </div>
-          </div>
-
-          {/* Calendar content */}
-          {eventsQuery.isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : (
-            <>
-              {viewMode === "day" && renderDayView()}
-              {viewMode === "week" && renderWeekView()}
-              {viewMode === "month" && renderMonthView()}
-            </>
+        <div className="flex gap-4">
+          {/* Calendar sidebar */}
+          {!sidebarCollapsed && (
+            <Card className="w-64 flex-shrink-0 p-4 h-fit">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-sm">My Calendars</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSidebarCollapsed(true)}
+                  className="h-6 w-6 p-0"
+                >
+                  <ChevronRightIcon className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              {calendarsQuery.isLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                </div>
+              ) : calendars.length === 0 ? (
+                <p className="text-sm text-gray-500">No calendars found</p>
+              ) : (
+                <div className="space-y-2">
+                  {calendars.map(calendar => (
+                    <label
+                      key={calendar.id}
+                      className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                    >
+                      <Checkbox
+                        checked={visibleCalendars.includes(calendar.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setVisibleCalendars([...visibleCalendars, calendar.id]);
+                          } else {
+                            setVisibleCalendars(visibleCalendars.filter(id => id !== calendar.id));
+                          }
+                        }}
+                      />
+                      <div
+                        className="w-3 h-3 rounded-sm flex-shrink-0"
+                        style={{ backgroundColor: calendar.backgroundColor || '#4285f4' }}
+                      />
+                      <span className="text-sm truncate">{calendar.summary}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </Card>
+          )}
+          
+          {/* Collapsed sidebar button */}
+          {sidebarCollapsed && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSidebarCollapsed(false)}
+              className="h-10 px-2 flex-shrink-0"
+            >
+              <ChevronDown className="h-4 w-4 rotate-90" />
+            </Button>
           )}
 
-          {/* Legend */}
-          <div className="mt-6 flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-500 rounded" />
-              <span>Routes</span>
+          <Card className="p-6 flex-1">
+            {/* Calendar Header */}
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={navigatePrevious}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" onClick={goToToday}>
+                  Today
+                </Button>
+                <Button variant="outline" size="sm" onClick={navigateNext}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <h2 className="text-xl font-semibold ml-4">{getDisplayTitle()}</h2>
+              </div>
+
+              {/* View switcher */}
+              <div className="flex gap-2">
+                <Button
+                  variant={viewMode === "day" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("day")}
+                >
+                  Day
+                </Button>
+                <Button
+                  variant={viewMode === "week" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("week")}
+                >
+                  Week
+                </Button>
+                <Button
+                  variant={viewMode === "month" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("month")}
+                >
+                  Month
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gray-400 rounded" />
-              <span>Google Calendar Events</span>
-            </div>
-          </div>
-        </Card>
+
+            {/* Loading state */}
+            {eventsQuery.isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <>
+                {/* Render appropriate view */}
+                {viewMode === "day" && renderDayView()}
+                {viewMode === "week" && renderWeekView()}
+                {viewMode === "month" && renderMonthView()}
+              </>
+            )}
+          </Card>
+        </div>
       </div>
 
       {/* Event details dialog for month view */}
