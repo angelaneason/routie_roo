@@ -3,7 +3,7 @@ import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { ENV } from "./env";
-import jwt from "jsonwebtoken";
+import { SignJWT } from "jose";
 import { google } from "googleapis";
 
 function getQueryParam(req: Request, key: string): string | undefined {
@@ -81,15 +81,15 @@ export function registerOAuthRoutes(app: Express) {
       });
 
       // Create session token (JWT)
-      const sessionToken = jwt.sign(
-        {
+      const secretKey = new TextEncoder().encode(ENV.jwtSecret);
+      const sessionToken = await new SignJWT({
           openId: `google_${userInfo.id}`,
+          appId: ENV.appId,
           name: userInfo.name || "",
-          email: userInfo.email || "",
-        },
-        ENV.jwtSecret,
-        { expiresIn: "365d" }
-      );
+        })
+        .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+        .setExpirationTime("365d")
+        .sign(secretKey);
 
       // Set session cookie
       const cookieOptions = getSessionCookieOptions(req);

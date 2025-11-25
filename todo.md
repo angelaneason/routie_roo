@@ -721,4 +721,6 @@
 - [x] Update frontend login flow to use Google OAuth directly
 - [x] Install googleapis and jsonwebtoken packages
 - [x] Update ENV configuration with Google OAuth credentials
+- [x] Fix JWT payload to include appId field (required by session validator)
+- [x] Replace jsonwebtoken with jose library (already installed)
 - [ ] Test authentication on Railway deployment
