@@ -11,19 +11,21 @@ function getQueryParam(req: Request, key: string): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-// Initialize Google OAuth2 client
-const oauth2Client = new google.auth.OAuth2(
-  ENV.googleClientId,
-  ENV.googleClientSecret,
-  // Callback URL will be set dynamically based on request origin
-);
+// Initialize Google OAuth2 client (redirect URI set dynamically per request)
+function getOAuth2Client(redirectUri: string) {
+  return new google.auth.OAuth2(
+    ENV.googleClientId,
+    ENV.googleClientSecret,
+    redirectUri
+  );
+}
 
 export function registerOAuthRoutes(app: Express) {
   // Initiate Google OAuth flow
   app.get("/api/oauth/google", async (req: Request, res: Response) => {
     try {
       const redirectUri = `${req.protocol}://${req.get("host")}/api/oauth/callback`;
-      oauth2Client.redirectUri = redirectUri;
+      const oauth2Client = getOAuth2Client(redirectUri);
 
       const authUrl = oauth2Client.generateAuthUrl({
         access_type: "offline",
@@ -54,7 +56,7 @@ export function registerOAuthRoutes(app: Express) {
 
     try {
       const redirectUri = `${req.protocol}://${req.get("host")}/api/oauth/callback`;
-      oauth2Client.redirectUri = redirectUri;
+      const oauth2Client = getOAuth2Client(redirectUri);
 
       // Exchange code for tokens
       const { tokens } = await oauth2Client.getToken(code);
