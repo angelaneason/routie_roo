@@ -15,6 +15,9 @@ export const users = mysqlTable("users", {
   defaultStartingPoint: text("defaultStartingPoint"), // User's default starting address for routes
   defaultStopDuration: int("defaultStopDuration").default(30), // Default stop duration in minutes (15, 30, 45, 60)
   eventDurationMode: mysqlEnum("eventDurationMode", ["stop_only", "include_drive"]).default("stop_only"), // Calendar event duration mode
+  googleCalendarAccessToken: text("googleCalendarAccessToken"), // Google Calendar OAuth access token
+  googleCalendarRefreshToken: text("googleCalendarRefreshToken"), // Google Calendar OAuth refresh token
+  googleCalendarTokenExpiry: timestamp("googleCalendarTokenExpiry"), // When the access token expires
   autoArchiveDays: int("autoArchiveDays"), // Days after completion to auto-archive (null = never)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

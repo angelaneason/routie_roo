@@ -57,6 +57,25 @@ export default function Settings() {
     }
   });
 
+  const connectCalendarMutation = trpc.settings.getCalendarConnectionUrl.useMutation({
+    onSuccess: (data) => {
+      window.location.href = data.url;
+    },
+    onError: () => {
+      toast.error("Failed to start calendar connection");
+    }
+  });
+
+  const disconnectCalendarMutation = trpc.settings.disconnectCalendar.useMutation({
+    onSuccess: () => {
+      toast.success("Calendar disconnected");
+      userQuery.refetch();
+    },
+    onError: () => {
+      toast.error("Failed to disconnect calendar");
+    }
+  });
+
   if (!isAuthenticated) {
     navigate("/");
     return null;
@@ -215,6 +234,44 @@ export default function Settings() {
                       This duration is added to drive time when creating calendar events, giving you realistic scheduling
                     </p>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Google Calendar Connection */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Google Calendar Integration</CardTitle>
+                  <CardDescription>Connect your Google Calendar to view all events in Routie Roo</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {currentUser?.googleCalendarAccessToken ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm text-green-600">
+                        <Check className="h-4 w-4" />
+                        <span>Google Calendar connected</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Your calendar events will appear alongside your scheduled routes in the Calendar view.
+                      </p>
+                      <Button
+                        variant="outline"
+                        onClick={() => disconnectCalendarMutation.mutate()}
+                      >
+                        Disconnect Calendar
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted-foreground">
+                        Connect your Google Calendar to see all your events (meetings, birthdays, appointments) alongside your Routie Roo routes in one unified calendar view.
+                      </p>
+                      <Button
+                        onClick={() => connectCalendarMutation.mutate()}
+                      >
+                        Connect Google Calendar
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

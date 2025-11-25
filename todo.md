@@ -826,3 +826,16 @@
 ## Calendar Page UI Updates
 
 - [x] Update calendar page heading to "Routie Roo Calendar - Let's hop to it!"
+
+
+## Full Google Calendar Integration
+
+- [x] Add function to fetch Google Calendar events for a date range
+- [x] Update calendar.getEvents backend procedure to merge routes + Google Calendar events
+- [x] Handle calendar OAuth token storage and refresh
+- [x] Add color coding: routes (blue), other events (gray)
+- [x] Display event details on calendar grid
+- [x] Add Connect/Disconnect Google Calendar in Settings
+- [ ] Add filter toggles to show/hide different event types
+- [ ] Handle events that span multiple days
+- [ ] Show event times on hover tooltip

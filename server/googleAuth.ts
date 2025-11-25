@@ -379,3 +379,96 @@ export async function createCalendarEvent(
     htmlLink: data.htmlLink,
   };
 }
+
+/**
+ * Fetch Google Calendar events for a specific date range
+ */
+export async function getCalendarEvents(
+  accessToken: string,
+  timeMin: string, // ISO 8601 datetime
+  timeMax: string, // ISO 8601 datetime
+  calendarId: string = 'primary'
+): Promise<Array<{
+  id: string;
+  summary: string;
+  description?: string;
+  start: string;
+  end: string;
+  location?: string;
+  htmlLink?: string;
+  colorId?: string;
+}>> {
+  const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`);
+  url.searchParams.append('timeMin', timeMin);
+  url.searchParams.append('timeMax', timeMax);
+  url.searchParams.append('singleEvents', 'true');
+  url.searchParams.append('orderBy', 'startTime');
+  url.searchParams.append('maxResults', '250');
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to fetch calendar events: ${error}`);
+  }
+
+  const data = await response.json();
+  
+  return (data.items || []).map((event: any) => ({
+    id: event.id,
+    summary: event.summary || '(No title)',
+    description: event.description,
+    start: event.start.dateTime || event.start.date,
+    end: event.end.dateTime || event.end.date,
+    location: event.location,
+    htmlLink: event.htmlLink,
+    colorId: event.colorId,
+  }));
+}
+
+/**
+ * Fetch events from all user's calendars for a date range
+ */
+export async function getAllCalendarEvents(
+  accessToken: string,
+  timeMin: string,
+  timeMax: string
+): Promise<Array<{
+  id: string;
+  summary: string;
+  description?: string;
+  start: string;
+  end: string;
+  location?: string;
+  htmlLink?: string;
+  colorId?: string;
+  calendarName?: string;
+}>> {
+  // First, get all calendars
+  const calendars = await getCalendarList(accessToken);
+  
+  // Fetch events from each calendar
+  const allEvents = await Promise.all(
+    calendars.map(async (calendar) => {
+      try {
+        const events = await getCalendarEvents(accessToken, timeMin, timeMax, calendar.id);
+        return events.map(event => ({
+          ...event,
+          calendarName: calendar.summary,
+        }));
+      } catch (error) {
+        console.error(`Failed to fetch events from calendar ${calendar.summary}:`, error);
+        return [];
+      }
+    })
+  );
+  
+  // Flatten and sort by start time
+  return allEvents
+    .flat()
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+}

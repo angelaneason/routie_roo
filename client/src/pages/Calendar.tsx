@@ -12,7 +12,10 @@ export default function Calendar() {
   const { user, loading: authLoading } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   
-  const routesQuery = trpc.routes.list.useQuery(undefined, {
+  const eventsQuery = trpc.calendar.getEvents.useQuery({
+    month: currentDate.getMonth() + 1,
+    year: currentDate.getFullYear(),
+  }, {
     enabled: !!user,
   });
 
@@ -24,10 +27,7 @@ export default function Calendar() {
     );
   }
 
-  const routes = routesQuery.data || [];
-  
-  // Filter routes with scheduled dates
-  const scheduledRoutes = routes.filter(r => r.scheduledDate);
+  const events = eventsQuery.data || [];
 
   // Get calendar data
   const year = currentDate.getFullYear();
@@ -50,15 +50,15 @@ export default function Calendar() {
     calendarDays.push(new Date(year, month, day));
   }
 
-  // Group routes by date
-  const routesByDate = new Map<string, typeof routes>();
-  scheduledRoutes.forEach(route => {
-    if (route.scheduledDate) {
-      const dateKey = new Date(route.scheduledDate).toDateString();
-      if (!routesByDate.has(dateKey)) {
-        routesByDate.set(dateKey, []);
+  // Group events by date
+  const eventsByDate = new Map<string, typeof events>();
+  events.forEach(event => {
+    if (event.start) {
+      const dateKey = new Date(event.start).toDateString();
+      if (!eventsByDate.has(dateKey)) {
+        eventsByDate.set(dateKey, []);
       }
-      routesByDate.get(dateKey)!.push(route);
+      eventsByDate.get(dateKey)!.push(event);
     }
   });
 
@@ -121,7 +121,7 @@ export default function Calendar() {
               }
 
               const dateKey = date.toDateString();
-              const dayRoutes = routesByDate.get(dateKey) || [];
+              const dayEvents = eventsByDate.get(dateKey) || [];
               const isToday = date.toDateString() === new Date().toDateString();
 
               return (
@@ -133,19 +133,37 @@ export default function Calendar() {
                 >
                   <div className="text-sm font-medium mb-1">{date.getDate()}</div>
                   <div className="space-y-1">
-                    {dayRoutes.slice(0, 3).map(route => (
-                      <Link key={route.id} href={`/route/${route.id}`}>
-                        <div className="text-xs p-1 bg-blue-100 hover:bg-blue-200 rounded cursor-pointer truncate">
-                          <div className="font-medium truncate">{route.name}</div>
-                          <div className="text-muted-foreground text-[10px]">
-                            {formatDistance(route.totalDistance! / 1000, user?.distanceUnit || "km")}
-                          </div>
+                    {dayEvents.slice(0, 3).map(event => {
+                      const bgColor = event.type === 'route' ? 'bg-blue-100 hover:bg-blue-200' : 'bg-gray-100 hover:bg-gray-200';
+                      const content = (
+                        <div className={`text-xs p-1 ${bgColor} rounded cursor-pointer truncate`}>
+                          <div className="font-medium truncate">{event.summary}</div>
+                          {event.type === 'route' && event.routeId && (
+                            <div className="text-muted-foreground text-[10px]">
+                              Route
+                            </div>
+                          )}
+                          {event.type === 'google' && (
+                            <div className="text-muted-foreground text-[10px]">
+                              {new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          )}
                         </div>
-                      </Link>
-                    ))}
-                    {dayRoutes.length > 3 && (
+                      );
+                      
+                      return event.type === 'route' && event.routeId ? (
+                        <Link key={event.id} href={`/route/${event.routeId}`}>
+                          {content}
+                        </Link>
+                      ) : (
+                        <div key={event.id}>
+                          {content}
+                        </div>
+                      );
+                    })}
+                    {dayEvents.length > 3 && (
                       <div className="text-xs text-muted-foreground">
-                        +{dayRoutes.length - 3} more
+                        +{dayEvents.length - 3} more
                       </div>
                     )}
                   </div>
@@ -163,38 +181,15 @@ export default function Calendar() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-blue-100 rounded" />
-                <span>Scheduled Route</span>
+                <span>Routie Roo Route</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-gray-100 rounded" />
+                <span>Google Calendar Event</span>
               </div>
             </div>
           </div>
         </Card>
-
-        {/* Unscheduled Routes */}
-        {routes.filter(r => !r.scheduledDate).length > 0 && (
-          <Card className="mt-6 p-6">
-            <h3 className="text-lg font-semibold mb-4">Unscheduled Routes</h3>
-            <div className="grid gap-3">
-              {routes.filter(r => !r.scheduledDate).map(route => (
-                <Link key={route.id} href={`/route/${route.id}`}>
-                  <div className="flex items-center justify-between p-3 bg-white hover:bg-gray-50 rounded-lg border cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <MapPin className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <div className="font-medium">{route.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {formatDistance(route.totalDistance! / 1000, user?.distanceUnit || "km")} · {Math.round(route.totalDuration! / 60)} min
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      Schedule
-                    </Button>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </Card>
-        )}
       </div>
     </div>
   );

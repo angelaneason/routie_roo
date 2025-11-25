@@ -1612,6 +1612,35 @@ export const appRouter = router({
         return { success: true };
       }),
     
+    // Get Google Calendar connection URL
+    getCalendarConnectionUrl: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const state = JSON.stringify({
+          userId: ctx.user.id,
+        });
+
+        const redirectUri = `${ENV.publicUrl}/api/oauth/google/calendar-connect`;
+        const { getGoogleAuthUrl } = await import('./googleAuth');
+        return { url: getGoogleAuthUrl(redirectUri, state) };
+      }),
+
+    // Disconnect Google Calendar
+    disconnectCalendar: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        await db.update(users)
+          .set({
+            googleCalendarAccessToken: null,
+            googleCalendarRefreshToken: null,
+            googleCalendarTokenExpiry: null,
+          })
+          .where(eq(users.id, ctx.user.id));
+
+        return { success: true };
+      }),
+
     updatePreferences: protectedProcedure
       .input(z.object({
         preferredCallingService: z.enum(["phone", "google-voice", "whatsapp", "skype", "facetime"]).optional(),
@@ -1734,14 +1763,14 @@ export const appRouter = router({
         year: z.number(),
       }))
       .query(async ({ ctx, input }) => {
-        // For now, return scheduled routes as calendar events
-        // In the future, this can fetch from Google Calendar API
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
         
         // Get first and last day of the month
         const firstDay = new Date(input.year, input.month - 1, 1);
         const lastDay = new Date(input.year, input.month, 0, 23, 59, 59);
+        
+        const allEvents: any[] = [];
         
         // Get all routes scheduled in this month
         const scheduledRoutes = await db
@@ -1756,14 +1785,53 @@ export const appRouter = router({
           );
         
         // Convert routes to calendar events
-        return scheduledRoutes.map(route => ({
-          id: route.id,
-          routeId: route.id,
-          summary: route.name,
-          start: route.scheduledDate?.toISOString() || '',
-          end: route.scheduledDate ? new Date(route.scheduledDate.getTime() + (route.totalDuration || 0) * 1000).toISOString() : '',
-          type: 'route',
-        }));
+        scheduledRoutes.forEach(route => {
+          allEvents.push({
+            id: `route-${route.id}`,
+            routeId: route.id,
+            summary: route.name,
+            start: route.scheduledDate?.toISOString() || '',
+            end: route.scheduledDate ? new Date(route.scheduledDate.getTime() + (route.totalDuration || 0) * 1000).toISOString() : '',
+            type: 'route',
+            color: '#3b82f6', // Blue for routes
+          });
+        });
+        
+        // Fetch Google Calendar events if user has connected their calendar
+        if (ctx.user.googleCalendarAccessToken) {
+          try {
+            const { getAllCalendarEvents } = await import('./googleAuth');
+            const googleEvents = await getAllCalendarEvents(
+              ctx.user.googleCalendarAccessToken,
+              firstDay.toISOString(),
+              lastDay.toISOString()
+            );
+            
+            // Add Google Calendar events
+            googleEvents.forEach(event => {
+              allEvents.push({
+                id: `google-${event.id}`,
+                summary: event.summary,
+                description: event.description,
+                start: event.start,
+                end: event.end,
+                location: event.location,
+                type: 'google',
+                color: '#6b7280', // Gray for other Google events
+                htmlLink: event.htmlLink,
+                calendarName: event.calendarName,
+              });
+            });
+          } catch (error) {
+            console.error('Failed to fetch Google Calendar events:', error);
+            // Continue without Google Calendar events
+          }
+        }
+        
+        // Sort by start time
+        return allEvents.sort((a, b) => 
+          new Date(a.start).getTime() - new Date(b.start).getTime()
+        );
       }),
   }),
 

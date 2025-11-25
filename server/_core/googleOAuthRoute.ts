@@ -46,6 +46,57 @@ googleOAuthRouter.get("/api/oauth/google/callback", async (req, res) => {
   }
 });
 
+// Calendar connection callback (for Settings page)
+googleOAuthRouter.get("/api/oauth/google/calendar-connect", async (req, res) => {
+  const { code, state } = req.query;
+
+  if (!code || typeof code !== "string") {
+    return res.status(400).send("Missing authorization code");
+  }
+
+  if (!state || typeof state !== "string") {
+    return res.status(400).send("Missing state parameter");
+  }
+
+  try {
+    const stateData = JSON.parse(state);
+    const { userId } = stateData;
+
+    // Use public URL from ENV to avoid internal Azure container address
+    const { ENV } = await import("./env");
+    const redirectUri = `${ENV.publicUrl}/api/oauth/google/calendar-connect`;
+
+    // Import necessary functions
+    const { exchangeCodeForToken } = await import("../googleAuth");
+    const { getDb } = await import("../db");
+    const { users } = await import("../../drizzle/schema");
+    const { eq } = await import("drizzle-orm");
+
+    // Exchange code for token
+    const tokenData = await exchangeCodeForToken(code, redirectUri);
+    
+    // Store tokens in database
+    const db = await getDb();
+    if (db) {
+      const expiryDate = new Date(Date.now() + tokenData.expires_in * 1000);
+      await db.update(users)
+        .set({
+          googleCalendarAccessToken: tokenData.access_token,
+          googleCalendarRefreshToken: tokenData.refresh_token || null,
+          googleCalendarTokenExpiry: expiryDate,
+        })
+        .where(eq(users.id, userId));
+    }
+
+    // Redirect back to settings with success message
+    res.redirect("/settings?calendar_connected=true");
+  } catch (error) {
+    console.error("[Calendar Connect] Callback error:", error);
+    res.redirect("/settings?calendar_connected=false");
+  }
+});
+
+// Calendar event creation callback (for scheduling routes)
 googleOAuthRouter.get("/api/oauth/google/calendar-callback", async (req, res) => {
   const { code, state } = req.query;
 
