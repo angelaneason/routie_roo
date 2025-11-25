@@ -131,9 +131,8 @@ export const appRouter = router({
   contacts: router({
     // Get Google OAuth URL
     getGoogleAuthUrl: protectedProcedure.query(({ ctx }) => {
-      const protocol = ctx.req.protocol || 'https';
-      const host = ctx.req.headers.host || '';
-      const redirectUri = `${protocol}://${host}/api/oauth/google/callback`;
+      // Use public URL from ENV to avoid internal Azure container address
+      const redirectUri = `${ENV.publicUrl}/api/oauth/google/callback`;
       const state = ctx.user.id.toString();
       return { url: getGoogleAuthUrl(redirectUri, state) };
     }),
@@ -198,9 +197,8 @@ export const appRouter = router({
     // Refresh contacts from Google
     refresh: protectedProcedure.mutation(async ({ ctx }) => {
       // This will trigger a new OAuth flow
-      const protocol = ctx.req.protocol || 'https';
-      const host = ctx.req.headers.host || '';
-      const redirectUri = `${protocol}://${host}/api/oauth/google/callback`;
+      // Use public URL from ENV to avoid internal Azure container address
+      const redirectUri = `${ENV.publicUrl}/api/oauth/google/callback`;
       const state = ctx.user.id.toString();
       return { url: getGoogleAuthUrl(redirectUri, state) };
     }),

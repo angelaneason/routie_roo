@@ -739,3 +739,9 @@
 - [x] Fix main OAuth login to use ENV.publicUrl instead of dynamic host
 - [x] Update oauth.ts or relevant OAuth route handler
 - [ ] Test login flow on Manus deployment
+
+## Google Contacts Sync OAuth Redirect URI Fix
+
+- [x] Find and fix contacts sync OAuth redirect URI
+- [x] Update to use ENV.publicUrl instead of dynamic host
+- [ ] Test contacts sync flow on Manus deployment

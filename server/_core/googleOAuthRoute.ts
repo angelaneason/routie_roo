@@ -20,9 +20,9 @@ googleOAuthRouter.get("/api/oauth/google/callback", async (req, res) => {
   }
 
   try {
-    const protocol = req.protocol || 'https';
-    const host = req.headers.host || '';
-    const redirectUri = `${protocol}://${host}/api/oauth/google/callback`;
+    // Use public URL from ENV to avoid internal Azure container address
+    const { ENV } = await import("./env");
+    const redirectUri = `${ENV.publicUrl}/api/oauth/google/callback`;
 
     // Create a tRPC caller
     const caller = appRouter.createCaller({
