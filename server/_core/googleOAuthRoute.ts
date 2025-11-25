@@ -57,9 +57,14 @@ googleOAuthRouter.get("/api/oauth/google/calendar-callback", async (req, res) =>
     return res.status(400).send("Missing state parameter");
   }
 
+  let routeId: number | undefined;
+  let startTime: string | undefined;
+
   try {
     const stateData = JSON.parse(state);
-    const { userId, routeId, startTime } = stateData;
+    const { userId } = stateData;
+    routeId = stateData.routeId;
+    startTime = stateData.startTime;
 
     // Use public URL from ENV to avoid internal Azure container address
     const { ENV } = await import("./env");
@@ -73,7 +78,7 @@ googleOAuthRouter.get("/api/oauth/google/calendar-callback", async (req, res) =>
     const tokenData = await exchangeCodeForToken(code, redirectUri);
     
     // Get route details
-    const route = await getRouteById(routeId);
+    const route = await getRouteById(routeId!);
     if (!route || route.userId !== userId) {
       return res.status(404).send("Route not found");
     }
@@ -94,7 +99,13 @@ googleOAuthRouter.get("/api/oauth/google/calendar-callback", async (req, res) =>
     // Redirect back to Routie Roo with calendar selection dialog
     res.redirect(`/?calendar_auth=success&data=${calendarData}`);
   } catch (error) {
-    console.error("Calendar OAuth callback error:", error);
-    res.status(500).send("Failed to create calendar event");
+    console.error("[Calendar OAuth] Callback error:", error);
+    console.error("[Calendar OAuth] Error details:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      routeId,
+      startTime,
+    });
+    res.status(500).send(`Failed to create calendar event: ${error instanceof Error ? error.message : String(error)}`);
   }
 });

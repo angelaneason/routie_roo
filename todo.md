@@ -768,3 +768,13 @@
 - [ ] Display routes on the calendar
 - [ ] Support different views (month/week/day)
 - [ ] Sync with multiple Google calendars
+
+
+## Calendar Event Creation Bug
+
+- [x] Investigate "Failed to create calendar event" error
+- [x] Add calendar.readonly OAuth scope
+- [x] Add detailed error logging to calendar OAuth callback
+- [x] Add error logging to getCalendarList function
+- [ ] Test on published site to see actual error logs
+- [ ] Fix the underlying calendar API issue

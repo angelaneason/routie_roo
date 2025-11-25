@@ -52,7 +52,7 @@ export function getGoogleAuthUrl(redirectUri: string, state?: string): string {
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: redirectUri,
     response_type: "code",
-    scope: "https://www.googleapis.com/auth/contacts https://www.googleapis.com/auth/calendar.events",
+    scope: "https://www.googleapis.com/auth/contacts https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
     access_type: "offline",
     prompt: "consent",
   });
@@ -300,6 +300,8 @@ export async function updateGoogleContact(
 export async function getCalendarList(
   accessToken: string
 ): Promise<Array<{ id: string; summary: string; primary?: boolean; backgroundColor?: string }>> {
+  console.log('[Calendar] Fetching calendar list...');
+  
   const response = await fetch(
     "https://www.googleapis.com/calendar/v3/users/me/calendarList",
     {
@@ -309,12 +311,17 @@ export async function getCalendarList(
     }
   );
 
+  console.log('[Calendar] Calendar list response status:', response.status);
+
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Failed to fetch calendar list: ${error}`);
+    console.error('[Calendar] Failed to fetch calendar list:', error);
+    throw new Error(`Failed to fetch calendar list (${response.status}): ${error}`);
   }
 
   const data = await response.json();
+  console.log('[Calendar] Successfully fetched', data.items?.length || 0, 'calendars');
+  
   return data.items.map((cal: any) => ({
     id: cal.id,
     summary: cal.summary,

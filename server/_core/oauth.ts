@@ -35,6 +35,7 @@ export function registerOAuthRoutes(app: Express) {
           "https://www.googleapis.com/auth/userinfo.email",
           "https://www.googleapis.com/auth/contacts.readonly",
           "https://www.googleapis.com/auth/calendar.events",
+          "https://www.googleapis.com/auth/calendar.readonly",
         ],
         prompt: "consent",
       });
