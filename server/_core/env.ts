@@ -11,4 +11,5 @@ export const ENV = {
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
   googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY ?? "",
+  publicUrl: process.env.PUBLIC_URL ?? "https://routieroo.manus.space",
 };

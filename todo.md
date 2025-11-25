@@ -724,3 +724,12 @@
 - [x] Fix JWT payload to include appId field (required by session validator)
 - [x] Replace jsonwebtoken with jose library (already installed)
 - [ ] Test authentication on Railway deployment
+
+
+## Calendar OAuth Redirect URI Fix
+
+- [x] Add publicUrl to ENV configuration
+- [x] Update googleOAuthRoute.ts to use ENV.publicUrl instead of req.headers.host
+- [x] Update routers.ts calendar OAuth URL generation to use ENV.publicUrl
+- [x] Add ENV import to routers.ts
+- [ ] Test calendar OAuth flow on Manus deployment

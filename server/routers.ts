@@ -1,5 +1,6 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { ENV } from "./_core/env";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
@@ -636,7 +637,8 @@ export const appRouter = router({
           startTime: input.startTime,
         });
 
-        const redirectUri = `${ctx.req.protocol}://${ctx.req.get('host')}/api/oauth/google/calendar-callback`;
+        // Use public URL from ENV to avoid internal Azure container address
+        const redirectUri = `${ENV.publicUrl}/api/oauth/google/calendar-callback`;
         return { url: getGoogleAuthUrl(redirectUri, state) };
       }),
 

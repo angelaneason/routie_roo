@@ -61,9 +61,9 @@ googleOAuthRouter.get("/api/oauth/google/calendar-callback", async (req, res) =>
     const stateData = JSON.parse(state);
     const { userId, routeId, startTime } = stateData;
 
-    const protocol = req.protocol || 'https';
-    const host = req.headers.host || '';
-    const redirectUri = `${protocol}://${host}/api/oauth/google/calendar-callback`;
+    // Use public URL from ENV to avoid internal Azure container address
+    const { ENV } = await import("./env");
+    const redirectUri = `${ENV.publicUrl}/api/oauth/google/calendar-callback`;
 
     // Import necessary functions
     const { exchangeCodeForToken, createCalendarEvent } = await import("../googleAuth");
