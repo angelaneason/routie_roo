@@ -745,3 +745,26 @@
 - [x] Find and fix contacts sync OAuth redirect URI
 - [x] Update to use ENV.publicUrl instead of dynamic host
 - [ ] Test contacts sync flow on Manus deployment
+
+## Calendar Integration Improvements
+
+### Phase 1 - Calendar Scheduling (In Progress)
+- [x] Add calendar selection UI (let user choose which calendar)
+- [x] Fetch user's calendar list from Google Calendar API
+- [x] Update backend to create separate events for each waypoint
+- [x] Calculate individual time slots for each stop based on route timing
+- [x] Keep user in Routie Roo instead of redirecting to Google Calendar
+- [x] Update route status to "scheduled" after adding to calendar
+- [x] Store scheduled date/time in route database
+- [x] Add googleCalendarId field to routes table
+- [x] Remove "contactGroups/myContacts" from label display
+- [ ] Show scheduled date/time in route cards
+- [ ] Test calendar integration with multiple events
+
+### Phase 2 - Calendar View Component (Future)
+- [ ] Build calendar view component in Routie Roo
+- [ ] Fetch and display Google Calendar events
+- [ ] Show birthday calendar from Google Contacts
+- [ ] Display routes on the calendar
+- [ ] Support different views (month/week/day)
+- [ ] Sync with multiple Google calendars

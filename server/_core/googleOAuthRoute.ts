@@ -78,37 +78,21 @@ googleOAuthRouter.get("/api/oauth/google/calendar-callback", async (req, res) =>
       return res.status(404).send("Route not found");
     }
 
-    const waypoints = await getRouteWaypoints(routeId);
-    const waypointsList = waypoints.map((wp, i) => `${i + 1}. ${wp.contactName || wp.address}`).join('\n');
-    
-    // Calculate end time based on route duration
-    const startDate = new Date(startTime);
-    const endDate = new Date(startDate.getTime() + (route.totalDuration! * 1000));
+    // Fetch user's calendar list
+    const { getCalendarList } = await import("../googleAuth");
+    const calendars = await getCalendarList(tokenData.access_token);
 
-    const description = [
-      route.notes || '',
-      '',
-      'Waypoints:',
-      waypointsList,
-      '',
-      `Total Distance: ${(route.totalDistance! / 1000).toFixed(1)} km`,
-      `Estimated Duration: ${Math.round(route.totalDuration! / 60)} minutes`,
-    ].filter(Boolean).join('\n');
+    // Store token and calendar data temporarily (in a real app, use session or database)
+    // For now, redirect back to app with calendar data in URL params
+    const calendarData = encodeURIComponent(JSON.stringify({
+      calendars,
+      routeId,
+      startTime,
+      accessToken: tokenData.access_token, // WARNING: This is not secure for production
+    }));
 
-    // Create calendar event
-    const { htmlLink } = await createCalendarEvent(
-      tokenData.access_token,
-      {
-        summary: route.name,
-        description,
-        start: startDate.toISOString(),
-        end: endDate.toISOString(),
-        location: waypoints[0]?.address,
-      }
-    );
-
-    // Redirect to the calendar event
-    res.redirect(htmlLink);
+    // Redirect back to Routie Roo with calendar selection dialog
+    res.redirect(`/?calendar_auth=success&data=${calendarData}`);
   } catch (error) {
     console.error("Calendar OAuth callback error:", error);
     res.status(500).send("Failed to create calendar event");

@@ -294,6 +294,38 @@ export async function updateGoogleContact(
 /**
  * Create a Google Calendar event for a route
  */
+/**
+ * Fetch user's calendar list from Google Calendar API
+ */
+export async function getCalendarList(
+  accessToken: string
+): Promise<Array<{ id: string; summary: string; primary?: boolean; backgroundColor?: string }>> {
+  const response = await fetch(
+    "https://www.googleapis.com/calendar/v3/users/me/calendarList",
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to fetch calendar list: ${error}`);
+  }
+
+  const data = await response.json();
+  return data.items.map((cal: any) => ({
+    id: cal.id,
+    summary: cal.summary,
+    primary: cal.primary,
+    backgroundColor: cal.backgroundColor,
+  }));
+}
+
+/**
+ * Create a calendar event in the specified calendar
+ */
 export async function createCalendarEvent(
   accessToken: string,
   event: {
@@ -302,10 +334,11 @@ export async function createCalendarEvent(
     start: string; // ISO 8601 datetime
     end: string; // ISO 8601 datetime
     location?: string;
-  }
+  },
+  calendarId: string = 'primary'
 ): Promise<{ eventId: string; htmlLink: string }> {
   const response = await fetch(
-    "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`,
     {
       method: "POST",
       headers: {

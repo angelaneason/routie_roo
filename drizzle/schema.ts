@@ -36,6 +36,7 @@ export const routes = mysqlTable("routes", {
   optimized: boolean("optimized").default(true).notNull(), // Whether waypoints were optimized
   folderId: int("folderId"), // Optional folder/category ID
   calendarId: int("calendarId"), // Optional calendar ID for scheduling
+  googleCalendarId: varchar("googleCalendarId", { length: 255 }), // Google Calendar ID (e.g., 'primary' or calendar email)
   notes: text("notes"), // Optional notes/description for the route
   startingPointAddress: text("startingPointAddress"), // Starting point address for this route
   distanceUnit: mysqlEnum("distanceUnit", ["km", "miles"]).default("km"), // Owner's preferred distance unit

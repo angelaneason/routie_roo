@@ -28,7 +28,8 @@ import {
   fetchGoogleContacts, 
   fetchContactGroupNames,
   parseGoogleContacts,
-  createCalendarEvent
+  createCalendarEvent,
+  getCalendarList
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
 import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes } from "../drizzle/schema";
@@ -610,6 +611,85 @@ export const appRouter = router({
 
         await updateRoute(input.routeId, { folderId: input.folderId });
         return { success: true };
+      }),
+
+    // Create individual calendar events for each waypoint
+    createWaypointEvents: protectedProcedure
+      .input(z.object({
+        routeId: z.number(),
+        calendarId: z.string(),
+        startTime: z.string(),
+        accessToken: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const route = await getRouteById(input.routeId);
+        
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Route not found",
+          });
+        }
+
+        const waypoints = await getRouteWaypoints(input.routeId);
+        const startDate = new Date(input.startTime);
+        let currentTime = startDate.getTime();
+        
+        const createdEvents = [];
+
+        // Create individual event for each waypoint
+        for (let i = 0; i < waypoints.length; i++) {
+          const wp = waypoints[i];
+          const isLast = i === waypoints.length - 1;
+          
+          // Estimate 15 minutes per stop (can be customized later)
+          const stopDuration = 15 * 60 * 1000; // 15 minutes in milliseconds
+          
+          const eventStart = new Date(currentTime);
+          const eventEnd = new Date(currentTime + stopDuration);
+          
+          try {
+            const { eventId, htmlLink } = await createCalendarEvent(
+              input.accessToken,
+              {
+                summary: `${route.name} - Stop ${i + 1}: ${wp.contactName || 'Waypoint'}`,
+                description: `Address: ${wp.address}${wp.phoneNumbers ? `\nPhone: ${wp.phoneNumbers}` : ''}${wp.executionNotes ? `\nNotes: ${wp.executionNotes}` : ''}`,
+                start: eventStart.toISOString(),
+                end: eventEnd.toISOString(),
+                location: wp.address,
+              },
+              input.calendarId
+            );
+            
+            createdEvents.push({ waypointId: wp.id, eventId, htmlLink });
+          } catch (error) {
+            console.error(`Failed to create event for waypoint ${wp.id}:`, error);
+          }
+          
+          // Add travel time to next stop (if not last waypoint)
+          if (!isLast) {
+            // Rough estimate: total duration / number of segments
+            const travelTime = (route.totalDuration! * 1000) / waypoints.length;
+            currentTime = eventEnd.getTime() + travelTime;
+          }
+        }
+
+        // Update route with scheduled info
+        const db = await getDb();
+        if (db) {
+          await db.update(routes)
+            .set({
+              scheduledDate: startDate,
+              googleCalendarId: input.calendarId,
+            })
+            .where(eq(routes.id, input.routeId));
+        }
+
+        return {
+          success: true,
+          eventsCreated: createdEvents.length,
+          events: createdEvents,
+        };
       }),
 
     // Get calendar authorization URL

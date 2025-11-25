@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { APP_TITLE, APP_LOGO, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon, Archive } from "lucide-react";
@@ -56,11 +57,16 @@ export default function Home() {
   const [showMissingAddresses, setShowMissingAddresses] = useState(false);
   const [selectedLabelFilter, setSelectedLabelFilter] = useState<string>("all");
   const [scheduledDate, setScheduledDate] = useState<string>("");
+  const [showCalendarSelectionDialog, setShowCalendarSelectionDialog] = useState(false);
+  const [calendarData, setCalendarData] = useState<any>(null);
+  const [selectedCalendar, setSelectedCalendar] = useState<string>("");
 
   // Check for OAuth callback status
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const syncStatus = params.get("sync");
+    const calendarAuth = params.get("calendar_auth");
+    const data = params.get("data");
     
     if (syncStatus === "success") {
       toast.success("Contacts synced! Routie's ready to help 🦘");
@@ -69,6 +75,16 @@ export default function Home() {
     } else if (syncStatus === "error") {
       toast.error("Oops! Couldn't sync contacts. Let's try again");
       window.history.replaceState({}, "", "/");
+    } else if (calendarAuth === "success" && data) {
+      try {
+        const parsedData = JSON.parse(decodeURIComponent(data));
+        setCalendarData(parsedData);
+        setShowCalendarSelectionDialog(true);
+        window.history.replaceState({}, "", "/");
+      } catch (error) {
+        toast.error("Failed to process calendar data");
+        window.history.replaceState({}, "", "/");
+      }
     }
   }, []);
 
@@ -164,6 +180,20 @@ export default function Home() {
   const toggleContactActiveMutation = trpc.contacts.toggleActive.useMutation({
     onSuccess: () => {
       contactsQuery.refetch();
+    },
+  });
+
+  // Create waypoint events mutation
+  const createWaypointEventsMutation = trpc.routes.createWaypointEvents.useMutation({
+    onSuccess: (data) => {
+      toast.success(`${data.eventsCreated} calendar events created!`);
+      setShowCalendarSelectionDialog(false);
+      setCalendarData(null);
+      setSelectedCalendar("");
+      routesQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create calendar events");
     },
   });
 
@@ -381,8 +411,10 @@ export default function Home() {
         return labels
           .filter((label: string) => {
             const lower = label.toLowerCase();
-            // Exclude myContacts and starred (custom labels are now resolved names, not hex IDs)
-            return lower !== 'mycontacts' && lower !== 'starred';
+            // Exclude myContacts, starred, and contactGroups/myContacts
+            return lower !== 'mycontacts' && 
+                   lower !== 'starred' && 
+                   label !== 'contactGroups/myContacts';
           });
       } catch {
         return [];
@@ -674,11 +706,13 @@ export default function Home() {
                           {contact.labels && (() => {
                             try {
                               const labels = JSON.parse(contact.labels);
-                              // Filter out myContacts and starred (labels are now resolved names)
-                              const userFriendlyLabels = labels.filter((label: string) => {
-                                const lower = label.toLowerCase();
-                                return lower !== 'mycontacts' && lower !== 'starred';
-                              });
+              // Filter out myContacts, starred, and contactGroups/myContacts
+              const userFriendlyLabels = labels.filter((label: string) => {
+                const lower = label.toLowerCase();
+                return lower !== 'mycontacts' && 
+                       lower !== 'starred' && 
+                       label !== 'contactGroups/myContacts';
+              });
                               if (userFriendlyLabels.length > 0) {
                                 return (
                                   <div className="flex flex-wrap gap-1 mt-1">
@@ -1113,6 +1147,63 @@ export default function Home() {
           }}
         />
       )}
+
+      {/* Calendar Selection Dialog */}
+      <Dialog open={showCalendarSelectionDialog} onOpenChange={setShowCalendarSelectionDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Calendar</DialogTitle>
+            <DialogDescription>
+              Choose which calendar to add your route stops to.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="calendar-select">Calendar</Label>
+              <Select value={selectedCalendar} onValueChange={setSelectedCalendar}>
+                <SelectTrigger id="calendar-select">
+                  <SelectValue placeholder="Select a calendar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {calendarData?.calendars?.map((cal: any) => (
+                    <SelectItem key={cal.id} value={cal.id}>
+                      {cal.summary} {cal.primary && "(Primary)"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {calendarData && (
+              <div className="text-sm text-muted-foreground">
+                <p>This will create separate calendar events for each stop in your route.</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCalendarSelectionDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (!selectedCalendar || !calendarData) return;
+                createWaypointEventsMutation.mutate({
+                  routeId: calendarData.routeId,
+                  calendarId: selectedCalendar,
+                  startTime: calendarData.startTime,
+                  accessToken: calendarData.accessToken,
+                });
+              }} 
+              disabled={!selectedCalendar || createWaypointEventsMutation.isPending}
+            >
+              {createWaypointEventsMutation.isPending ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...</>
+              ) : (
+                "Create Events"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
     </>
   );
