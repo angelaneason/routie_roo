@@ -947,3 +947,16 @@
 - [x] Add navigation for previous/next day or week
 - [x] Events displayed inline (no overlap handling needed for now)
 - [x] Add current time indicator line (red line) for today
+
+
+## Calendar Management Features
+
+- [ ] Add backend procedure to fetch user's calendar list from Google Calendar API
+- [ ] Store calendar preferences (visible/hidden) in user settings
+- [ ] Add calendar sidebar to Calendar page with list of all calendars
+- [ ] Add checkboxes to show/hide individual calendars
+- [ ] Color-code events by their source calendar (not just route vs other)
+- [ ] Add calendar selector dropdown when scheduling routes
+- [ ] Save selected calendar as user's default for route scheduling
+- [ ] Filter events based on calendar visibility preferences
+- [ ] Show calendar name on event hover/click

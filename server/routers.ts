@@ -1809,6 +1809,40 @@ export const appRouter = router({
   }),
 
   calendar: router({
+    // Get user's calendar list
+    getCalendarList: protectedProcedure.query(async ({ ctx }) => {
+      if (!ctx.user.googleCalendarAccessToken) {
+        return [];
+      }
+      
+      try {
+        const { getCalendarList } = await import('./googleAuth');
+        const calendars = await getCalendarList(ctx.user.googleCalendarAccessToken);
+        return calendars;
+      } catch (error) {
+        console.error('[Calendar] Failed to fetch calendar list:', error);
+        return [];
+      }
+    }),
+    
+    // Update calendar visibility preferences
+    updateCalendarPreferences: protectedProcedure
+      .input(z.object({
+        visibleCalendars: z.array(z.string()),
+        defaultCalendar: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        
+        await db.update(users)
+          .set({
+            calendarPreferences: JSON.stringify(input),
+          })
+          .where(eq(users.id, ctx.user.id));
+        
+        return { success: true };
+      }),
     // Get calendar events for a specific month
     getEvents: protectedProcedure
       .input(z.object({
