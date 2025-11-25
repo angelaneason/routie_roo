@@ -821,3 +821,8 @@
   - "stop_only": Event duration = stop duration, drive time added between events
   - "include_drive": Event duration = stop duration + drive time to this location
 - [x] Add tooltip explaining the difference between modes
+
+
+## Calendar Page UI Updates
+
+- [x] Update calendar page heading to "Routie Roo Calendar - Let's hop to it!"

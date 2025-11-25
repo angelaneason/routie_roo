@@ -82,7 +82,7 @@ export default function Calendar() {
       <div className="container max-w-7xl">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Route Calendar</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Routie Roo Calendar - Let's hop to it!</h1>
             <p className="text-muted-foreground">View and manage your scheduled routes</p>
           </div>
           <Link href="/">
