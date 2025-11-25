@@ -642,6 +642,29 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Clear calendar event tracking from route
+    clearCalendarEvents: protectedProcedure
+      .input(z.object({
+        routeId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const route = await getRouteById(input.routeId);
+        
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Access denied",
+          });
+        }
+
+        // Clear the calendar tracking fields
+        await updateRoute(input.routeId, {
+          googleCalendarId: null,
+        });
+        
+        return { success: true };
+      }),
+
     // Create individual calendar events for each waypoint
     createWaypointEvents: protectedProcedure
       .input(z.object({

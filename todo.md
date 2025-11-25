@@ -881,3 +881,20 @@
 - [x] Create route edit dialog UI with all fields
 - [x] Wire up edit dialog to backend procedures
 - [x] Test all editing operations (4/4 tests passing)
+
+
+## Route Editing UX Improvements
+
+- [x] Move Edit Route button from top actions to Waypoints & Execution section header
+- [x] Add visible "Add Contact" button in Waypoints section
+- [x] Remove contact (trash icon) already visible on each waypoint
+- [ ] Test that all buttons are easily discoverable
+
+
+## Calendar Event Management on Route Edit
+
+- [x] Show warning in edit dialog when route has googleCalendarId
+- [x] Add "Delete Calendar Events" button in edit dialog
+- [x] Add backend procedure to clear googleCalendarId from route
+- [x] Display info message: "Calendar events won't update automatically"
+- [x] Allow user to delete old events and recreate with updated route

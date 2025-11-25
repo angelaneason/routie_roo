@@ -174,12 +174,22 @@ export default function RouteDetail() {
 
   const updateRouteMutation = trpc.routes.update.useMutation({
     onSuccess: () => {
-      toast.success("Route updated");
+      toast.success("Route updated successfully");
       setShowEditDialog(false);
       routeQuery.refetch();
     },
     onError: (error) => {
       toast.error(`Failed to update route: ${error.message}`);
+    },
+  });
+
+  const clearCalendarEventsMutation = trpc.routes.clearCalendarEvents.useMutation({
+    onSuccess: () => {
+      toast.success("Calendar events cleared");
+      routeQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Failed to clear calendar events: ${error.message}`);
     },
   });
 
@@ -592,18 +602,7 @@ export default function RouteDetail() {
                   </Button>
                 </>
               ) : (
-                <>
-                  {/* Primary Actions */}
-                  <Button variant="outline" size="sm" onClick={() => {
-                    setEditRouteName(route?.name || "");
-                    setEditRouteNotes(route?.notes || "");
-                    setEditFolderId(route?.folderId || null);
-                    setEditStartingPoint(route?.startingPointAddress || "");
-                    setShowEditDialog(true);
-                  }}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Route
-                  </Button>
+                 <>                  {/* Primary Actions */}
                   <Button variant="outline" size="sm" onClick={handleReoptimizeRoute} disabled={reoptimizeRouteMutation.isPending}>
                     {reoptimizeRouteMutation.isPending ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -712,24 +711,34 @@ export default function RouteDetail() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Waypoints & Execution</span>
-                  <span className="text-sm font-normal text-muted-foreground">
-                    {waypoints.filter((w: any) => w.status === "complete").length} of {waypoints.length} complete
-                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditRouteName(route?.name || "");
+                        setEditRouteNotes(route?.notes || "");
+                        setEditFolderId(route?.folderId || null);
+                        setEditStartingPoint(route?.startingPointAddress || "");
+                        setShowEditDialog(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Route
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowAddContactDialog(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Contact
+                    </Button>
+                  </div>
                 </CardTitle>
                 <CardDescription>
-                  {isEditMode ? "Add or remove waypoints" : "Track your route progress"}
+                  Track your route progress and manage waypoints
                 </CardDescription>
-                {isEditMode && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="mt-3 w-full"
-                    onClick={() => setShowAddContactDialog(true)}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Contact to Route
-                  </Button>
-                )}
                 {!isEditMode && waypoints.length > 0 && (
                   <>
                     <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
@@ -1039,6 +1048,25 @@ export default function RouteDetail() {
               Update route name, notes, folder, or starting point
             </DialogDescription>
           </DialogHeader>
+          {route?.googleCalendarId && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 space-y-2">
+              <p className="text-sm text-yellow-800">
+                ⚠️ This route has calendar events. Changes won't update automatically in Google Calendar.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (confirm("Clear calendar event tracking for this route? You can recreate events after editing.")) {
+                    clearCalendarEventsMutation.mutate({ routeId: parseInt(routeId!) });
+                  }
+                }}
+                disabled={clearCalendarEventsMutation.isPending}
+              >
+                {clearCalendarEventsMutation.isPending ? "Clearing..." : "Delete Calendar Events"}
+              </Button>
+            </div>
+          )}
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="edit-route-name">Route Name</Label>
