@@ -933,3 +933,17 @@
 - [ ] Color code events by calendar
 - [ ] Handle overlapping events
 - [ ] Add current time indicator
+
+
+## Calendar Agenda View Redesign
+
+- [x] Create day view with hourly time slots (6am-10pm)
+- [x] Create week view with 7 columns and hourly rows
+- [x] Display events as colored blocks positioned by time
+- [x] Show full event titles and times on blocks
+- [x] Add view switcher buttons (Day/Week/Month)
+- [x] Keep existing monthly grid as Month view option
+- [x] Make Day view the default
+- [x] Add navigation for previous/next day or week
+- [x] Events displayed inline (no overlap handling needed for now)
+- [x] Add current time indicator line (red line) for today
