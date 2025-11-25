@@ -54,6 +54,11 @@ export default function RouteDetail() {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editRouteName, setEditRouteName] = useState("");
+  const [editRouteNotes, setEditRouteNotes] = useState("");
+  const [editFolderId, setEditFolderId] = useState<number | null>(null);
+  const [editStartingPoint, setEditStartingPoint] = useState("");
   const [showAddContactDialog, setShowAddContactDialog] = useState(false);
   const [editingWaypointId, setEditingWaypointId] = useState<number | null>(null);
   const [editingAddress, setEditingAddress] = useState("");
@@ -165,6 +170,21 @@ export default function RouteDetail() {
     onError: (error) => {
       toast.error(`Failed to update address: ${error.message}`);
     },
+  });
+
+  const updateRouteMutation = trpc.routes.update.useMutation({
+    onSuccess: () => {
+      toast.success("Route updated");
+      setShowEditDialog(false);
+      routeQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Failed to update route: ${error.message}`);
+    },
+  });
+
+  const foldersQuery = trpc.folders.list.useQuery(undefined, {
+    enabled: isAuthenticated,
   });
 
   const closeDialog = () => {
@@ -574,7 +594,13 @@ export default function RouteDetail() {
               ) : (
                 <>
                   {/* Primary Actions */}
-                  <Button variant="outline" size="sm" onClick={() => setIsEditMode(true)}>
+                  <Button variant="outline" size="sm" onClick={() => {
+                    setEditRouteName(route?.name || "");
+                    setEditRouteNotes(route?.notes || "");
+                    setEditFolderId(route?.folderId || null);
+                    setEditStartingPoint(route?.startingPointAddress || "");
+                    setShowEditDialog(true);
+                  }}>
                     <Edit className="h-4 w-4 mr-2" />
                     Edit Route
                   </Button>
@@ -1000,6 +1026,86 @@ export default function RouteDetail() {
                 {generateShareTokenMutation.isPending ? "Generating..." : "Generate Link"}
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Route Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Route</DialogTitle>
+            <DialogDescription>
+              Update route name, notes, folder, or starting point
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-route-name">Route Name</Label>
+              <Input
+                id="edit-route-name"
+                value={editRouteName}
+                onChange={(e) => setEditRouteName(e.target.value)}
+                placeholder="Enter route name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-route-notes">Notes (Optional)</Label>
+              <Input
+                id="edit-route-notes"
+                value={editRouteNotes}
+                onChange={(e) => setEditRouteNotes(e.target.value)}
+                placeholder="Add any notes or details about this route"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-folder">Folder (Optional)</Label>
+              <select
+                id="edit-folder"
+                value={editFolderId || ""}
+                onChange={(e) => setEditFolderId(e.target.value ? parseInt(e.target.value) : null)}
+                className="w-full px-3 py-2 border border-input rounded-md bg-background"
+              >
+                <option value="">No folder</option>
+                {foldersQuery.data?.map((folder) => (
+                  <option key={folder.id} value={folder.id}>
+                    {folder.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-starting-point">Starting Point (Optional)</Label>
+              <Input
+                id="edit-starting-point"
+                value={editStartingPoint}
+                onChange={(e) => setEditStartingPoint(e.target.value)}
+                placeholder="Enter starting address"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!editRouteName.trim()) {
+                  toast.error("Route name cannot be empty");
+                  return;
+                }
+                updateRouteMutation.mutate({
+                  routeId: parseInt(routeId!),
+                  name: editRouteName,
+                  notes: editRouteNotes || undefined,
+                  folderId: editFolderId,
+                  startingPointAddress: editStartingPoint || undefined,
+                });
+              }}
+              disabled={updateRouteMutation.isPending}
+            >
+              {updateRouteMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

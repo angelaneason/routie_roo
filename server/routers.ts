@@ -32,7 +32,7 @@ import {
   getCalendarList
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
-import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes } from "../drizzle/schema";
+import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes, InsertRoute } from "../drizzle/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -610,6 +610,35 @@ export const appRouter = router({
         }
 
         await updateRoute(input.routeId, { folderId: input.folderId });
+        return { success: true };
+      }),
+
+    // Update route properties
+    update: protectedProcedure
+      .input(z.object({
+        routeId: z.number(),
+        name: z.string().min(1).optional(),
+        notes: z.string().optional(),
+        folderId: z.number().nullable().optional(),
+        startingPointAddress: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const route = await getRouteById(input.routeId);
+        
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Access denied",
+          });
+        }
+
+        const updates: Partial<InsertRoute> = {};
+        if (input.name !== undefined) updates.name = input.name;
+        if (input.notes !== undefined) updates.notes = input.notes;
+        if (input.folderId !== undefined) updates.folderId = input.folderId;
+        if (input.startingPointAddress !== undefined) updates.startingPointAddress = input.startingPointAddress;
+
+        await updateRoute(input.routeId, updates);
         return { success: true };
       }),
 

@@ -868,3 +868,16 @@
 - [ ] Color code events by calendar source
 - [ ] Show event details on hover
 - [ ] Make events clickable to view/edit
+
+
+## Route Editing Functionality
+
+- [x] Add backend procedure to update route name
+- [x] Add backend procedure to update route notes
+- [x] Add backend procedure to change starting point
+- [x] Add backend procedure to move route to different folder
+- [x] Add backend procedure to add waypoints to existing route (already existed)
+- [x] Add backend procedure to remove waypoints from route (already existed)
+- [x] Create route edit dialog UI with all fields
+- [x] Wire up edit dialog to backend procedures
+- [x] Test all editing operations (4/4 tests passing)
