@@ -14,35 +14,73 @@ googleOAuthRouter.get("/api/oauth/google/callback", async (req, res) => {
     return res.status(400).send("Missing state parameter");
   }
 
-  const userId = parseInt(state, 10);
-  if (isNaN(userId)) {
-    return res.status(400).send("Invalid state parameter");
-  }
-
   try {
+    const stateData = JSON.parse(state);
+    const userId = stateData.userId;
+    const action = stateData.action || 'contacts'; // 'contacts' or 'calendar'
+
     // Use public URL from ENV to avoid internal Azure container address
     const { ENV } = await import("./env");
     const redirectUri = `${ENV.publicUrl}/api/oauth/google/callback`;
 
-    // Create a tRPC caller
-    const caller = appRouter.createCaller({
-      req,
-      res,
-      user: null, // Public procedure
-    });
+    if (action === 'calendar') {
+      // Calendar connection flow
+      const { exchangeCodeForToken } = await import("../googleAuth");
+      const { getDb } = await import("../db");
+      const { users } = await import("../../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
 
-    // Handle the callback
-    await caller.contacts.handleGoogleCallback({
-      code,
-      userId,
-      redirectUri,
-    });
+      // Exchange code for token
+      const tokenData = await exchangeCodeForToken(code, redirectUri);
+      
+      // Store tokens in database
+      const db = await getDb();
+      if (db) {
+        const expiryDate = new Date(Date.now() + tokenData.expires_in * 1000);
+        await db.update(users)
+          .set({
+            googleCalendarAccessToken: tokenData.access_token,
+            googleCalendarRefreshToken: tokenData.refresh_token || null,
+            googleCalendarTokenExpiry: expiryDate,
+          })
+          .where(eq(users.id, userId));
+      }
 
-    // Redirect back to the app with success message
-    res.redirect("/?sync=success");
+      // Redirect back to settings with success message
+      res.redirect("/settings?calendar_connected=true");
+    } else {
+      // Contacts sync flow (original behavior)
+      // Create a tRPC caller
+      const caller = appRouter.createCaller({
+        req,
+        res,
+        user: null, // Public procedure
+      });
+
+      // Handle the callback
+      await caller.contacts.handleGoogleCallback({
+        code,
+        userId,
+        redirectUri,
+      });
+
+      // Redirect back to the app with success message
+      res.redirect("/?sync=success");
+    }
   } catch (error) {
     console.error("OAuth callback error:", error);
-    res.redirect("/?sync=error");
+    
+    // Try to parse state to determine redirect
+    try {
+      const stateData = JSON.parse(state);
+      if (stateData.action === 'calendar') {
+        res.redirect("/settings?calendar_connected=false");
+      } else {
+        res.redirect("/?sync=error");
+      }
+    } catch {
+      res.redirect("/?sync=error");
+    }
   }
 });
 

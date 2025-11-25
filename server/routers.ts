@@ -1617,9 +1617,10 @@ export const appRouter = router({
       .mutation(async ({ ctx }) => {
         const state = JSON.stringify({
           userId: ctx.user.id,
+          action: 'calendar',
         });
 
-        const redirectUri = `${ENV.publicUrl}/api/oauth/google/calendar-connect`;
+        const redirectUri = `${ENV.publicUrl}/api/oauth/google/callback`;
         const { getGoogleAuthUrl } = await import('./googleAuth');
         return { url: getGoogleAuthUrl(redirectUri, state) };
       }),

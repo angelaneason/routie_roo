@@ -839,3 +839,11 @@
 - [ ] Add filter toggles to show/hide different event types
 - [ ] Handle events that span multiple days
 - [ ] Show event times on hover tooltip
+
+
+## OAuth Redirect URI Fix
+
+- [x] Check existing Google OAuth redirect URIs
+- [x] Update calendar connection to use same redirect URI as contacts sync
+- [x] Updated main callback to handle both contacts and calendar via action parameter
+- [ ] Test calendar connection with corrected redirect URI
