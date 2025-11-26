@@ -1135,3 +1135,10 @@
 - [x] Make contact labels/tags bold in waypoint cards (PT Randy Harms, Abundant, etc.)
 - [x] Match Home page contact label styling (text-sm font-bold)
 - [x] Updated SortableWaypointItem.tsx line 83
+
+
+## Map Marker Numbering Fix - November 2024
+- [x] Change starting point marker from number "1" to flag icon on map
+- [x] Renumber actual stops starting from 1 (not 2)
+- [x] Ensure waypoint list and map markers use consistent numbering
+- [x] Updated RouteDetail.tsx lines 301-315 (flag icon), 325 (renumber from 1), 349 (adjust end marker)
