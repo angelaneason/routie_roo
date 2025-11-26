@@ -1810,17 +1810,36 @@ export const appRouter = router({
   }),
   
   calendar: router({
-    // Get user's calendar list
+    // Get user's calendar list from database (stored during OAuth)
     getCalendarList: protectedProcedure.query(async ({ ctx }) => {
-      if (!ctx.user.googleCalendarAccessToken) {
+      const db = await getDb();
+      if (!db) return [];
+      
+      // Fetch user from database to get stored calendar list
+      console.log('[getCalendarList] Fetching calendar list for user ID:', ctx.user.id);
+      const user = await db.select()
+        .from(users)
+        .where(eq(users.id, ctx.user.id))
+        .limit(1);
+      
+      console.log('[getCalendarList] User found:', user.length > 0);
+      if (user.length > 0) {
+        console.log('[getCalendarList] User email:', user[0].email);
+        console.log('[getCalendarList] googleCalendarList value:', user[0].googleCalendarList);
+      }
+      console.log('[getCalendarList] Has googleCalendarList:', !!user[0]?.googleCalendarList);
+      
+      if (!user.length || !user[0].googleCalendarList) {
+        console.log('[getCalendarList] No calendar list found, returning empty array');
         return [];
       }
       
       try {
-        const calendars = await getCalendarList(ctx.user.googleCalendarAccessToken);
+        // Parse stored calendar list JSON
+        const calendars = JSON.parse(user[0].googleCalendarList);
         return calendars;
       } catch (error) {
-        console.error('[Calendar] Error fetching calendar list:', error);
+        console.error('[Calendar] Error parsing calendar list:', error);
         return [];
       }
     }),
@@ -1848,6 +1867,7 @@ export const appRouter = router({
       .input(z.object({
         month: z.number().min(1).max(12),
         year: z.number(),
+        visibleCalendars: z.array(z.string()).optional(), // Optional: filter by visible calendar IDs
       }))
       .query(async ({ ctx, input }) => {
         const db = await getDb();
@@ -1885,18 +1905,26 @@ export const appRouter = router({
         });
         
         // Fetch Google Calendar events if user has connected their calendar
-        if (ctx.user.googleCalendarAccessToken) {
+        // Get user data directly from database by ID to get calendar tokens
+        const userResult = await db.select()
+          .from(users)
+          .where(eq(users.id, ctx.user.id))
+          .limit(1);
+        
+        const freshUser = userResult.length > 0 ? userResult[0] : null;
+        
+        if (freshUser?.googleCalendarAccessToken) {
           try {
-            let accessToken = ctx.user.googleCalendarAccessToken;
+            let accessToken = freshUser.googleCalendarAccessToken;
             
             // Check if token is expired and refresh if needed
-            if (ctx.user.googleCalendarTokenExpiry && ctx.user.googleCalendarRefreshToken) {
-              const isExpired = new Date(ctx.user.googleCalendarTokenExpiry) < new Date();
+            if (freshUser.googleCalendarTokenExpiry && freshUser.googleCalendarRefreshToken) {
+              const isExpired = new Date(freshUser.googleCalendarTokenExpiry) < new Date();
               
               if (isExpired) {
                 console.log('[Calendar] Access token expired, refreshing...');
                 const { refreshAccessToken } = await import('./googleAuth');
-                const newToken = await refreshAccessToken(ctx.user.googleCalendarRefreshToken);
+                const newToken = await refreshAccessToken(freshUser.googleCalendarRefreshToken);
                 
                 // Update token in database
                 const expiryDate = new Date(Date.now() + newToken.expires_in * 1000);
@@ -1916,7 +1944,8 @@ export const appRouter = router({
             const googleEvents = await getAllCalendarEvents(
               accessToken,
               firstDay.toISOString(),
-              lastDay.toISOString()
+              lastDay.toISOString(),
+              input.visibleCalendars // Pass visible calendar IDs to filter
             );
             
             // Add Google Calendar events
@@ -1931,6 +1960,7 @@ export const appRouter = router({
                 type: 'google',
                 color: '#6b7280', // Gray for other Google events
                 htmlLink: event.htmlLink,
+                calendarId: event.calendarId, // Include calendar ID for color-coding
                 calendarName: event.calendarName,
               });
             });
@@ -1944,6 +1974,123 @@ export const appRouter = router({
         return allEvents.sort((a, b) => 
           new Date(a.start).getTime() - new Date(b.start).getTime()
         );
+      }),
+    
+    // Create a new calendar event
+    createEvent: protectedProcedure
+      .input(z.object({
+        title: z.string().min(1),
+        startDate: z.string(),
+        startTime: z.string().optional(),
+        endDate: z.string(),
+        endTime: z.string().optional(),
+        allDay: z.boolean(),
+        calendarId: z.string(),
+        description: z.string().optional(),
+        recurrence: z.string().optional(), // RRULE format
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        
+        // Get user's calendar tokens
+        const userResult = await db.select()
+          .from(users)
+          .where(eq(users.id, ctx.user.id))
+          .limit(1);
+        
+        const user = userResult.length > 0 ? userResult[0] : null;
+        
+        if (!user?.googleCalendarAccessToken) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Google Calendar not connected" });
+        }
+        
+        let accessToken = user.googleCalendarAccessToken;
+        
+        // Check if token is expired and refresh if needed
+        if (user.googleCalendarTokenExpiry && user.googleCalendarRefreshToken) {
+          const isExpired = new Date(user.googleCalendarTokenExpiry) < new Date();
+          
+          if (isExpired) {
+            console.log('[Calendar] Access token expired, refreshing...');
+            const { refreshAccessToken } = await import('./googleAuth');
+            const newToken = await refreshAccessToken(user.googleCalendarRefreshToken);
+            
+            // Update token in database
+            const expiryDate = new Date(Date.now() + newToken.expires_in * 1000);
+            await db.update(users)
+              .set({
+                googleCalendarAccessToken: newToken.access_token,
+                googleCalendarTokenExpiry: expiryDate,
+              })
+              .where(eq(users.id, ctx.user.id));
+            
+            accessToken = newToken.access_token;
+            console.log('[Calendar] Token refreshed successfully');
+          }
+        }
+        
+        // Build event object for Google Calendar API
+        const event: any = {
+          summary: input.title,
+          description: input.description,
+        };
+        
+        if (input.allDay) {
+          // All-day events use date format (YYYY-MM-DD)
+          event.start = { date: input.startDate };
+          event.end = { date: input.endDate };
+        } else {
+          // Timed events use dateTime format (ISO 8601)
+          const startDateTime = `${input.startDate}T${input.startTime || '09:00'}:00`;
+          const endDateTime = `${input.endDate}T${input.endTime || '10:00'}:00`;
+          event.start = { dateTime: startDateTime, timeZone: 'America/New_York' };
+          event.end = { dateTime: endDateTime, timeZone: 'America/New_York' };
+        }
+        
+        // Add recurrence if specified
+        if (input.recurrence) {
+          event.recurrence = [input.recurrence];
+        }
+        
+        // Call Google Calendar API to create event
+        try {
+          const response = await fetch(
+            `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(input.calendarId)}/events`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(event),
+            }
+          );
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('[Calendar] Failed to create event:', errorData);
+            throw new TRPCError({ 
+              code: "INTERNAL_SERVER_ERROR", 
+              message: `Failed to create calendar event: ${errorData.error?.message || 'Unknown error'}` 
+            });
+          }
+          
+          const createdEvent = await response.json();
+          console.log('[Calendar] Event created successfully:', createdEvent.id);
+          
+          return { 
+            success: true, 
+            eventId: createdEvent.id,
+            htmlLink: createdEvent.htmlLink 
+          };
+        } catch (error: any) {
+          console.error('[Calendar] Error creating event:', error);
+          throw new TRPCError({ 
+            code: "INTERNAL_SERVER_ERROR", 
+            message: error.message || 'Failed to create calendar event' 
+          });
+        }
       }),
   }),
 

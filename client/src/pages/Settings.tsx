@@ -13,7 +13,7 @@ import React from "react";
 import StopTypesSettings from "./StopTypesSettings";
 
 export default function Settings() {
-  const { user, isAuthenticated, refresh: refreshAuth } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const [newPointName, setNewPointName] = React.useState("");
   const [newPointAddress, setNewPointAddress] = React.useState("");
@@ -27,15 +27,19 @@ export default function Settings() {
     const calendarConnected = params.get("calendar_connected");
     
     if (calendarConnected === "true") {
-      toast.success("Calendar connected! Refreshing your session...");
-      // Refresh auth to get updated user with calendar tokens
-      refreshAuth().then(() => {
-        toast.success("Calendar ready to hop! 🦘");
-      });
-      // Clean up URL
+      // Clean up URL first
       window.history.replaceState({}, "", "/settings");
+      
+      // Show success message
+      toast.success("Calendar connected! 🦘");
+      
+      // Force a full page reload to refresh the session context
+      // This ensures ctx.user gets the updated calendar tokens from database
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     }
-  }, [refreshAuth]);
+  }, []);
   
   const userQuery = trpc.auth.me.useQuery();
   const startingPointsQuery = trpc.settings.listStartingPoints.useQuery();

@@ -980,3 +980,84 @@
 - [x] Calendar sidebar not showing calendars even though tokens exist in database
 - [x] Fixed by adding auth refresh on calendar connection callback
 - [x] Settings page now refreshes user session after connecting calendar
+
+
+## Calendar Sidebar Still Not Working
+
+- [x] Calendar sidebar still shows "No calendars found" after connecting calendar
+- [x] Tested: disconnect → reconnect → still no calendars showing
+- [x] Root cause: Calendar tokens are in database but not in session context
+- [x] Solution: Fetch calendar tokens directly from database in calendar procedures
+- [ ] Implement: getCalendarList should query DB for tokens using ctx.user.id
+- [ ] Implement: getCalendarEvents should query DB for tokens using ctx.user.id
+- [ ] Remove dependency on ctx.user.googleCalendarAccessToken
+
+
+## Reliable Calendar Sidebar Implementation
+
+- [x] Add googleCalendarList JSON field to users table to store calendar list
+- [x] Add calendarPreferences JSON field to users table to store visibility settings (already exists)
+- [x] Fetch calendar list during OAuth connection and save to database
+- [x] Create getCalendarList procedure that reads from database (not API)
+- [x] Create saveCalendarPreferences procedure to store visibility settings (updateCalendarPreferences already exists)
+- [ ] Update Calendar page sidebar to load calendar list from database
+- [ ] Add checkboxes for each calendar with instant filtering
+- [ ] Filter events based on stored calendar preferences
+- [ ] Write tests for calendar list storage and filtering
+- [ ] Test complete flow: connect → see calendars → toggle visibility
+
+
+## Calendar OAuth Not Storing Calendar List
+
+- [x] Check server logs for OAuth callback execution
+- [x] Verify getCalendarList function is being called during OAuth
+- [x] Check if calendar list JSON is being saved to database
+- [x] Verify database has googleCalendarList field populated after connection
+- [x] Calendar sidebar now shows calendars successfully!
+
+## Calendar Events Not Displaying
+
+- [x] Calendar list shows in sidebar but no events appear
+- [x] Check if getEvents is passing selected calendar IDs
+- [x] Verify getEvents procedure fetches from Google Calendar API
+- [x] Update getEvents to filter by visible calendars
+- [x] Updated getAllCalendarEvents to accept calendar IDs filter
+- [x] Updated getEvents procedure to pass visibleCalendars parameter
+- [x] Updated Calendar.tsx to pass visibleCalendars to query
+- [ ] Test that events appear after fixing query
+
+
+## Final Two Features Before Publishing
+
+- [x] Make contact labels larger font and bold
+- [ ] Add "Add Event" button to Calendar page
+- [ ] Create event creation dialog with title, date/time pickers, all-day checkbox
+- [ ] Add recurrence options (does not repeat, daily, weekly, custom recurrence)
+- [ ] Add calendar selector dropdown in event dialog
+- [ ] Add description field for events
+- [ ] Create backend procedure to save non-routed events to Google Calendar
+- [ ] Test event creation flow
+- [ ] Write unit tests for event creation
+
+
+## Final Polish Items - November 2024
+
+### Contact Label Styling
+- [x] Make contact labels larger (text-sm instead of text-xs)
+- [x] Make contact labels bold (font-bold)
+- [x] Verify labels display prominently on contact cards
+
+### Non-Routed Calendar Events
+- [x] Create AddEventDialog component with full event creation UI
+- [x] Add title input field
+- [x] Add start/end date and time pickers
+- [x] Add "All day" checkbox
+- [x] Add recurrence options (none, daily, weekly, monthly, custom)
+- [x] Add custom recurrence configuration (interval, end conditions)
+- [x] Add calendar selector dropdown
+- [x] Add description textarea
+- [x] Create backend calendar.createEvent tRPC procedure
+- [x] Implement Google Calendar API integration for event creation
+- [x] Add "Add Event" button to Calendar page
+- [x] Test event creation with all field combinations
+- [x] Write unit tests for event creation validation

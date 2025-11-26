@@ -18,6 +18,7 @@ export const users = mysqlTable("users", {
   googleCalendarAccessToken: text("googleCalendarAccessToken"), // Google Calendar OAuth access token
   googleCalendarRefreshToken: text("googleCalendarRefreshToken"), // Google Calendar OAuth refresh token
   googleCalendarTokenExpiry: timestamp("googleCalendarTokenExpiry"), // When the access token expires
+  googleCalendarList: text("googleCalendarList"), // JSON: Array of { id, summary, backgroundColor } from Google Calendar API
   calendarPreferences: text("calendarPreferences"), // JSON: { visibleCalendars: string[], defaultCalendar: string }
   autoArchiveDays: int("autoArchiveDays"), // Days after completion to auto-archive (null = never)
   createdAt: timestamp("createdAt").defaultNow().notNull(),

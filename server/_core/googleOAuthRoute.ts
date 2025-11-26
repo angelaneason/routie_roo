@@ -37,11 +37,30 @@ googleOAuthRouter.get("/api/oauth/google/callback", async (req, res) => {
       const db = await getDb();
       if (db) {
         const expiryDate = new Date(Date.now() + tokenData.expires_in * 1000);
+        
+        // Fetch calendar list from Google Calendar API
+        const { getCalendarList } = await import("../googleAuth");
+        let calendarListJson = null;
+        try {
+          const calendars = await getCalendarList(tokenData.access_token);
+          // Store as JSON: array of { id, summary, backgroundColor }
+          calendarListJson = JSON.stringify(calendars.map((cal: any) => ({
+            id: cal.id,
+            summary: cal.summary,
+            backgroundColor: cal.backgroundColor || '#3b82f6', // Default blue
+          })));
+          console.log('[OAuth] Fetched and stored', calendars.length, 'calendars');
+        } catch (error) {
+          console.error('[OAuth] Failed to fetch calendar list:', error);
+          // Continue anyway - user can refresh later
+        }
+        
         await db.update(users)
           .set({
             googleCalendarAccessToken: tokenData.access_token,
             googleCalendarRefreshToken: tokenData.refresh_token || null,
             googleCalendarTokenExpiry: expiryDate,
+            googleCalendarList: calendarListJson,
           })
           .where(eq(users.id, userId));
       }

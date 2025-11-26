@@ -4,10 +4,11 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { trpc } from "@/lib/trpc";
-import { Loader2, ChevronLeft, ChevronRight, MapPin, ChevronDown, ChevronRight as ChevronRightIcon } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, MapPin, ChevronDown, ChevronRight as ChevronRightIcon, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { formatDistance } from "@shared/distance";
+import { AddEventDialog } from "@/components/AddEventDialog";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -20,6 +21,7 @@ export default function Calendar() {
   const [selectedDayEvents, setSelectedDayEvents] = useState<any[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [visibleCalendars, setVisibleCalendars] = useState<string[]>([]);
+  const [showAddEventDialog, setShowAddEventDialog] = useState(false);
   
   // Fetch calendar list with refetch on mount
   const utils = trpc.useUtils();
@@ -38,13 +40,14 @@ export default function Calendar() {
   const calendars = calendarsQuery.data || [];
   useEffect(() => {
     if (calendars.length > 0 && visibleCalendars.length === 0) {
-      setVisibleCalendars(calendars.map(c => c.id));
+      setVisibleCalendars(calendars.map((c: any) => c.id));
     }
   }, [calendars.length]);
   
   const eventsQuery = trpc.calendar.getEvents.useQuery({
     month: currentDate.getMonth() + 1,
     year: currentDate.getFullYear(),
+    visibleCalendars: visibleCalendars, // Pass visible calendar IDs to backend
   }, {
     enabled: !!user,
   });
@@ -57,14 +60,8 @@ export default function Calendar() {
     );
   }
 
-  // Filter events based on visible calendars
-  const allEvents = eventsQuery.data || [];
-  const events = allEvents.filter(event => {
-    // Always show Routie Roo routes (they don't have a calendarId)
-    if (event.type === 'route') return true;
-    // Filter Google Calendar events by visibility
-    return event.calendarId && visibleCalendars.includes(event.calendarId);
-  });
+  // Events are already filtered by backend based on visibleCalendars
+  const events = eventsQuery.data || [];
 
   // Navigation functions
   const navigatePrevious = () => {
@@ -134,7 +131,7 @@ export default function Calendar() {
       return 'bg-blue-500';
     }
     // Find calendar and use its color
-    const calendar = calendars.find(c => c.id === event.calendarId);
+    const calendar = calendars.find((c: any) => c.id === event.calendarId);
     return calendar?.backgroundColor || 'bg-gray-400';
   };
 
@@ -444,9 +441,15 @@ export default function Calendar() {
             <h1 className="text-3xl font-bold text-gray-900">Routie Roo Calendar - Let's hop to it!</h1>
             <p className="text-muted-foreground">View and manage your scheduled routes</p>
           </div>
-          <Link href="/">
-            <Button variant="outline">Back to Home</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowAddEventDialog(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Event
+            </Button>
+            <Link href="/">
+              <Button variant="outline">Back to Home</Button>
+            </Link>
+          </div>
         </div>
 
         <div className="flex gap-4">
@@ -487,7 +490,7 @@ export default function Calendar() {
                 <p className="text-sm text-gray-500">No calendars found</p>
               ) : (
                 <div className="space-y-2">
-                  {calendars.map(calendar => (
+                  {calendars.map((calendar: any) => (
                     <label
                       key={calendar.id}
                       className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
@@ -632,6 +635,15 @@ export default function Calendar() {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Add Event Dialog */}
+      <AddEventDialog
+        open={showAddEventDialog}
+        onOpenChange={setShowAddEventDialog}
+        onEventCreated={() => {
+          eventsQuery.refetch();
+        }}
+      />
     </div>
   );
 }

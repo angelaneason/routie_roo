@@ -436,7 +436,8 @@ export async function getCalendarEvents(
 export async function getAllCalendarEvents(
   accessToken: string,
   timeMin: string,
-  timeMax: string
+  timeMax: string,
+  calendarIds?: string[] // Optional: filter by specific calendar IDs
 ): Promise<Array<{
   id: string;
   summary: string;
@@ -446,18 +447,25 @@ export async function getAllCalendarEvents(
   location?: string;
   htmlLink?: string;
   colorId?: string;
+  calendarId?: string;
   calendarName?: string;
 }>> {
   // First, get all calendars
   const calendars = await getCalendarList(accessToken);
   
+  // Filter calendars if calendarIds provided
+  const targetCalendars = calendarIds && calendarIds.length > 0
+    ? calendars.filter(cal => calendarIds.includes(cal.id))
+    : calendars;
+  
   // Fetch events from each calendar
   const allEvents = await Promise.all(
-    calendars.map(async (calendar) => {
+    targetCalendars.map(async (calendar) => {
       try {
         const events = await getCalendarEvents(accessToken, timeMin, timeMax, calendar.id);
         return events.map(event => ({
           ...event,
+          calendarId: calendar.id,
           calendarName: calendar.summary,
         }));
       } catch (error) {

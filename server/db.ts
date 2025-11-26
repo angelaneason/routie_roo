@@ -85,8 +85,19 @@ export async function getUserByOpenId(openId: string) {
   }
 
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
-  return result.length > 0 ? result[0] : undefined;
+  
+  if (result.length > 0) {
+    const user = result[0];
+    console.log('[Database] getUserByOpenId returned user:', {
+      id: user.id,
+      email: user.email,
+      hasCalendarToken: !!user.googleCalendarAccessToken,
+      keys: Object.keys(user)
+    });
+    return user;
+  }
+  
+  return undefined;
 }
 
 // Route management functions
