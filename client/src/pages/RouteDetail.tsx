@@ -298,19 +298,14 @@ export default function RouteDetail() {
           const route = result.routes[0];
           
           if (route && route.legs) {
-            // First marker at the start location (flag icon)
+            // First marker at the start location (Routie Roo mascot)
             const startMarker = new google.maps.Marker({
               position: route.legs[0].start_location,
               map,
               icon: {
-                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-                    <line x1="4" y1="22" x2="4" y2="15"/>
-                  </svg>
-                `),
-                scaledSize: new google.maps.Size(32, 32),
-                anchor: new google.maps.Point(4, 32),
+                url: '/routie-roo-marker.png',
+                scaledSize: new google.maps.Size(48, 64),
+                anchor: new google.maps.Point(24, 64),
               },
             });
             newMarkers.push(startMarker);

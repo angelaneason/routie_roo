@@ -1142,3 +1142,9 @@
 - [x] Renumber actual stops starting from 1 (not 2)
 - [x] Ensure waypoint list and map markers use consistent numbering
 - [x] Updated RouteDetail.tsx lines 301-315 (flag icon), 325 (renumber from 1), 349 (adjust end marker)
+
+
+## Routie Roo Starting Point Marker - November 2024
+- [x] Copy routieroo2.png to client/public folder as routie-roo-marker.png
+- [x] Update map marker to use Routie Roo image instead of flag icon
+- [x] Adjust marker size (48x64) and anchor point (24, 64) for proper positioning
