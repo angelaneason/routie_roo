@@ -11,6 +11,8 @@ import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import React from "react";
 import StopTypesSettings from "./StopTypesSettings";
+import { ImportantDateTypesSettings } from "@/components/ImportantDateTypesSettings";
+import { CommentOptionsSettings } from "@/components/CommentOptionsSettings";
 
 export default function Settings() {
   const { user, isAuthenticated } = useAuth();
@@ -540,6 +542,12 @@ export default function Settings() {
 
               {/* Stop Types Management */}
               <StopTypesSettings />
+
+              {/* Important Date Types Management */}
+              <ImportantDateTypesSettings />
+
+              {/* Comment Options Management */}
+              <CommentOptionsSettings />
 
               {/* Google Integration */}
               <Card>

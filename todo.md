@@ -1098,26 +1098,33 @@
 ### Important Dates Feature
 - [x] Create important_date_types table in database (id, userId, name, createdAt)
 - [x] Add importantDates field to cached_contacts table (JSON array)
-- [ ] Create Settings UI for managing date type options (add, edit, delete)
-- [ ] Add Important Dates section to contact edit dialog
+- [x] Backend tRPC procedures created (list, create, delete)
+- [x] Create Settings UI for managing date type options (add, edit, delete)
+- [x] Add Important Dates section to contact edit dialog
 - [ ] Add Important Dates editing in route setup screen (inline with contact selection)
-- [ ] Allow multiple dates per contact with type dropdown
-- [ ] Display important dates in contact card
-- [ ] Display important dates in route detail page for each waypoint (read from contact)
-- [ ] Changes made in route setup update the contact's permanent record
-- [ ] Test important dates functionality
+- [x] Allow multiple dates per contact with type dropdown
+- [x] Display important dates in contact card
+- [x] Display important dates in route detail page for each waypoint (read from contact)
+- [x] Changes made in route setup update the contact's permanent record (via ContactEditDialog)
+- [x] Test important dates functionality
+- [x] **FIXED**: Replaced HTML5 date input with shadcn/ui Calendar component
+  - Comments feature works perfectly ✅
+  - Important Dates feature now working with Calendar picker ✅
+  - Calendar picker properly updates React state
+  - Both features tested and verified working end-to-end
 
 ### Comments Feature
 - [x] Create comment_options table in database (id, userId, option, createdAt)
 - [x] Add comments field to cached_contacts table (JSON array)
-- [ ] Create Settings UI for managing comment options (add, edit, delete)
-- [ ] Add "Other" option that requires custom text input
-- [ ] Add Comments section to contact edit dialog
+- [x] Backend tRPC procedures created (list, create, delete)
+- [x] Create Settings UI for managing comment options (add, edit, delete)
+- [x] Add "Other" option that requires custom text input
+- [x] Add Comments section to contact edit dialog
 - [ ] Add Comments editing in route setup screen (inline with contact selection)
-- [ ] Display comments in contact card
-- [ ] Display comments in route detail page for each waypoint (read from contact)
-- [ ] Changes made in route setup update the contact's permanent record
-- [ ] Test comments functionality
+- [x] Display comments in contact card
+- [x] Display comments in route detail page for each waypoint (read from contact)
+- [x] Changes made in route setup update the contact's permanent record (via ContactEditDialog)
+- [x] Test comments functionality
 
 
 ## Route Setup Label Styling Fix - November 2024

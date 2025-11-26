@@ -111,6 +111,47 @@ export function SortableWaypointItem({
           <p className="text-sm text-muted-foreground">
             {waypoint.address}
           </p>
+          
+          {/* Important Dates */}
+          {waypoint.importantDates && (() => {
+            try {
+              const dates = JSON.parse(waypoint.importantDates);
+              if (dates.length > 0) {
+                return (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs font-semibold text-muted-foreground">Important Dates:</p>
+                    {dates.map((date: any, idx: number) => (
+                      <div key={idx} className="text-xs text-muted-foreground">
+                        <span className="font-medium">{date.type}:</span> {new Date(date.date).toLocaleDateString()}
+                      </div>
+                    ))}
+                  </div>
+                );
+              }
+            } catch (e) {}
+            return null;
+          })()}
+          
+          {/* Comments */}
+          {waypoint.comments && (() => {
+            try {
+              const comments = JSON.parse(waypoint.comments);
+              if (comments.length > 0) {
+                return (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs font-semibold text-muted-foreground">Comments:</p>
+                    {comments.map((comment: any, idx: number) => (
+                      <div key={idx} className="text-xs text-muted-foreground">
+                        {comment.option === "Other" ? comment.customText : comment.option}
+                      </div>
+                    ))}
+                  </div>
+                );
+              }
+            } catch (e) {}
+            return null;
+          })()}
+          
           {waypoint.executionNotes && (
             <div className="mt-2 text-sm bg-blue-50 p-2 rounded">
               <p className="font-medium text-blue-900">Notes:</p>

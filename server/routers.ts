@@ -227,6 +227,14 @@ export const appRouter = router({
           value: z.string(),
           label: z.string(),
         })),
+        importantDates: z.array(z.object({
+          type: z.string(),
+          date: z.string(),
+        })).optional(),
+        comments: z.array(z.object({
+          option: z.string(),
+          customText: z.string().optional(),
+        })).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -234,14 +242,24 @@ export const appRouter = router({
 
         const { cachedContacts } = await import("../drizzle/schema");
         
+        const updateData: any = {
+          name: input.name,
+          email: input.email,
+          address: input.address,
+          phoneNumbers: JSON.stringify(input.phoneNumbers),
+          updatedAt: new Date(),
+        };
+        
+        if (input.importantDates !== undefined) {
+          updateData.importantDates = JSON.stringify(input.importantDates);
+        }
+        
+        if (input.comments !== undefined) {
+          updateData.comments = JSON.stringify(input.comments);
+        }
+        
         await db.update(cachedContacts)
-          .set({
-            name: input.name,
-            email: input.email,
-            address: input.address,
-            phoneNumbers: JSON.stringify(input.phoneNumbers),
-            updatedAt: new Date(),
-          })
+          .set(updateData)
           .where(eq(cachedContacts.id, input.contactId));
 
         return { success: true };
@@ -403,6 +421,8 @@ export const appRouter = router({
           address: z.string(),
           phoneNumbers: z.string().optional(), // JSON string of phone numbers
           contactLabels: z.string().optional(), // JSON string of contact labels
+          importantDates: z.string().optional(), // JSON string of important dates
+          comments: z.string().optional(), // JSON string of comments
           stopType: z.enum(["pickup", "delivery", "meeting", "visit", "other"]).optional(),
           stopColor: z.string().optional(),
         })).min(2),
@@ -473,6 +493,8 @@ export const appRouter = router({
             longitude: leg?.startLocation?.latLng?.longitude?.toString() || null,
             phoneNumbers: wp.phoneNumbers || null,
             contactLabels: wp.contactLabels || null,
+            importantDates: wp.importantDates || null,
+            comments: wp.comments || null,
             stopType: wp.stopType || "other",
             stopColor: wp.stopColor || "#3b82f6",
           };

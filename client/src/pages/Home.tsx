@@ -266,6 +266,8 @@ export default function Home() {
         address: c!.address!,
         phoneNumbers: c!.phoneNumbers || undefined,
         contactLabels: c!.labels || undefined,
+        importantDates: c!.importantDates || undefined,
+        comments: c!.comments || undefined,
         stopType: stopTypeInfo.type as "pickup" | "delivery" | "meeting" | "visit" | "other",
         stopColor: stopTypeInfo.color,
       };
@@ -290,6 +292,8 @@ export default function Home() {
           address: finalStartingPoint,
           phoneNumbers: undefined,
           contactLabels: undefined,
+          importantDates: undefined,
+          comments: undefined,
           stopType: "other" as const,
           stopColor: "#10b981",
         },
@@ -949,6 +953,46 @@ export default function Home() {
                             } catch (e) {
                               return null;
                             }
+                            return null;
+                          })()}
+                          
+                          {/* Important Dates */}
+                          {contact.importantDates && (() => {
+                            try {
+                              const dates = JSON.parse(contact.importantDates);
+                              if (dates.length > 0) {
+                                return (
+                                  <div className="mt-2 space-y-1">
+                                    <p className="text-xs font-semibold text-muted-foreground">Important Dates:</p>
+                                    {dates.map((date: any, idx: number) => (
+                                      <div key={idx} className="text-xs text-muted-foreground">
+                                        <span className="font-medium">{date.type}:</span> {new Date(date.date).toLocaleDateString()}
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              }
+                            } catch (e) {}
+                            return null;
+                          })()}
+                          
+                          {/* Comments */}
+                          {contact.comments && (() => {
+                            try {
+                              const comments = JSON.parse(contact.comments);
+                              if (comments.length > 0) {
+                                return (
+                                  <div className="mt-2 space-y-1">
+                                    <p className="text-xs font-semibold text-muted-foreground">Comments:</p>
+                                    {comments.map((comment: any, idx: number) => (
+                                      <div key={idx} className="text-xs text-muted-foreground">
+                                        {comment.option === "Other" ? comment.customText : comment.option}
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              }
+                            } catch (e) {}
                             return null;
                           })()}
                         </div>
