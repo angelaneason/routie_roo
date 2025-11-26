@@ -1061,3 +1061,25 @@
 - [x] Add "Add Event" button to Calendar page
 - [x] Test event creation with all field combinations
 - [x] Write unit tests for event creation validation
+
+
+## Route Optimization Bug Fixes - November 2024
+
+### Initial Optimization Not Working
+- [x] Investigate why initial route creation with "Optimize Route Order" enabled doesn't reorder waypoints
+- [x] Check if Google Routes API optimization flag is being passed correctly
+- [x] Verify waypoint order is being saved from API response
+- [x] Test initial optimization with multiple contacts
+- [x] Fix: Added optimize parameter to calculateRoute function
+- [x] Fix: Pass optimizeRoute flag to calculateRoute when creating routes
+- [x] Fix: Set requestBody.optimizeWaypointOrder = true when optimize flag is true
+
+### Re-optimization Reverting Manual Changes
+- [x] Fix re-optimization to preserve manually reordered waypoints
+- [x] Ensure re-optimize only finds optimal positions for newly added stops
+- [x] Keep existing waypoints in their manual order
+- [x] Test re-optimization after manual drag-and-drop reordering
+- [x] Test re-optimization after adding new contacts to existing route
+- [x] Fix: When no new stops, recalculate route with current order (preserves manual changes)
+- [x] Fix: Update waypoint coordinates after re-optimization to refresh map
+- [x] Fix: Map automatically refreshes via useEffect dependency on waypoints

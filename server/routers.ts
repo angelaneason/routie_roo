@@ -38,7 +38,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 // Helper to calculate route using Google Maps Routes API
-async function calculateRoute(waypoints: Array<{ address: string; name?: string }>) {
+async function calculateRoute(waypoints: Array<{ address: string; name?: string }>, optimize: boolean = false) {
   const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
   
   if (!GOOGLE_MAPS_API_KEY) {
@@ -80,7 +80,10 @@ async function calculateRoute(waypoints: Array<{ address: string; name?: string 
     requestBody.intermediates = intermediates.map(wp => ({
       address: wp.address,
     }));
-    // Don't set optimizeWaypointOrder - we'll handle ordering manually
+    // Set optimizeWaypointOrder if optimization is requested
+    if (optimize) {
+      requestBody.optimizeWaypointOrder = true;
+    }
   }
 
   const response = await fetch(
@@ -406,23 +409,14 @@ export const appRouter = router({
         let routeData;
         let orderedWaypoints = input.waypoints;
         
-        if (input.optimizeRoute) {
-          // Calculate route using Google Maps API with optimization
-          routeData = await calculateRoute(
-            input.waypoints.map(wp => ({
-              address: wp.address,
-              name: wp.contactName,
-            }))
-          );
-        } else {
-          // Calculate route without optimization (keep user order)
-          routeData = await calculateRoute(
-            input.waypoints.map(wp => ({
-              address: wp.address,
-              name: wp.contactName,
-            }))
-          );
-        }
+        // Calculate route using Google Maps API
+        routeData = await calculateRoute(
+          input.waypoints.map(wp => ({
+            address: wp.address,
+            name: wp.contactName,
+          })),
+          input.optimizeRoute // Pass optimization flag
+        );
 
         // Create route record
         const shareId = nanoid(12);
@@ -1356,7 +1350,41 @@ export const appRouter = router({
         const existingStops = allWaypoints.filter(wp => new Date(wp.createdAt) <= routeCreatedAt);
 
         if (newStops.length === 0) {
-          return { message: "No new stops to optimize", optimizedCount: 0 };
+          // No new stops - just recalculate route with current order to update map
+          const currentRouteData = await calculateRoute(
+            allWaypoints.map(wp => ({
+              address: wp.address,
+              name: wp.contactName || undefined,
+            }))
+          );
+
+          // Update route distance and duration
+          await db.update(routes)
+            .set({
+              totalDistance: currentRouteData.distanceMeters,
+              totalDuration: parseInt(currentRouteData.duration.replace('s', '')),
+            })
+            .where(eq(routes.id, input.routeId));
+
+          // Update waypoint coordinates from fresh route calculation
+          for (let i = 0; i < allWaypoints.length; i++) {
+            const leg = currentRouteData.legs?.[i];
+            if (leg?.startLocation?.latLng) {
+              await db.update(routeWaypoints)
+                .set({
+                  latitude: leg.startLocation.latLng.latitude?.toString() || null,
+                  longitude: leg.startLocation.latLng.longitude?.toString() || null,
+                })
+                .where(eq(routeWaypoints.id, allWaypoints[i].id));
+            }
+          }
+
+          return { 
+            message: "Route recalculated with current order", 
+            optimizedCount: 0,
+            totalDistance: currentRouteData.distanceMeters,
+            totalDuration: parseInt(currentRouteData.duration.replace('s', '')),
+          };
         }
 
         // For each new stop, find the best insertion position
@@ -1422,6 +1450,19 @@ export const appRouter = router({
             totalDuration: parseInt(finalRouteData.duration.replace('s', '')),
           })
           .where(eq(routes.id, input.routeId));
+
+        // Update waypoint coordinates from fresh route calculation
+        for (let i = 0; i < currentOrder.length; i++) {
+          const leg = finalRouteData.legs?.[i];
+          if (leg?.startLocation?.latLng) {
+            await db.update(routeWaypoints)
+              .set({
+                latitude: leg.startLocation.latLng.latitude?.toString() || null,
+                longitude: leg.startLocation.latLng.longitude?.toString() || null,
+              })
+              .where(eq(routeWaypoints.id, currentOrder[i].id));
+          }
+        }
 
         return {
           message: `Optimized ${newStops.length} new stop(s)`,
