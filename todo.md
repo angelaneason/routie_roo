@@ -1129,3 +1129,9 @@
 - [x] Update all labels in Waypoints & Execution screen to use !font-bold
 - [x] Verify labels match Home page styling
 - [x] Updated 10 Label components in RouteDetail.tsx
+
+
+## Contact Labels in RouteDetail - November 2024
+- [x] Make contact labels/tags bold in waypoint cards (PT Randy Harms, Abundant, etc.)
+- [x] Match Home page contact label styling (text-sm font-bold)
+- [x] Updated SortableWaypointItem.tsx line 83

@@ -80,7 +80,7 @@ export function SortableWaypointItem({
                   return lower !== 'mycontacts' && lower !== 'starred' && !label.startsWith('contactGroups/');
                 });
                 return filteredLabels.map((label: string) => (
-                  <span key={label} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                  <span key={label} className="text-sm font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
                     {label}
                   </span>
                 ));
