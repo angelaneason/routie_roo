@@ -1083,3 +1083,38 @@
 - [x] Fix: When no new stops, recalculate route with current order (preserves manual changes)
 - [x] Fix: Update waypoint coordinates after re-optimization to refresh map
 - [x] Fix: Map automatically refreshes via useEffect dependency on waypoints
+
+
+## Home Page Layout Improvements - November 2024
+
+### Section Reorganization
+- [x] Move "Route Setup Screen" section to top of Home page
+- [x] Move "Your Contact List" section to bottom of Home page
+- [x] Change "Your Contacts" title to "Route Setup Screen" in route creation area
+- [x] Make all labels bold in route setup form (matching contact list style)
+
+## Custom Contact Fields - November 2024
+
+### Important Dates Feature
+- [x] Create important_date_types table in database (id, userId, name, createdAt)
+- [x] Add importantDates field to cached_contacts table (JSON array)
+- [ ] Create Settings UI for managing date type options (add, edit, delete)
+- [ ] Add Important Dates section to contact edit dialog
+- [ ] Add Important Dates editing in route setup screen (inline with contact selection)
+- [ ] Allow multiple dates per contact with type dropdown
+- [ ] Display important dates in contact card
+- [ ] Display important dates in route detail page for each waypoint (read from contact)
+- [ ] Changes made in route setup update the contact's permanent record
+- [ ] Test important dates functionality
+
+### Comments Feature
+- [x] Create comment_options table in database (id, userId, option, createdAt)
+- [x] Add comments field to cached_contacts table (JSON array)
+- [ ] Create Settings UI for managing comment options (add, edit, delete)
+- [ ] Add "Other" option that requires custom text input
+- [ ] Add Comments section to contact edit dialog
+- [ ] Add Comments editing in route setup screen (inline with contact selection)
+- [ ] Display comments in contact card
+- [ ] Display comments in route detail page for each waypoint (read from contact)
+- [ ] Changes made in route setup update the contact's permanent record
+- [ ] Test comments functionality

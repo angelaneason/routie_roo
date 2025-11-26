@@ -105,6 +105,8 @@ export const cachedContacts = mysqlTable("cached_contacts", {
   photoUrl: text("photoUrl"), // Contact photo URL from Google
   labels: text("labels"), // JSON array of contact labels/groups from Google
   isActive: int("isActive").default(1).notNull(), // 1 = active, 0 = inactive
+  importantDates: text("importantDates"), // JSON array of {type: string, date: string} - user-defined important dates
+  comments: text("comments"), // JSON array of {option: string, customText?: string} - user-defined comments
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -187,3 +189,29 @@ export const routeNotes = mysqlTable("route_notes", {
 
 export type RouteNote = typeof routeNotes.$inferSelect;
 export type InsertRouteNote = typeof routeNotes.$inferInsert;
+
+/**
+ * Important Date Types table - user-defined types for contact important dates
+ */
+export const importantDateTypes = mysqlTable("important_date_types", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Owner of the date type
+  name: varchar("name", { length: 100 }).notNull(), // Date type name (e.g., "Birthday", "Anniversary", "Renewal Date")
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ImportantDateType = typeof importantDateTypes.$inferSelect;
+export type InsertImportantDateType = typeof importantDateTypes.$inferInsert;
+
+/**
+ * Comment Options table - user-defined comment options for contacts
+ */
+export const commentOptions = mysqlTable("comment_options", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Owner of the comment option
+  option: varchar("option", { length: 255 }).notNull(), // Comment option text (e.g., "VIP Client", "Needs Follow-up")
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CommentOption = typeof commentOptions.$inferSelect;
+export type InsertCommentOption = typeof commentOptions.$inferInsert;

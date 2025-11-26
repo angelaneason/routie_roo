@@ -547,197 +547,6 @@ export default function Home() {
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Contacts Section */}
           <div className="space-y-6">
-            {/* Create Route Section */}
-            {hasContacts && (
-              <Card>
-              <CardHeader>
-                <CardTitle>Route Setup Screen</CardTitle>
-                <CardDescription>
-                  Create a new route by selecting contacts and configuring options
-                </CardDescription>
-              </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="routeName" className="font-bold">Route Name</Label>
-                    <Input
-                      id="routeName"
-                      placeholder="e.g., Client Visits - Monday"
-                      value={routeName}
-                      onChange={(e) => setRouteName(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="routeNotes" className="font-bold">Notes (Optional)</Label>
-                    <Textarea
-                      id="routeNotes"
-                      placeholder="Add any notes or details about this route..."
-                      value={routeNotes}
-                      onChange={(e) => setRouteNotes(e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="scheduledDate" className="font-bold">Scheduled Date (Optional)</Label>
-                    <Input
-                      id="scheduledDate"
-                      type="date"
-                      value={scheduledDate}
-                      onChange={(e) => setScheduledDate(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Schedule this route for a specific date
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="startingPoint" className="font-bold">Starting Point (Optional)</Label>
-                    <Select value={startingPoint} onValueChange={(val) => {
-                      setStartingPoint(val);
-                      if (val !== "custom") setCustomStartingPoint("");
-                    }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select or enter starting point" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="custom">Enter custom address...</SelectItem>
-                        {startingPointsQuery.data?.map((point) => (
-                          <SelectItem key={point.id} value={point.address}>
-                            {point.name} - {point.address}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {startingPoint === "custom" && (
-                      <Input
-                        placeholder="Enter custom starting address"
-                        value={customStartingPoint}
-                        onChange={(e) => setCustomStartingPoint(e.target.value)}
-                        className="mt-2"
-                      />
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      Choose a saved location or enter a custom address
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="folder" className="font-bold">Folder (Optional)</Label>
-                    <div className="flex gap-2">
-                      <Select value={selectedFolderId} onValueChange={setSelectedFolderId}>
-                        <SelectTrigger className="flex-1">
-                          <SelectValue placeholder="No folder" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">No folder</SelectItem>
-                          {folders.map((folder) => (
-                            <SelectItem key={folder.id} value={folder.id.toString()}>
-                              <div className="flex items-center gap-2">
-                                <Folder className="h-4 w-4" />
-                                {folder.name}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setShowNewFolderInput(!showNewFolderInput)}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {showNewFolderInput && (
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="New folder name"
-                        value={newFolderName}
-                        onChange={(e) => setNewFolderName(e.target.value)}
-                      />
-                      <Button onClick={handleCreateFolder} disabled={createFolderMutation.isPending}>
-                        {createFolderMutation.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Add"
-                        )}
-                      </Button>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="optimize" className="font-bold">Optimize Route Order</Label>
-                    <Switch
-                      id="optimize"
-                      checked={optimizeRoute}
-                      onCheckedChange={setOptimizeRoute}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {optimizeRoute 
-                      ? "Waypoints will be reordered for the shortest route"
-                      : "Waypoints will be visited in the order you selected them"}
-                  </p>
-                  
-                  <div className="text-sm text-muted-foreground">
-                    {selectedContacts.size} contact{selectedContacts.size !== 1 ? 's' : ''} selected
-                  </div>
-
-                  {selectedContacts.size > 0 && (
-                    <div className="space-y-2">
-                      <Label>Stop Types</Label>
-                      <div className="space-y-2 max-h-60 overflow-y-auto">
-                        {Array.from(selectedContacts).map(contactId => {
-                          const contact = contacts.find(c => c.id === contactId);
-                          if (!contact) return null;
-                          const stopTypeInfo = contactStopTypes.get(contactId) || { type: "visit", color: "#3b82f6" };
-                          return (
-                            <div key={contactId} className="flex items-center gap-2 p-2 bg-muted rounded">
-                              <span className="text-sm flex-1 truncate">{contact.name}</span>
-                              <div className="w-32">
-                                <StopTypeSelector
-                                  value={stopTypeInfo.type as StopType}
-                                  onChange={(newType) => {
-                                    const config = getStopTypeConfig(newType);
-                                    const newStopTypes = new Map(contactStopTypes);
-                                    newStopTypes.set(contactId, { type: config.type, color: config.color });
-                                    setContactStopTypes(newStopTypes);
-                                  }}
-                                  size="sm"
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  <Button
-                    className="w-full"
-                    onClick={handleCreateRoute}
-                    disabled={selectedContacts.size < 2 || !routeName.trim() || isCreatingRoute}
-                  >
-                    {isCreatingRoute ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Creating Route...
-                      </>
-                    ) : (
-                      <>
-                        <RouteIcon className="h-4 w-4 mr-2" />
-                        Plan My Route
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -991,6 +800,197 @@ export default function Home() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Create Route Section */}
+            {hasContacts && (
+              <Card>
+              <CardHeader>
+                <CardTitle>Route Setup Screen</CardTitle>
+                <CardDescription>
+                  Create a new route by selecting contacts and configuring options
+                </CardDescription>
+              </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="routeName" className="font-bold">Route Name</Label>
+                    <Input
+                      id="routeName"
+                      placeholder="e.g., Client Visits - Monday"
+                      value={routeName}
+                      onChange={(e) => setRouteName(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="routeNotes" className="font-bold">Notes (Optional)</Label>
+                    <Textarea
+                      id="routeNotes"
+                      placeholder="Add any notes or details about this route..."
+                      value={routeNotes}
+                      onChange={(e) => setRouteNotes(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="scheduledDate" className="font-bold">Scheduled Date (Optional)</Label>
+                    <Input
+                      id="scheduledDate"
+                      type="date"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Schedule this route for a specific date
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="startingPoint" className="font-bold">Starting Point (Optional)</Label>
+                    <Select value={startingPoint} onValueChange={(val) => {
+                      setStartingPoint(val);
+                      if (val !== "custom") setCustomStartingPoint("");
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select or enter starting point" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="custom">Enter custom address...</SelectItem>
+                        {startingPointsQuery.data?.map((point) => (
+                          <SelectItem key={point.id} value={point.address}>
+                            {point.name} - {point.address}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {startingPoint === "custom" && (
+                      <Input
+                        placeholder="Enter custom starting address"
+                        value={customStartingPoint}
+                        onChange={(e) => setCustomStartingPoint(e.target.value)}
+                        className="mt-2"
+                      />
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Choose a saved location or enter a custom address
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="folder" className="font-bold">Folder (Optional)</Label>
+                    <div className="flex gap-2">
+                      <Select value={selectedFolderId} onValueChange={setSelectedFolderId}>
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="No folder" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No folder</SelectItem>
+                          {folders.map((folder) => (
+                            <SelectItem key={folder.id} value={folder.id.toString()}>
+                              <div className="flex items-center gap-2">
+                                <Folder className="h-4 w-4" />
+                                {folder.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setShowNewFolderInput(!showNewFolderInput)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {showNewFolderInput && (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="New folder name"
+                        value={newFolderName}
+                        onChange={(e) => setNewFolderName(e.target.value)}
+                      />
+                      <Button onClick={handleCreateFolder} disabled={createFolderMutation.isPending}>
+                        {createFolderMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Add"
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="optimize" className="font-bold">Optimize Route Order</Label>
+                    <Switch
+                      id="optimize"
+                      checked={optimizeRoute}
+                      onCheckedChange={setOptimizeRoute}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {optimizeRoute 
+                      ? "Waypoints will be reordered for the shortest route"
+                      : "Waypoints will be visited in the order you selected them"}
+                  </p>
+                  
+                  <div className="text-sm text-muted-foreground">
+                    {selectedContacts.size} contact{selectedContacts.size !== 1 ? 's' : ''} selected
+                  </div>
+
+                  {selectedContacts.size > 0 && (
+                    <div className="space-y-2">
+                      <Label>Stop Types</Label>
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {Array.from(selectedContacts).map(contactId => {
+                          const contact = contacts.find(c => c.id === contactId);
+                          if (!contact) return null;
+                          const stopTypeInfo = contactStopTypes.get(contactId) || { type: "visit", color: "#3b82f6" };
+                          return (
+                            <div key={contactId} className="flex items-center gap-2 p-2 bg-muted rounded">
+                              <span className="text-sm flex-1 truncate">{contact.name}</span>
+                              <div className="w-32">
+                                <StopTypeSelector
+                                  value={stopTypeInfo.type as StopType}
+                                  onChange={(newType) => {
+                                    const config = getStopTypeConfig(newType);
+                                    const newStopTypes = new Map(contactStopTypes);
+                                    newStopTypes.set(contactId, { type: config.type, color: config.color });
+                                    setContactStopTypes(newStopTypes);
+                                  }}
+                                  size="sm"
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    className="w-full"
+                    onClick={handleCreateRoute}
+                    disabled={selectedContacts.size < 2 || !routeName.trim() || isCreatingRoute}
+                  >
+                    {isCreatingRoute ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Creating Route...
+                      </>
+                    ) : (
+                      <>
+                        <RouteIcon className="h-4 w-4 mr-2" />
+                        Plan My Route
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Routes Section */}
