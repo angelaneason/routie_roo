@@ -558,7 +558,7 @@ export default function Home() {
               </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="routeName" className="font-bold">Route Name</Label>
+                    <Label htmlFor="routeName" className="text-sm font-bold">Route Name</Label>
                     <Input
                       id="routeName"
                       placeholder="e.g., Client Visits - Monday"
@@ -568,7 +568,7 @@ export default function Home() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="routeNotes" className="font-bold">Notes (Optional)</Label>
+                    <Label htmlFor="routeNotes" className="text-sm font-bold">Notes (Optional)</Label>
                     <Textarea
                       id="routeNotes"
                       placeholder="Add any notes or details about this route..."
@@ -579,7 +579,7 @@ export default function Home() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="scheduledDate" className="font-bold">Scheduled Date (Optional)</Label>
+                    <Label htmlFor="scheduledDate" className="text-sm font-bold">Scheduled Date (Optional)</Label>
                     <Input
                       id="scheduledDate"
                       type="date"
@@ -592,7 +592,7 @@ export default function Home() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="startingPoint" className="font-bold">Starting Point (Optional)</Label>
+                    <Label htmlFor="startingPoint" className="text-sm font-bold">Starting Point (Optional)</Label>
                     <Select value={startingPoint} onValueChange={(val) => {
                       setStartingPoint(val);
                       if (val !== "custom") setCustomStartingPoint("");
@@ -624,7 +624,7 @@ export default function Home() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="folder" className="font-bold">Folder (Optional)</Label>
+                    <Label htmlFor="folder" className="text-sm font-bold">Folder (Optional)</Label>
                     <div className="flex gap-2">
                       <Select value={selectedFolderId} onValueChange={setSelectedFolderId}>
                         <SelectTrigger className="flex-1">
@@ -670,7 +670,7 @@ export default function Home() {
                   )}
 
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="optimize" className="font-bold">Optimize Route Order</Label>
+                    <Label htmlFor="optimize" className="text-sm font-bold">Optimize Route Order</Label>
                     <Switch
                       id="optimize"
                       checked={optimizeRoute}

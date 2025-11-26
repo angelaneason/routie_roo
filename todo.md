@@ -1118,3 +1118,8 @@
 - [ ] Display comments in route detail page for each waypoint (read from contact)
 - [ ] Changes made in route setup update the contact's permanent record
 - [ ] Test comments functionality
+
+
+## Route Setup Label Styling Fix - November 2024
+- [x] Update Route Setup form labels to use text-sm font-bold (matching contact label style)
+- [x] Verify all 6 labels have consistent styling
