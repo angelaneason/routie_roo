@@ -13,13 +13,29 @@ import React from "react";
 import StopTypesSettings from "./StopTypesSettings";
 
 export default function Settings() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, refresh: refreshAuth } = useAuth();
   const [, navigate] = useLocation();
   const [newPointName, setNewPointName] = React.useState("");
   const [newPointAddress, setNewPointAddress] = React.useState("");
   const [editingId, setEditingId] = React.useState<number | null>(null);
   const [editName, setEditName] = React.useState("");
   const [editAddress, setEditAddress] = React.useState("");
+  
+  // Check for calendar connection success
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const calendarConnected = params.get("calendar_connected");
+    
+    if (calendarConnected === "true") {
+      toast.success("Calendar connected! Refreshing your session...");
+      // Refresh auth to get updated user with calendar tokens
+      refreshAuth().then(() => {
+        toast.success("Calendar ready to hop! 🦘");
+      });
+      // Clean up URL
+      window.history.replaceState({}, "", "/settings");
+    }
+  }, [refreshAuth]);
   
   const userQuery = trpc.auth.me.useQuery();
   const startingPointsQuery = trpc.settings.listStartingPoints.useQuery();

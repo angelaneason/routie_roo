@@ -12,7 +12,7 @@ import { formatDistance } from "@shared/distance";
 type ViewMode = "day" | "week" | "month";
 
 export default function Calendar() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refresh: refreshAuth } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("day");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -21,10 +21,18 @@ export default function Calendar() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [visibleCalendars, setVisibleCalendars] = useState<string[]>([]);
   
-  // Fetch calendar list
+  // Fetch calendar list with refetch on mount
+  const utils = trpc.useUtils();
   const calendarsQuery = trpc.calendar.getCalendarList.useQuery(undefined, {
     enabled: !!user,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
+  
+  // Refetch user data on mount to get latest tokens
+  useEffect(() => {
+    refreshAuth();
+  }, []);
   
   // Initialize visible calendars when calendars are loaded
   const calendars = calendarsQuery.data || [];
@@ -447,14 +455,28 @@ export default function Calendar() {
             <Card className="w-64 flex-shrink-0 p-4 h-fit">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-sm">My Calendars</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSidebarCollapsed(true)}
-                  className="h-6 w-6 p-0"
-                >
-                  <ChevronRightIcon className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={async () => {
+                      await refreshAuth();
+                      await calendarsQuery.refetch();
+                    }}
+                    className="h-6 w-6 p-0"
+                    title="Refresh calendar list"
+                  >
+                    <Loader2 className={`h-3 w-3 ${calendarsQuery.isFetching ? 'animate-spin' : ''}`} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSidebarCollapsed(true)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <ChevronRightIcon className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               
               {calendarsQuery.isLoading ? (

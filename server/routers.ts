@@ -15,6 +15,7 @@ import {
   getUserCachedContacts,
   clearUserCachedContacts,
   getDb,
+  getUserByOpenId,
   deleteRoute,
   updateRoute,
   createFolder,
@@ -1807,7 +1808,7 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
-
+  
   calendar: router({
     // Get user's calendar list
     getCalendarList: protectedProcedure.query(async ({ ctx }) => {
@@ -1816,11 +1817,10 @@ export const appRouter = router({
       }
       
       try {
-        const { getCalendarList } = await import('./googleAuth');
         const calendars = await getCalendarList(ctx.user.googleCalendarAccessToken);
         return calendars;
       } catch (error) {
-        console.error('[Calendar] Failed to fetch calendar list:', error);
+        console.error('[Calendar] Error fetching calendar list:', error);
         return [];
       }
     }),
@@ -1947,7 +1947,8 @@ export const appRouter = router({
       }),
   }),
 
-  stopTypes: router({    // Get user's stop types
+  stopTypes: router({
+    // Get user's stop types
     list: protectedProcedure.query(async ({ ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });

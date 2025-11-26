@@ -960,3 +960,23 @@
 - [ ] Save selected calendar as user's default for route scheduling
 - [x] Filter events based on calendar visibility preferences
 - [ ] Show calendar name on event hover/click
+
+
+## Calendar Sidebar Debug - Calendar List Not Showing
+
+- [x] Investigate why calendar sidebar shows "No calendars found" when calendar is connected
+- [ ] Issue: User context not refreshed after calendar connection - useAuth() returns stale user data
+- [ ] Add refetch mechanism to calendar list query
+- [ ] Add manual refresh button to calendar sidebar
+- [ ] Invalidate auth.me query when returning from calendar connection
+- [ ] Test that calendar list appears after connecting calendar
+
+
+## Critical Bugs to Fix Before Publishing
+
+- [x] Contact groups (contactGroups/xxx) still showing as labels on contacts
+- [x] Contact groups still appearing in label filter dropdown
+- [x] Remove all contactGroups references from contact display
+- [x] Calendar sidebar not showing calendars even though tokens exist in database
+- [x] Fixed by adding auth refresh on calendar connection callback
+- [x] Settings page now refreshes user session after connecting calendar

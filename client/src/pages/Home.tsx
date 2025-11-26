@@ -411,10 +411,10 @@ export default function Home() {
         return labels
           .filter((label: string) => {
             const lower = label.toLowerCase();
-            // Exclude myContacts, starred, and contactGroups/myContacts
+            // Exclude myContacts, starred, and ALL contactGroups/*
             return lower !== 'mycontacts' && 
                    lower !== 'starred' && 
-                   label !== 'contactGroups/myContacts';
+                   !label.startsWith('contactGroups/');
           });
       } catch {
         return [];
@@ -706,12 +706,12 @@ export default function Home() {
                           {contact.labels && (() => {
                             try {
                               const labels = JSON.parse(contact.labels);
-              // Filter out myContacts, starred, and contactGroups/myContacts
+              // Filter out myContacts, starred, and ALL contactGroups/*
               const userFriendlyLabels = labels.filter((label: string) => {
                 const lower = label.toLowerCase();
                 return lower !== 'mycontacts' && 
                        lower !== 'starred' && 
-                       label !== 'contactGroups/myContacts';
+                       !label.startsWith('contactGroups/');
               });
                               if (userFriendlyLabels.length > 0) {
                                 return (
