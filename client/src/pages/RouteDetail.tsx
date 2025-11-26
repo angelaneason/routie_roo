@@ -877,7 +877,7 @@ export default function RouteDetail() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="start-time">Start Time</Label>
+              <Label htmlFor="start-time" className="!font-bold">Start Time</Label>
               <Input
                 id="start-time"
                 type="datetime-local"
@@ -921,7 +921,7 @@ export default function RouteDetail() {
           <div className="space-y-4 py-4">
             {actionType === "miss" && (
               <div className="space-y-2">
-                <Label htmlFor="missed-reason">Reason for Missing Stop *</Label>
+                <Label htmlFor="missed-reason" className="!font-bold">Reason for Missing Stop *</Label>
                 <textarea
                   id="missed-reason"
                   placeholder="e.g., Customer not home, gate locked, wrong address..."
@@ -935,7 +935,7 @@ export default function RouteDetail() {
 
             {actionType === "reschedule" && (
               <div className="space-y-2">
-                <Label htmlFor="reschedule-date">Reschedule Date and Time *</Label>
+                <Label htmlFor="reschedule-date" className="!font-bold">Reschedule Date and Time *</Label>
                 <Input
                   id="reschedule-date"
                   type="datetime-local"
@@ -947,7 +947,7 @@ export default function RouteDetail() {
 
             {(actionType === "complete" || actionType === "note" || actionType === "miss") && (
               <div className="space-y-2">
-                <Label htmlFor="execution-notes">
+                <Label htmlFor="execution-notes" className="!font-bold">
                   Notes {actionType === "note" ? "*" : "(Optional)"}
                 </Label>
                 <textarea
@@ -999,7 +999,7 @@ export default function RouteDetail() {
               </div>
             ) : (
               <div className="space-y-2">
-                <Label>Share Link</Label>
+                <Label className="!font-bold">Share Link</Label>
                 <div className="flex gap-2">
                   <Input
                     readOnly
@@ -1069,7 +1069,7 @@ export default function RouteDetail() {
           )}
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-route-name">Route Name</Label>
+              <Label htmlFor="edit-route-name" className="!font-bold">Route Name</Label>
               <Input
                 id="edit-route-name"
                 value={editRouteName}
@@ -1078,7 +1078,7 @@ export default function RouteDetail() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-route-notes">Notes (Optional)</Label>
+              <Label htmlFor="edit-route-notes" className="!font-bold">Notes (Optional)</Label>
               <Input
                 id="edit-route-notes"
                 value={editRouteNotes}
@@ -1087,7 +1087,7 @@ export default function RouteDetail() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-folder">Folder (Optional)</Label>
+              <Label htmlFor="edit-folder" className="!font-bold">Folder (Optional)</Label>
               <select
                 id="edit-folder"
                 value={editFolderId || ""}
@@ -1103,7 +1103,7 @@ export default function RouteDetail() {
               </select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-starting-point">Starting Point (Optional)</Label>
+              <Label htmlFor="edit-starting-point" className="!font-bold">Starting Point (Optional)</Label>
               <Input
                 id="edit-starting-point"
                 value={editStartingPoint}
@@ -1149,7 +1149,7 @@ export default function RouteDetail() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-address">Address</Label>
+              <Label htmlFor="edit-address" className="!font-bold">Address</Label>
               <Input
                 id="edit-address"
                 value={editingAddress}
