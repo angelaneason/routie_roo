@@ -21,7 +21,15 @@ import {
   createFolder,
   getUserFolders,
   updateFolder,
-  deleteFolder
+  deleteFolder,
+  createImportantDateType,
+  getUserImportantDateTypes,
+  updateImportantDateType,
+  deleteImportantDateType,
+  createCommentOption,
+  getUserCommentOptions,
+  updateCommentOption,
+  deleteCommentOption
 } from "./db";
 import { 
   getGoogleAuthUrl, 
@@ -1846,6 +1854,78 @@ export const appRouter = router({
           })
           .where(eq(savedStartingPoints.id, input.id));
 
+        return { success: true };
+      }),
+
+    // Important Date Types management
+    listImportantDateTypes: protectedProcedure.query(async ({ ctx }) => {
+      return getUserImportantDateTypes(ctx.user.id);
+    }),
+
+    createImportantDateType: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(100),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await createImportantDateType({
+          userId: ctx.user.id,
+          name: input.name,
+        });
+        return { success: true };
+      }),
+
+    updateImportantDateType: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).max(100),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await updateImportantDateType(input.id, input.name);
+        return { success: true };
+      }),
+
+    deleteImportantDateType: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteImportantDateType(input.id);
+        return { success: true };
+      }),
+
+    // Comment Options management
+    listCommentOptions: protectedProcedure.query(async ({ ctx }) => {
+      return getUserCommentOptions(ctx.user.id);
+    }),
+
+    createCommentOption: protectedProcedure
+      .input(z.object({
+        option: z.string().min(1).max(255),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await createCommentOption({
+          userId: ctx.user.id,
+          option: input.option,
+        });
+        return { success: true };
+      }),
+
+    updateCommentOption: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        option: z.string().min(1).max(255),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await updateCommentOption(input.id, input.option);
+        return { success: true };
+      }),
+
+    deleteCommentOption: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteCommentOption(input.id);
         return { success: true };
       }),
   }),

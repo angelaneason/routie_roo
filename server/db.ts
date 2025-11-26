@@ -1,6 +1,6 @@
 import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, routes, routeWaypoints, cachedContacts, folders, InsertRoute, InsertRouteWaypoint, InsertCachedContact, InsertFolder } from "../drizzle/schema";
+import { InsertUser, users, routes, routeWaypoints, cachedContacts, folders, InsertRoute, InsertRouteWaypoint, InsertCachedContact, InsertFolder, importantDateTypes, commentOptions, InsertImportantDateType, InsertCommentOption } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -262,4 +262,64 @@ export async function updateRoute(routeId: number, updates: Partial<InsertRoute>
   if (!db) throw new Error("Database not available");
   
   await db.update(routes).set(updates).where(eq(routes.id, routeId));
+}
+
+// Important Date Types management
+export async function createImportantDateType(dateType: InsertImportantDateType) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(importantDateTypes).values(dateType);
+  return result;
+}
+
+export async function getUserImportantDateTypes(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(importantDateTypes).where(eq(importantDateTypes.userId, userId)).orderBy(importantDateTypes.name);
+}
+
+export async function updateImportantDateType(id: number, name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(importantDateTypes).set({ name }).where(eq(importantDateTypes.id, id));
+}
+
+export async function deleteImportantDateType(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(importantDateTypes).where(eq(importantDateTypes.id, id));
+}
+
+// Comment Options management
+export async function createCommentOption(commentOption: InsertCommentOption) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(commentOptions).values(commentOption);
+  return result;
+}
+
+export async function getUserCommentOptions(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(commentOptions).where(eq(commentOptions.userId, userId)).orderBy(commentOptions.option);
+}
+
+export async function updateCommentOption(id: number, option: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(commentOptions).set({ option }).where(eq(commentOptions.id, id));
+}
+
+export async function deleteCommentOption(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(commentOptions).where(eq(commentOptions.id, id));
 }
