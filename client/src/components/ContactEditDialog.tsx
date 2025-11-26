@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+// Calendar and Popover imports removed - using native date input instead
 
 import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar as CalendarIconLucide, MessageSquare, Plus, X } from "lucide-react";
 import { toast } from "sonner";
@@ -68,6 +68,7 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
   const [address, setAddress] = useState(contact.address || "");
   const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumber[]>(initialPhones);
   const [importantDates, setImportantDates] = useState<ImportantDate[]>(initialDates);
+  // Removed openPopoverIndex state - using native date input instead
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [saving, setSaving] = useState(false);
   
@@ -192,12 +193,11 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
 
           <div className="space-y-2">
             <Label htmlFor="address" className="text-sm !font-bold">Address</Label>
-            <Textarea
+            <AddressAutocomplete
               id="address"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="123 Main St, City, State ZIP"
-              rows={3}
+              onChange={setAddress}
+              placeholder="Start typing address for suggestions..."
             />
           </div>
 
@@ -254,7 +254,7 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
           <div className="space-y-2 border-t pt-4">
             <div className="flex items-center justify-between">
               <Label className="text-sm !font-bold flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
+                <CalendarIconLucide className="h-4 w-4" />
                 Important Dates
               </Label>
               <Button
@@ -292,29 +292,12 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
                         ))}
                       </SelectContent>
                     </Select>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="flex-1 justify-start text-left font-normal"
-                        >
-                          <CalendarIconLucide className="mr-2 h-4 w-4" />
-                          {date.date ? format(new Date(date.date), "MM/dd/yyyy") : "Pick a date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={date.date ? new Date(date.date) : undefined}
-                          onSelect={(selectedDate) => {
-                            if (selectedDate) {
-                              updateImportantDate(index, "date", selectedDate.toISOString().split('T')[0]);
-                            }
-                          }}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <input
+                      type="date"
+                      value={date.date || ""}
+                      onChange={(e) => updateImportantDate(index, "date", e.target.value)}
+                      className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
                     <Button
                       type="button"
                       variant="ghost"

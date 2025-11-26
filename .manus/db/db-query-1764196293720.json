@@ -1,0 +1,58 @@
+{
+  "query": "SELECT * FROM important_date_types ORDER BY name, createdAt;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT * FROM important_date_types ORDER BY name, createdAt;",
+  "rows": [
+    {
+      "id": "2",
+      "userId": "1",
+      "name": "Anniversary",
+      "createdAt": "2025-11-26 20:45:19"
+    },
+    {
+      "id": "5",
+      "userId": "1",
+      "name": "Anniversary",
+      "createdAt": "2025-11-26 20:46:13"
+    },
+    {
+      "id": "8",
+      "userId": "1",
+      "name": "Anniversary",
+      "createdAt": "2025-11-26 20:47:50"
+    },
+    {
+      "id": "1",
+      "userId": "1",
+      "name": "Birthday",
+      "createdAt": "2025-11-26 20:45:19"
+    },
+    {
+      "id": "4",
+      "userId": "1",
+      "name": "Birthday",
+      "createdAt": "2025-11-26 20:46:13"
+    },
+    {
+      "id": "7",
+      "userId": "1",
+      "name": "Birthday",
+      "createdAt": "2025-11-26 20:47:50"
+    },
+    {
+      "id": "6",
+      "userId": "1",
+      "name": "Renewal Date",
+      "createdAt": "2025-11-26 20:46:13"
+    },
+    {
+      "id": "9",
+      "userId": "1",
+      "name": "Renewal Date",
+      "createdAt": "2025-11-26 20:47:50"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tname\tcreatedAt\n2\t1\tAnniversary\t2025-11-26 20:45:19\n5\t1\tAnniversary\t2025-11-26 20:46:13\n8\t1\tAnniversary\t2025-11-26 20:47:50\n1\t1\tBirthday\t2025-11-26 20:45:19\n4\t1\tBirthday\t2025-11-26 20:46:13\n7\t1\tBirthday\t2025-11-26 20:47:50\n6\t1\tRenewal Date\t2025-11-26 20:46:13\n9\t1\tRenewal Date\t2025-11-26 20:47:50\n",
+  "stderr": "",
+  "execution_time_ms": 148
+}

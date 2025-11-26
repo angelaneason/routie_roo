@@ -77,9 +77,9 @@ export default function MissedStops() {
       <main className="container py-8">
         <div className="max-w-6xl mx-auto space-y-6">
           <div>
-            <h2 className="text-3xl font-bold">Missed Stops Dashboard</h2>
-            <p className="text-muted-foreground mt-2">
-              Track and manage missed stops across all routes
+            <h2 className="text-3xl font-bold">Missed Hops</h2>
+            <p className="text-muted-foreground mt-2 italic">
+              Stops that need a second look before the route is complete.
             </p>
           </div>
 

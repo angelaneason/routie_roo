@@ -41,7 +41,7 @@ import {
   getCalendarList
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
-import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes, InsertRoute } from "../drizzle/schema";
+import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes, InsertRoute, cachedContacts } from "../drizzle/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -1218,6 +1218,8 @@ export const appRouter = router({
         waypointId: z.number(),
         address: z.string(),
         contactName: z.string().optional(),
+        updateContact: z.boolean().optional(),
+        contactId: z.number().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -1243,6 +1245,16 @@ export const appRouter = router({
         await db.update(routeWaypoints)
           .set(updateData)
           .where(eq(routeWaypoints.id, input.waypointId));
+
+        // If user wants to update contact address permanently
+        if (input.updateContact && input.contactId) {
+          await db.update(cachedContacts)
+            .set({ address: input.address })
+            .where(and(
+              eq(cachedContacts.id, input.contactId),
+              eq(cachedContacts.userId, ctx.user.id)
+            ));
+        }
 
         return { success: true };
       }),

@@ -555,9 +555,9 @@ export default function Home() {
             {hasContacts && (
               <Card>
               <CardHeader>
-                <CardTitle>Route Setup Screen</CardTitle>
+                <CardTitle className="font-bold">Plan Your Next Hop</CardTitle>
                 <CardDescription>
-                  Create a new route by selecting contacts and configuring options
+                  Set up the route Roo will guide you through.
                 </CardDescription>
               </CardHeader>
                 <CardContent className="space-y-4">
@@ -746,11 +746,9 @@ export default function Home() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Your Contacts</CardTitle>
-                    <CardDescription>
-                      {hasContacts 
-                        ? `${contacts.length} contacts with addresses`
-                        : "Sync your Gmail contacts to get started"}
+                    <CardTitle className="font-bold">Your Kangaroo Crew</CardTitle>
+                    <CardDescription className="italic">
+                      Everyone you connect with along the journey.
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
@@ -1043,11 +1041,9 @@ export default function Home() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Your Routes</CardTitle>
-                    <CardDescription>
-                      {routes.length > 0 
-                        ? `${routes.length} saved route${routes.length !== 1 ? 's' : ''}`
-                        : "No routes created yet"}
+                    <CardTitle className="font-bold">Your Hop Library</CardTitle>
+                    <CardDescription className="italic">
+                      A clear, hop-by-hop look at your route.
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-3">

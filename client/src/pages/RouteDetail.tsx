@@ -11,6 +11,7 @@ import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, Check
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
+import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { StopStatusBadge, type StopStatus } from "@/components/StopStatusBadge";
 import { SortableWaypointItem } from "@/components/SortableWaypointItem";
 import RouteNotes from "@/components/RouteNotes";
@@ -62,6 +63,8 @@ export default function RouteDetail() {
   const [showAddContactDialog, setShowAddContactDialog] = useState(false);
   const [editingWaypointId, setEditingWaypointId] = useState<number | null>(null);
   const [editingAddress, setEditingAddress] = useState("");
+  const [editingContactId, setEditingContactId] = useState<number | null>(null);
+  const [updateContactAddress, setUpdateContactAddress] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -157,10 +160,16 @@ export default function RouteDetail() {
   });
 
   const updateAddressMutation = trpc.routes.updateWaypointAddress.useMutation({
-    onSuccess: () => {
-      toast.success("Address updated");
+    onSuccess: (_, variables) => {
+      if (variables.updateContact) {
+        toast.success("Address updated for route and contact");
+      } else {
+        toast.success("Address updated for route only");
+      }
       setEditingWaypointId(null);
       setEditingAddress("");
+      setEditingContactId(null);
+      setUpdateContactAddress(false);
       routeQuery.refetch();
       // Recalculate route after updating address
       if (routeId) {
@@ -700,8 +709,13 @@ export default function RouteDetail() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Waypoints & Execution</span>
+                <div className="space-y-1 mb-4">
+                  <CardTitle className="font-bold">Hop-By-Hop Navigation</CardTitle>
+                  <CardDescription className="italic">
+                    Every hop in order — smooth, simple, efficient.
+                  </CardDescription>
+                </div>
+                <div className="flex items-center justify-between">
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -726,10 +740,7 @@ export default function RouteDetail() {
                       Add Contact
                     </Button>
                   </div>
-                </CardTitle>
-                <CardDescription>
-                  Track your route progress and manage waypoints
-                </CardDescription>
+                </div>
                 {!isEditMode && waypoints.length > 0 && (
                   <>
                     <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
@@ -838,6 +849,8 @@ export default function RouteDetail() {
                           onEditAddress={() => {
                             setEditingWaypointId(waypoint.id);
                             setEditingAddress(waypoint.address);
+                            setEditingContactId(waypoint.contactId || null);
+                            setUpdateContactAddress(false); // Reset to default (temporary)
                           }}
                         />
                       ))}
@@ -1141,12 +1154,44 @@ export default function RouteDetail() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="edit-address" className="!font-bold">Address</Label>
-              <Input
+              <AddressAutocomplete
                 id="edit-address"
                 value={editingAddress}
-                onChange={(e) => setEditingAddress(e.target.value)}
-                placeholder="Enter new address"
+                onChange={setEditingAddress}
+                placeholder="Start typing address for suggestions..."
               />
+            </div>
+            
+            <div className="space-y-3 pt-2 border-t">
+              <Label className="!font-bold">Address Update Scope</Label>
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="address-scope"
+                    checked={!updateContactAddress}
+                    onChange={() => setUpdateContactAddress(false)}
+                    className="w-4 h-4"
+                  />
+                  <div>
+                    <div className="font-medium">Temporary (route only)</div>
+                    <div className="text-sm text-muted-foreground">Update address for this route only</div>
+                  </div>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="address-scope"
+                    checked={updateContactAddress}
+                    onChange={() => setUpdateContactAddress(true)}
+                    className="w-4 h-4"
+                  />
+                  <div>
+                    <div className="font-medium">Update contact address permanently</div>
+                    <div className="text-sm text-muted-foreground">Save this address to the contact's profile</div>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -1162,6 +1207,8 @@ export default function RouteDetail() {
                 updateAddressMutation.mutate({
                   waypointId: editingWaypointId!,
                   address: editingAddress,
+                  updateContact: updateContactAddress,
+                  contactId: editingContactId || undefined,
                 });
               }}
               disabled={updateAddressMutation.isPending}

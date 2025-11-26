@@ -1161,3 +1161,53 @@
 - [x] Update waypoint list to show stops numbered from 1 (not 2)
 - [x] Ensure list numbering matches map marker numbering
 - [x] Changed SortableWaypointItem.tsx line 67 from `index + 1` to `index`
+
+
+## Bug Fixes - Calendar Integration
+
+### Important Dates Calendar UI Issue
+- [ ] Fix Calendar component displaying inline instead of in popover
+- [ ] Ensure calendar only shows when "Pick a date" button is clicked
+- [ ] Test calendar picker UI in ContactEditDialog
+
+### Google Calendar Event Display Issue
+- [ ] Investigate why calendar events for Nov 25-28 are not showing in Randy PT Schedule calendar
+- [ ] Check calendar event creation logic for date range restrictions
+- [ ] Verify timezone handling in calendar integration
+- [ ] Test event creation for specific date range (Nov 25-28)
+- [ ] Fix root cause of missing calendar events
+
+
+## Critical Bugs - User Reported (Nov 26, 2025)
+
+- [ ] Fix Calendar UI display bug - calendar showing inline instead of in popover dropdown when adding important dates
+- [ ] Remove duplicate comment options (Needs Follow-up 3x, Special Instructions 2x, VIP Client 3x)
+- [ ] Investigate Google Calendar events not showing for Nov 25-28 in Randy PT Schedule calendar
+
+
+## Address Management Improvements - November 2024
+
+### Address Update Workflow
+- [x] When user edits waypoint address on route screen, show dialog asking: "Is this a temporary change for this route only, or would you like to update the contact's permanent address?"
+- [x] Add "Temporary (route only)" option to keep contact address unchanged
+- [x] Add "Update contact address" option to save to cached_contacts table
+- [x] Create backend procedure contacts.updateAddress to update contact address
+- [x] Test that contact address updates persist and sync to contact card
+
+### Google Maps Address Verification
+- [x] Integrate Google Maps Places Autocomplete API for address validation
+- [x] Add address autocomplete dropdown with suggestions as user types
+- [x] Show formatted address suggestions with city, state, ZIP
+- [x] Validate addresses against Google Maps database
+- [x] Auto-fill complete address when user selects from dropdown
+- [x] Add "powered by Google" attribution per API requirements
+- [x] Test address autocomplete in ContactEditDialog
+- [x] Test address autocomplete in waypoint address edit dialog
+
+## Page Header Updates - Routie Roo Themed Titles
+
+- [x] Route Setup Screen - "Plan Your Next Hop" (bold) with subtitle "Set up the route Roo will guide you through."
+- [x] Your Routes - "Your Hop Library" (bold) with subtitle "A clear, hop-by-hop look at your route." (italic/cursive)
+- [x] Your Contacts - "Your Kangaroo Crew" (bold) with subtitle "Everyone you connect with along the journey." (italic/cursive)
+- [x] Waypoints & Execution - "Hop-By-Hop Navigation" (bold) with subtitle "Every hop in order — smooth, simple, efficient." (italic/cursive)
+- [x] Missed Stops - "Missed Hops" with subtitle "Stops that need a second look before the route is complete." (italic/cursive)
