@@ -1148,3 +1148,9 @@
 - [x] Copy routieroo2.png to client/public folder as routie-roo-marker.png
 - [x] Update map marker to use Routie Roo image instead of flag icon
 - [x] Adjust marker size (48x64) and anchor point (24, 64) for proper positioning
+
+
+## Waypoint List Numbering Fix - November 2024
+- [x] Update waypoint list to show stops numbered from 1 (not 2)
+- [x] Ensure list numbering matches map marker numbering
+- [x] Changed SortableWaypointItem.tsx line 67 from `index + 1` to `index`

@@ -64,7 +64,7 @@ export function SortableWaypointItem({
           {waypoint.position === 0 ? (
             <Flag className="h-4 w-4" />
           ) : (
-            index + 1
+            index
           )}
         </div>
         <div className="flex-1 min-w-0">
