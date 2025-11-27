@@ -80,15 +80,9 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
   const validateAddressMutation = trpc.contacts.validateAddress.useMutation({
     onSuccess: (result) => {
       if (result.isValid && result.formattedAddress) {
-        toast.success(
-          `Address validated! ${result.formattedAddress}`,
-          {
-            action: {
-              label: "Use This",
-              onClick: () => setAddress(result.formattedAddress!),
-            },
-          }
-        );
+        // Automatically update the address field with the validated address
+        setAddress(result.formattedAddress);
+        toast.success(`✓ Address validated and updated to: ${result.formattedAddress}`);
       } else if (result.error) {
         toast.error(result.error);
       }
@@ -102,7 +96,7 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
   
   const handleValidateAddress = () => {
     if (!address || address.trim().length === 0) {
-      toast.error("Please enter an address first");
+      toast.error("Please enter an address to validate");
       return;
     }
     setValidating(true);

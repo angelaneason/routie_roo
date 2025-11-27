@@ -1236,3 +1236,38 @@
 - [x] Allow user to accept suggested formatted address
 - [x] Add loading state to validation button
 - [x] Test address validation with various address formats (7/7 unit tests passing)
+
+
+## Bug Fixes - Address Validation (November 26, 2024)
+
+- [ ] Fix "Use This" button in address validation toast - clicking it closes dialog instead of updating address field
+- [ ] Ensure validated address fills the input field and keeps dialog open
+- [ ] Test address validation flow in ContactEditDialog
+- [ ] Test address validation flow in RouteDetail Edit Address dialog
+
+## Changed Addresses Report Feature (November 26, 2024)
+
+### Database Schema
+- [ ] Add addressModifiedAt timestamp to cached_contacts table
+- [ ] Add originalAddress field to cached_contacts table to track Google's version
+- [ ] Push database schema changes
+
+### Backend Implementation
+- [ ] Create contacts.getChangedAddresses procedure to fetch contacts with modified addresses
+- [ ] Return contact name, original address, new address, and modification date
+- [ ] Add CSV export functionality for changed addresses report
+
+### Frontend Implementation
+- [ ] Create Changed Addresses Report page/section
+- [ ] Display table with: Contact Name, Original Address, New Address, Date Modified
+- [ ] Add "Mark as Synced" toggle/button for each contact to remove from report after manual Google update
+- [ ] Add "Export to CSV" button for manual Google Contacts sync
+- [ ] Add navigation link to report from Settings or main menu
+- [ ] Show count of changed addresses that need manual sync
+- [ ] Filter out contacts marked as synced from the report
+
+### Testing
+- [ ] Test that address changes are tracked with timestamps
+- [ ] Test "Mark as Synced" removes contacts from report
+- [ ] Test CSV export format is compatible with Google Contacts import
+- [ ] Verify report shows only unsynced modified contacts

@@ -243,6 +243,15 @@ export const appRouter = router({
 
         const { cachedContacts } = await import("../drizzle/schema");
         
+        // Get current contact to check if address changed
+        const currentContact = await db.select().from(cachedContacts)
+          .where(eq(cachedContacts.id, input.contactId))
+          .limit(1);
+        
+        if (!currentContact.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Contact not found" });
+        }
+        
         const updateData: any = {
           name: input.name,
           email: input.email,
@@ -250,6 +259,26 @@ export const appRouter = router({
           phoneNumbers: JSON.stringify(input.phoneNumbers),
           updatedAt: new Date(),
         };
+        
+        // Track address changes
+        const oldAddress = currentContact[0].address;
+        const newAddress = input.address;
+        
+        // If this is the first time we're tracking the original address, save it
+        if (!currentContact[0].originalAddress && oldAddress) {
+          updateData.originalAddress = oldAddress;
+        }
+        
+        // If address changed from original, mark as modified
+        const originalAddress = currentContact[0].originalAddress || oldAddress;
+        if (originalAddress && newAddress && originalAddress !== newAddress) {
+          updateData.addressModified = 1;
+          updateData.addressModifiedAt = new Date();
+        } else if (originalAddress === newAddress) {
+          // If address was changed back to original, clear modified flag
+          updateData.addressModified = 0;
+          updateData.addressModifiedAt = null;
+        }
         
         if (input.importantDates !== undefined) {
           updateData.importantDates = JSON.stringify(input.importantDates);
@@ -371,6 +400,28 @@ export const appRouter = router({
       .mutation(async ({ input }) => {        const result = await validateAddress(input.address);
         return result;
       }),
+    
+    // Get contacts with modified addresses
+    getChangedAddresses: protectedProcedure.query(async ({ ctx }) => {
+      const { getChangedAddresses } = await import("./changedAddresses");
+      return await getChangedAddresses(ctx.user.id);
+    }),
+    
+    // Mark a contact's address as synced
+    markAddressSynced: protectedProcedure
+      .input(z.object({
+        contactId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { markAddressSynced } = await import("./changedAddresses");
+        return await markAddressSynced(input.contactId, ctx.user.id);
+      }),
+    
+    // Mark all contacts' addresses as synced
+    markAllAddressesSynced: protectedProcedure.mutation(async ({ ctx }) => {
+      const { markAllAddressesSynced } = await import("./changedAddresses");
+      return await markAllAddressesSynced(ctx.user.id);
+    }),
   }),
 
   folders: router({
@@ -1258,12 +1309,42 @@ export const appRouter = router({
 
         // If user wants to update contact address permanently
         if (input.updateContact && input.contactId) {
-          await db.update(cachedContacts)
-            .set({ address: input.address })
+          // Get current contact to check if address changed
+          const currentContact = await db.select().from(cachedContacts)
             .where(and(
               eq(cachedContacts.id, input.contactId),
               eq(cachedContacts.userId, ctx.user.id)
-            ));
+            ))
+            .limit(1);
+          
+          if (currentContact.length) {
+            const contactUpdateData: any = { address: input.address };
+            const oldAddress = currentContact[0].address;
+            const newAddress = input.address;
+            
+            // If this is the first time we're tracking the original address, save it
+            if (!currentContact[0].originalAddress && oldAddress) {
+              contactUpdateData.originalAddress = oldAddress;
+            }
+            
+            // If address changed from original, mark as modified
+            const originalAddress = currentContact[0].originalAddress || oldAddress;
+            if (originalAddress && newAddress && originalAddress !== newAddress) {
+              contactUpdateData.addressModified = 1;
+              contactUpdateData.addressModifiedAt = new Date();
+            } else if (originalAddress === newAddress) {
+              // If address was changed back to original, clear modified flag
+              contactUpdateData.addressModified = 0;
+              contactUpdateData.addressModifiedAt = null;
+            }
+            
+            await db.update(cachedContacts)
+              .set(contactUpdateData)
+              .where(and(
+                eq(cachedContacts.id, input.contactId),
+                eq(cachedContacts.userId, ctx.user.id)
+              ));
+          }
         }
 
         return { success: true };

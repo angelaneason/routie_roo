@@ -109,6 +109,9 @@ export const cachedContacts = mysqlTable("cached_contacts", {
   isActive: int("isActive").default(1).notNull(), // 1 = active, 0 = inactive
   importantDates: text("importantDates"), // JSON array of {type: string, date: string} - user-defined important dates
   comments: text("comments"), // JSON array of {option: string, customText?: string} - user-defined comments
+  originalAddress: text("originalAddress"), // Original address from Google Contacts (for tracking changes)
+  addressModified: int("addressModified").default(0).notNull(), // 1 if address was modified in Routie Roo, 0 if not
+  addressModifiedAt: timestamp("addressModifiedAt"), // When address was last modified
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

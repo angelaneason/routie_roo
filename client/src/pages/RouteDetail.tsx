@@ -185,15 +185,9 @@ export default function RouteDetail() {
   const validateAddressMutation = trpc.contacts.validateAddress.useMutation({
     onSuccess: (result) => {
       if (result.isValid && result.formattedAddress) {
-        toast.success(
-          `Address validated! ${result.formattedAddress}`,
-          {
-            action: {
-              label: "Use This",
-              onClick: () => setEditingAddress(result.formattedAddress!),
-            },
-          }
-        );
+        // Automatically update the address field with the validated address
+        setEditingAddress(result.formattedAddress);
+        toast.success(`✓ Address validated and updated to: ${result.formattedAddress}`);
       } else if (result.error) {
         toast.error(result.error);
       }
