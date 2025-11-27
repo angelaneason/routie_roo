@@ -42,7 +42,7 @@ import {
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
 import { validateAddress } from "./addressValidation";
-import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes, InsertRoute, cachedContacts } from "../drizzle/schema";
+import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes, InsertRoute, cachedContacts, rescheduleHistory } from "../drizzle/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -1067,6 +1067,20 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
         }
 
+        // Log to reschedule history
+        await db.insert(rescheduleHistory).values({
+          userId: ctx.user.id,
+          waypointId: input.waypointId,
+          routeId: waypoint[0].routeId,
+          routeName: route.name,
+          contactName: waypoint[0].contactName || 'Unknown',
+          address: waypoint[0].address,
+          originalDate: route.scheduledDate,
+          rescheduledDate: new Date(input.rescheduledDate),
+          missedReason: waypoint[0].missedReason,
+          status: 'pending',
+        });
+
         await db.update(routeWaypoints)
           .set({ 
             rescheduledDate: new Date(input.rescheduledDate),
@@ -1794,6 +1808,35 @@ export const appRouter = router({
         return result;
       }),
 
+    // Get reschedule history
+    getRescheduleHistory: protectedProcedure
+      .input(z.object({
+        status: z.enum(["pending", "completed", "re_missed", "cancelled"]).optional(),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        let query = db.select()
+          .from(rescheduleHistory)
+          .where(eq(rescheduleHistory.userId, ctx.user.id));
+
+        // Filter by status if provided
+        if (input?.status) {
+          query = db.select()
+            .from(rescheduleHistory)
+            .where(
+              and(
+                eq(rescheduleHistory.userId, ctx.user.id),
+                eq(rescheduleHistory.status, input.status)
+              )
+            );
+        }
+
+        const history = await query.orderBy(desc(rescheduleHistory.createdAt));
+        return history;
+      }),
+
     // Add note to route
     addNote: protectedProcedure
       .input(z.object({
@@ -2266,6 +2309,41 @@ export const appRouter = router({
           });
         });
         
+        // Get rescheduled stops (missed waypoints with rescheduledDate)
+        const rescheduledStops = await db
+          .select({
+            waypoint: route_waypoints,
+            route: routes,
+          })
+          .from(route_waypoints)
+          .innerJoin(routes, eq(route_waypoints.routeId, routes.id))
+          .where(
+            and(
+              eq(routes.userId, ctx.user.id),
+              eq(route_waypoints.status, 'missed'),
+              sql`${route_waypoints.rescheduledDate} IS NOT NULL`,
+              sql`${route_waypoints.rescheduledDate} >= ${firstDay}`,
+              sql`${route_waypoints.rescheduledDate} <= ${lastDay}`
+            )
+          );
+        
+        // Convert rescheduled stops to calendar events
+        rescheduledStops.forEach(({ waypoint, route }) => {
+          allEvents.push({
+            id: `rescheduled-${waypoint.id}`,
+            waypointId: waypoint.id,
+            routeId: route.id,
+            routeName: route.name,
+            summary: `🔄 ${waypoint.contactName}`,
+            description: `Rescheduled stop from route: ${route.name}`,
+            start: waypoint.rescheduledDate?.toISOString() || '',
+            end: waypoint.rescheduledDate ? new Date(waypoint.rescheduledDate.getTime() + 30 * 60 * 1000).toISOString() : '', // 30 min default
+            location: waypoint.address,
+            type: 'rescheduled',
+            color: '#f59e0b', // Orange for rescheduled stops
+          });
+        });
+        
         // Fetch Google Calendar events if user has connected their calendar
         // Get user data directly from database by ID to get calendar tokens
         const userResult = await db.select()
@@ -2320,7 +2398,7 @@ export const appRouter = router({
                 end: event.end,
                 location: event.location,
                 type: 'google',
-                color: '#6b7280', // Gray for other Google events
+                color: event.color || '#6b7280', // Use calendar color or gray
                 htmlLink: event.htmlLink,
                 calendarId: event.calendarId, // Include calendar ID for color-coding
                 calendarName: event.calendarName,

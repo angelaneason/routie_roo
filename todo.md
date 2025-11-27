@@ -1419,3 +1419,37 @@
 - [x] Update email preview to show all four stage templates
 - [x] Provide default templates for each stage with appropriate tone/urgency
 - [x] Test that correct template is used for each reminder interval
+
+
+## Rescheduled Stops Management System
+
+### Calendar Integration
+- [x] Show rescheduled stops on calendar view as distinct event type
+- [x] Color code rescheduled stops differently from routes and Google events
+- [x] Display reschedule date/time on calendar grid
+- [x] Add click handler to view rescheduled stop details
+- [x] Group rescheduled stops by date on calendar
+
+### Create Route from Rescheduled Stops
+- [x] Add "Create Route from Selected" button to Mis-Hops page
+- [x] Add checkboxes to select individual rescheduled stops
+- [x] Implement backend procedure to create route from waypoint IDs
+- [x] Pre-populate route creation form with selected stops
+- [x] Clear reschedule status when stop is added to new route
+- [x] Show success message with link to new route
+
+### Reschedule History Tracking
+- [x] Create reschedule_history table to track all reschedule events
+- [x] Store: waypointId, originalDate, rescheduledDate, reason, status, createdAt
+- [x] Add backend procedures: logReschedule, getRescheduleHistory, updateRescheduleStatus
+- [x] Create RescheduleHistory page component
+- [x] Display all rescheduled stops with filters (pending, completed, re-missed)
+- [x] Show original route, contact name, reschedule reason, dates
+- [x] Add navigation link to RescheduleHistory page in header
+- [x] Export reschedule history to CSV
+
+### Testing
+- [x] Write tests for calendar integration with rescheduled stops
+- [x] Write tests for route creation from rescheduled stops
+- [x] Write tests for reschedule history logging
+- [x] Test complete workflow: miss stop → reschedule → create route → complete

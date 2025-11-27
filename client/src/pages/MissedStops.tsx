@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { StopStatusBadge } from "@/components/StopStatusBadge";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { AlertTriangle, ArrowLeft, Calendar, Loader2, MapPin } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Calendar, Loader2, MapPin, Route } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -17,6 +18,7 @@ export default function MissedStops() {
   const [, navigate] = useLocation();
   const [selectedWaypoint, setSelectedWaypoint] = useState<any | null>(null);
   const [rescheduledDate, setRescheduledDate] = useState("");
+  const [selectedWaypoints, setSelectedWaypoints] = useState<number[]>([]);
 
   const missedWaypointsQuery = trpc.routes.getMissedWaypoints.useQuery(
     undefined,
@@ -160,10 +162,27 @@ export default function MissedStops() {
               {rescheduled.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Rescheduled Stops ({rescheduled.length})</CardTitle>
-                    <CardDescription>
-                      These stops have been rescheduled
-                    </CardDescription>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Rescheduled Stops ({rescheduled.length})</CardTitle>
+                        <CardDescription>
+                          These stops have been rescheduled
+                        </CardDescription>
+                      </div>
+                      {selectedWaypoints.length > 0 && (
+                        <Button
+                          onClick={() => {
+                            // Navigate to home page with selected waypoints
+                            const waypointIds = selectedWaypoints.join(',');
+                            navigate(`/?createRouteFromWaypoints=${waypointIds}`);
+                          }}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <Route className="h-4 w-4 mr-2" />
+                          Create Route from Selected ({selectedWaypoints.length})
+                        </Button>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -172,7 +191,18 @@ export default function MissedStops() {
                           key={waypoint.id}
                           className="border rounded-lg p-4 bg-white"
                         >
-                          <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3">
+                            <Checkbox
+                              checked={selectedWaypoints.includes(waypoint.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedWaypoints([...selectedWaypoints, waypoint.id]);
+                                } else {
+                                  setSelectedWaypoints(selectedWaypoints.filter(id => id !== waypoint.id));
+                                }
+                              }}
+                              className="mt-1"
+                            />
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <StopStatusBadge status="missed" />

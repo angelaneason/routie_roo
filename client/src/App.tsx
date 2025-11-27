@@ -13,6 +13,7 @@ import Calendar from "./pages/Calendar";
 import ArchivedRoutes from "./pages/ArchivedRoutes";
 import ChangedAddresses from "./pages/ChangedAddresses";
 import ReminderHistory from "./pages/ReminderHistory";
+import RescheduleHistory from "./pages/RescheduleHistory";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/archived-routes" component={ArchivedRoutes} />
       <Route path={"/changed-addresses"} component={ChangedAddresses} />
       <Route path={"/reminder-history"} component={ReminderHistory} />
+      <Route path={"/reschedule-history"} component={RescheduleHistory} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

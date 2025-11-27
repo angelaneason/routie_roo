@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS reschedule_history (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  waypointId INT NOT NULL,\n  routeId INT NOT NULL,\n  routeName VARCHAR(255) NOT NULL,\n  contactName VARCHAR(255) NOT NULL,\n  address TEXT NOT NULL,\n  originalDate TIMESTAMP NULL,\n  rescheduledDate TIMESTAMP NOT NULL,\n  missedReason TEXT,\n  status ENUM('pending', 'completed', 're_missed', 'cancelled') DEFAULT 'pending' NOT NULL,\n  completedAt TIMESTAMP NULL,\n  notes TEXT,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL\n)",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute CREATE TABLE IF NOT EXISTS reschedule_history (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  waypointId INT NOT NULL,\n  routeId INT NOT NULL,\n  routeName VARCHAR(255) NOT NULL,\n  contactName VARCHAR(255) NOT NULL,\n  address TEXT NOT NULL,\n  originalDate TIMESTAMP NULL,\n  rescheduledDate TIMESTAMP NOT NULL,\n  missedReason TEXT,\n  status ENUM('pending', 'completed', 're_missed', 'cancelled') DEFAULT 'pending' NOT NULL,\n  completedAt TIMESTAMP NULL,\n  notes TEXT,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL\n)",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 192
+}

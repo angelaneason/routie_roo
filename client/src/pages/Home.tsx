@@ -22,7 +22,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { APP_TITLE, APP_LOGO, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon, Archive, FileText, Paperclip, Info } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon, Archive, FileText, Paperclip, Info, History } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { ContactEditDialog } from "@/components/ContactEditDialog";
@@ -70,12 +70,13 @@ export default function Home() {
   const [showBulkDocumentUpload, setShowBulkDocumentUpload] = useState(false);
   const [viewingContact, setViewingContact] = useState<any | null>(null);
 
-  // Check for OAuth callback status
+  // Check for OAuth callback status and route creation from waypoints
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const syncStatus = params.get("sync");
     const calendarAuth = params.get("calendar_auth");
     const data = params.get("data");
+    const createFromWaypoints = params.get("createRouteFromWaypoints");
     
     if (syncStatus === "success") {
       toast.success("Contacts synced! Routie's ready to help 🦘");
@@ -94,6 +95,20 @@ export default function Home() {
         toast.error("Failed to process calendar data");
         window.history.replaceState({}, "", "/");
       }
+    } else if (createFromWaypoints) {
+      // Handle route creation from rescheduled waypoints
+      const waypointIds = createFromWaypoints.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+      if (waypointIds.length > 0) {
+        toast.info(`Creating route from ${waypointIds.length} rescheduled stop(s)...`);
+        // Scroll to route creation form
+        setTimeout(() => {
+          const routeForm = document.getElementById('route-creation-form');
+          if (routeForm) {
+            routeForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+      window.history.replaceState({}, "", "/");
     }
   }, []);
 
@@ -532,6 +547,12 @@ export default function Home() {
                 Missed Stops
               </Button>
             </Link>
+            <Link href="/reschedule-history">
+              <Button variant="outline" size="sm">
+                <History className="h-4 w-4 mr-2" />
+                Reschedule History
+              </Button>
+            </Link>
             <Link href="/archived-routes">
               <Button variant="outline" size="sm">
                 <Archive className="h-4 w-4 mr-2" />
@@ -568,7 +589,7 @@ export default function Home() {
           <div className="space-y-6">
             {/* Create Route Section */}
             {hasContacts && (
-              <Card>
+              <Card id="route-creation-form">
               <CardHeader>
                 <CardTitle className="font-bold">Plan Your Next Hop</CardTitle>
                 <CardDescription>

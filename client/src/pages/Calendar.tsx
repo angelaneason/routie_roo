@@ -130,6 +130,9 @@ export default function Calendar() {
     if (event.type === 'route') {
       return 'bg-blue-500';
     }
+    if (event.type === 'rescheduled') {
+      return 'bg-orange-500'; // Orange for rescheduled stops
+    }
     // Find calendar and use its color
     const calendar = calendars.find((c: any) => c.id === event.calendarId);
     return calendar?.backgroundColor || 'bg-gray-400';
@@ -568,6 +571,22 @@ export default function Calendar() {
                 >
                   Month
                 </Button>
+              </div>
+            </div>
+            
+            {/* Event type legend */}
+            <div className="flex items-center gap-4 mb-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded bg-blue-500" />
+                <span className="text-gray-600">Routes</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded bg-orange-500" />
+                <span className="text-gray-600">Rescheduled Stops</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded bg-gray-400" />
+                <span className="text-gray-600">Google Calendar</span>
               </div>
             </div>
 

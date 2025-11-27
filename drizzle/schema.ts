@@ -275,3 +275,27 @@ export const reminderHistory = mysqlTable("reminder_history", {
 
 export type ReminderHistory = typeof reminderHistory.$inferSelect;
 export type InsertReminderHistory = typeof reminderHistory.$inferInsert;
+
+/**
+ * Reschedule History table - tracks all reschedule events for missed stops
+ */
+export const rescheduleHistory = mysqlTable("reschedule_history", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // User who owns the route
+  waypointId: int("waypointId").notNull(), // Waypoint that was rescheduled
+  routeId: int("routeId").notNull(), // Original route
+  routeName: varchar("routeName", { length: 255 }).notNull(), // Route name (denormalized)
+  contactName: varchar("contactName", { length: 255 }).notNull(), // Contact name (denormalized)
+  address: text("address").notNull(), // Stop address (denormalized)
+  originalDate: timestamp("originalDate"), // Original scheduled date (if route was scheduled)
+  rescheduledDate: timestamp("rescheduledDate").notNull(), // New rescheduled date
+  missedReason: text("missedReason"), // Reason for missing the stop
+  status: mysqlEnum("status", ["pending", "completed", "re_missed", "cancelled"]).default("pending").notNull(),
+  completedAt: timestamp("completedAt"), // When the rescheduled stop was completed
+  notes: text("notes"), // Additional notes
+  createdAt: timestamp("createdAt").defaultNow().notNull(), // When the reschedule was created
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type RescheduleHistory = typeof rescheduleHistory.$inferSelect;
+export type InsertRescheduleHistory = typeof rescheduleHistory.$inferInsert;
