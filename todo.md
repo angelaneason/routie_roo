@@ -1359,3 +1359,22 @@
 - [x] Use shadcn/ui Tabs component for clean implementation
 - [x] Ensure mobile responsiveness
 - [x] Test tab switching and content display
+
+
+## Email Template Editor
+
+- [ ] Add email template fields to users table (subject, body for contact, body for team)
+- [ ] Create email template editor UI in Settings → Contacts tab
+- [ ] Support template variables like {{contactName}}, {{dateType}}, {{date}}, {{daysUntil}}
+- [ ] Add emoji support in email templates
+- [ ] Preview email template before saving
+- [ ] Update email sending to use custom templates
+- [ ] Provide default template with emojis
+
+## Emoji Support in Comments
+
+- [ ] Add emoji picker component to comment fields
+- [ ] Install emoji picker library (emoji-picker-react or similar)
+- [ ] Add emoji button next to comment textarea
+- [ ] Test emoji display in saved comments
+- [ ] Ensure emojis work across all comment fields (contact comments, route notes, route comments)

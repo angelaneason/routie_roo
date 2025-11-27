@@ -25,6 +25,9 @@ export const users = mysqlTable("users", {
   enableDateReminders: int("enableDateReminders").default(0).notNull(), // 0 = disabled, 1 = enabled
   reminderIntervals: text("reminderIntervals"), // JSON array of days before date to send reminders (e.g., [30, 10, 5])
   enabledReminderDateTypes: text("enabledReminderDateTypes"), // JSON array of date types that trigger reminders (e.g., ["License Renewal", "Birthday"])
+  reminderEmailSubject: text("reminderEmailSubject"), // Custom email subject template
+  reminderEmailBodyContact: text("reminderEmailBodyContact"), // Custom email body for contact
+  reminderEmailBodyTeam: text("reminderEmailBodyTeam"), // Custom email body for scheduling team
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

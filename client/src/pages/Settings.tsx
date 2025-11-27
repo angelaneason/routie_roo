@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { APP_TITLE } from "@/const";
@@ -367,7 +368,78 @@ export default function Settings() {
                       </div>
                     </div>
                     
-                    <div className="flex items-center justify-between">
+                    {/* Email Template Editor */}
+                    <div className="space-y-4 pt-4 border-t">
+                      <div>
+                        <Label className="text-base font-semibold">Email Template Customization</Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Customize the email content sent to contacts and your team. Use template variables in curly braces: contactName, dateType, date, daysUntil
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="email-subject">Email Subject</Label>
+                        <Input
+                          id="email-subject"
+                          placeholder="🔔 Reminder: {dateType} coming up in {daysUntil} days"
+                          defaultValue={currentUser?.reminderEmailSubject || ""}
+                          onBlur={(e) => {
+                            if (e.target.value !== currentUser?.reminderEmailSubject) {
+                              updateSettingsMutation.mutate({
+                                reminderEmailSubject: e.target.value || null
+                              });
+                            }
+                          }}
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          Leave blank to use default template
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="email-body-contact">Email Body (For Contact)</Label>
+                        <Textarea
+                          id="email-body-contact"
+                          placeholder="Hi {contactName} 👋\n\nThis is a friendly reminder from Routie Roo!\n\n📅 Important Date Approaching:\n- Type: {dateType}\n- Date: {date}\n- Days Until: {daysUntil} days"
+                          rows={8}
+                          defaultValue={currentUser?.reminderEmailBodyContact || ""}
+                          onBlur={(e) => {
+                            if (e.target.value !== currentUser?.reminderEmailBodyContact) {
+                              updateSettingsMutation.mutate({
+                                reminderEmailBodyContact: e.target.value || null
+                              });
+                            }
+                          }}
+                          className="font-mono text-sm"
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          Leave blank to use default template. Emojis are supported! 🦘
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="email-body-team">Email Body (For Scheduling Team)</Label>
+                        <Textarea
+                          id="email-body-team"
+                          placeholder="Hi Team,\n\nA reminder has been sent to {contactName} regarding their upcoming {dateType} on {date} ({daysUntil} days away).\n\nYou may want to follow up to ensure they're prepared."
+                          rows={6}
+                          defaultValue={currentUser?.reminderEmailBodyTeam || ""}
+                          onBlur={(e) => {
+                            if (e.target.value !== currentUser?.reminderEmailBodyTeam) {
+                              updateSettingsMutation.mutate({
+                                reminderEmailBodyTeam: e.target.value || null
+                              });
+                            }
+                          }}
+                          className="font-mono text-sm"
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          Leave blank to use default template
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between pt-4 border-t">
                       <div>
                         <Label>Enable Date Reminders</Label>
                         <p className="text-sm text-muted-foreground">Turn on/off automatic email reminders</p>
