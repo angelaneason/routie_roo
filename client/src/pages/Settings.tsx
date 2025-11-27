@@ -45,6 +45,7 @@ export default function Settings() {
   
   const userQuery = trpc.auth.me.useQuery();
   const startingPointsQuery = trpc.settings.listStartingPoints.useQuery();
+  const dateTypesQuery = trpc.settings.listImportantDateTypes.useQuery();
   
   const createStartingPointMutation = trpc.settings.createStartingPoint.useMutation({
     onSuccess: () => {
@@ -319,6 +320,61 @@ export default function Settings() {
                     </p>
                   </div>
                   
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Select Date Types for Reminders</Label>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Choose which important date types will trigger email reminders
+                      </p>
+                      {dateTypesQuery.isLoading ? (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Loading date types...
+                        </div>
+                      ) : dateTypesQuery.data && dateTypesQuery.data.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          {dateTypesQuery.data.map((dateType) => {
+                            const enabledTypes = currentUser?.enabledReminderDateTypes
+                              ? JSON.parse(currentUser.enabledReminderDateTypes)
+                              : null; // null means all enabled by default
+                            const isEnabled = enabledTypes === null || enabledTypes.includes(dateType.type);
+                            
+                            return (
+                              <label
+                                key={dateType.id}
+                                className="flex items-center gap-2 p-2 rounded border hover:bg-accent cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isEnabled}
+                                  onChange={(e) => {
+                                    const currentEnabled = currentUser?.enabledReminderDateTypes
+                                      ? JSON.parse(currentUser.enabledReminderDateTypes)
+                                      : dateTypesQuery.data?.map(dt => dt.type) || [];
+                                    
+                                    const newEnabled = e.target.checked
+                                      ? [...currentEnabled, dateType.type]
+                                      : currentEnabled.filter((t: string) => t !== dateType.type);
+                                    
+                                    updateSettingsMutation.mutate({
+                                      enabledReminderDateTypes: newEnabled
+                                    });
+                                  }}
+                                  className="h-4 w-4"
+                                />
+                                <span className="text-sm">{dateType.type}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          No date types configured yet. Add them in the "Important Date Types" section below.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Enable Date Reminders</Label>
@@ -335,6 +391,14 @@ export default function Settings() {
                     >
                       {currentUser?.enableDateReminders ? "Enabled" : "Disabled"}
                     </Button>
+                  </div>
+                  
+                  <div className="pt-4 border-t">
+                    <Link href="/reminder-history">
+                      <Button variant="outline" className="w-full">
+                        View Reminder History
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>

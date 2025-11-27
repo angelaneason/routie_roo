@@ -21,13 +21,14 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { APP_TITLE, APP_LOGO, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon, Archive, FileText, Paperclip } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon, Archive, FileText, Paperclip, Info } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { ContactEditDialog } from "@/components/ContactEditDialog";
 import { ContactImportDialog } from "@/components/ContactImportDialog";
 import { DocumentUploadDialog } from "@/components/DocumentUploadDialog";
 import { BulkDocumentUploadDialog } from "@/components/BulkDocumentUploadDialog";
+import { ContactDetailDialog } from "@/components/ContactDetailDialog";
 import { StopTypeSelector, getStopTypeConfig, type StopType } from "@/components/StopTypeSelector";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -66,6 +67,7 @@ export default function Home() {
   const [uploadContactId, setUploadContactId] = useState<number | null>(null);
   const [uploadContactName, setUploadContactName] = useState<string>("");
   const [showBulkDocumentUpload, setShowBulkDocumentUpload] = useState(false);
+  const [viewingContact, setViewingContact] = useState<any | null>(null);
 
   // Check for OAuth callback status
   useEffect(() => {
@@ -1029,6 +1031,15 @@ export default function Home() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
+                            onClick={() => setViewingContact(contact)}
+                            title="View Details"
+                          >
+                            <Info className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
                             onClick={() => {
                               setUploadContactId(contact.id);
                               setUploadContactName(contact.name || "Contact");
@@ -1242,6 +1253,17 @@ export default function Home() {
         onUploadComplete={() => {
           // Refresh contacts if needed
           contactsQuery.refetch();
+        }}
+      />
+      
+      {/* Contact Detail Dialog */}
+      <ContactDetailDialog
+        contact={viewingContact}
+        open={!!viewingContact}
+        onOpenChange={(open) => !open && setViewingContact(null)}
+        onEdit={() => {
+          setEditingContact(viewingContact);
+          setViewingContact(null);
         }}
       />
 

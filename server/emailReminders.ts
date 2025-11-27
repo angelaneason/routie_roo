@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { getDb } from "./db";
-import { users, cachedContacts } from "../drizzle/schema";
+import { users, cachedContacts, reminderHistory } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
 /**
@@ -24,6 +24,16 @@ export async function getUpcomingDateReminders(userId: number) {
       intervals = JSON.parse(user[0].reminderIntervals);
     } catch {
       // Use default if parsing fails
+    }
+  }
+  
+  // Parse enabled date types (default: all types enabled)
+  let enabledDateTypes: string[] | null = null; // null means all types enabled
+  if (user[0].enabledReminderDateTypes) {
+    try {
+      enabledDateTypes = JSON.parse(user[0].enabledReminderDateTypes);
+    } catch {
+      // Use null (all enabled) if parsing fails
     }
   }
 
@@ -60,8 +70,11 @@ export async function getUpcomingDateReminders(userId: number) {
 
         // Check if date is within reminder intervals or past due
         const shouldRemind = intervals.includes(diffDays) || diffDays < 0;
+        
+        // Check if this date type is enabled for reminders
+        const isDateTypeEnabled = enabledDateTypes === null || enabledDateTypes.includes(dateEntry.type);
 
-        if (shouldRemind) {
+        if (shouldRemind && isDateTypeEnabled) {
           reminders.push({
             contactId: contact.id,
             contactName: contact.name || "Unknown",
@@ -88,6 +101,7 @@ export async function getUpcomingDateReminders(userId: number) {
  */
 export async function sendDateReminder(params: {
   userId: number;
+  contactId: number;
   contactName: string;
   contactEmail: string | null;
   schedulingEmail: string | null;
@@ -107,6 +121,25 @@ export async function sendDateReminder(params: {
     ? `${params.contactName}'s ${params.dateType} (${params.date}) is past due by ${Math.abs(params.daysUntil)} days.`
     : `${params.contactName}'s ${params.dateType} is coming up on ${params.date} (${params.daysUntil} days from now).`;
 
+  // Log to reminder history
+  const db = await getDb();
+  if (db) {
+    try {
+      await db.insert(reminderHistory).values({
+        userId: params.userId,
+        contactId: params.contactId,
+        contactName: params.contactName,
+        dateType: params.dateType,
+        importantDate: params.date,
+        reminderType: params.isPastDue ? "past_due" : `${params.daysUntil}_days`,
+        sentTo: JSON.stringify([params.contactEmail, params.schedulingEmail].filter(Boolean)),
+        status: "success",
+      });
+    } catch (error) {
+      console.error("Failed to log reminder history:", error);
+    }
+  }
+  
   // TODO: Implement actual email sending
   // For now, just return success
   return {
@@ -139,6 +172,7 @@ export async function processUserReminders(userId: number) {
     try {
       await sendDateReminder({
         userId,
+        contactId: reminder.contactId,
         contactName: reminder.contactName,
         contactEmail: reminder.contactEmail,
         schedulingEmail,

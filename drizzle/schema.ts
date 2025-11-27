@@ -21,9 +21,10 @@ export const users = mysqlTable("users", {
   googleCalendarList: text("googleCalendarList"), // JSON: Array of { id, summary, backgroundColor } from Google Calendar API
   calendarPreferences: text("calendarPreferences"), // JSON: { visibleCalendars: string[], defaultCalendar: string }
   autoArchiveDays: int("autoArchiveDays"), // Days after completion to auto-archive (null = never)
-  schedulingEmail: varchar("schedulingEmail", { length: 320 }), // Email address for scheduling team to receive reminders
-  enableDateReminders: int("enableDateReminders").default(1), // 1 = enabled, 0 = disabled
-  reminderIntervals: text("reminderIntervals"), // JSON: Array of reminder days [30, 10, 5] before important dates
+  schedulingEmail: varchar("schedulingEmail", { length: 320 }), // Email for scheduling team
+  enableDateReminders: int("enableDateReminders").default(0).notNull(), // 0 = disabled, 1 = enabled
+  reminderIntervals: text("reminderIntervals"), // JSON array of days before date to send reminders (e.g., [30, 10, 5])
+  enabledReminderDateTypes: text("enabledReminderDateTypes"), // JSON array of date types that trigger reminders (e.g., ["License Renewal", "Birthday"])
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -241,3 +242,23 @@ export const contactDocuments = mysqlTable("contact_documents", {
 
 export type ContactDocument = typeof contactDocuments.$inferSelect;
 export type InsertContactDocument = typeof contactDocuments.$inferInsert;
+
+/**
+ * Reminder History table - tracks sent email reminders for important dates
+ */
+export const reminderHistory = mysqlTable("reminder_history", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // User who owns the contact
+  contactId: int("contactId").notNull(), // Contact the reminder was sent for
+  contactName: varchar("contactName", { length: 255 }).notNull(), // Contact name (denormalized for history)
+  dateType: varchar("dateType", { length: 100 }).notNull(), // Type of date (e.g., "License Renewal", "Birthday")
+  importantDate: varchar("importantDate", { length: 50 }).notNull(), // The actual important date
+  reminderType: varchar("reminderType", { length: 50 }).notNull(), // "30_days", "10_days", "5_days", "past_due"
+  sentTo: text("sentTo").notNull(), // JSON array of email addresses sent to
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+  status: mysqlEnum("status", ["success", "failed"]).notNull(), // Whether email was sent successfully
+  errorMessage: text("errorMessage"), // Error message if failed
+});
+
+export type ReminderHistory = typeof reminderHistory.$inferSelect;
+export type InsertReminderHistory = typeof reminderHistory.$inferInsert;

@@ -1950,6 +1950,7 @@ export const appRouter = router({
         schedulingEmail: z.string().optional(), // Email for scheduling team reminders
         enableDateReminders: z.boolean().optional(), // Enable/disable date reminders
         reminderIntervals: z.array(z.number()).optional(), // Days before dates to send reminders
+        enabledReminderDateTypes: z.array(z.string()).optional(), // Date types that trigger reminders
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -1965,6 +1966,7 @@ export const appRouter = router({
         if (input.schedulingEmail !== undefined) updateData.schedulingEmail = input.schedulingEmail;
         if (input.enableDateReminders !== undefined) updateData.enableDateReminders = input.enableDateReminders ? 1 : 0;
         if (input.reminderIntervals !== undefined) updateData.reminderIntervals = JSON.stringify(input.reminderIntervals);
+        if (input.enabledReminderDateTypes !== undefined) updateData.enabledReminderDateTypes = JSON.stringify(input.enabledReminderDateTypes);
 
         await db.update(users)
           .set(updateData)
@@ -2141,6 +2143,32 @@ export const appRouter = router({
       const { processUserReminders } = await import("./emailReminders");
       return await processUserReminders(ctx.user.id);
     }),
+    
+    // Get reminder history for the user
+    getReminderHistory: protectedProcedure
+      .input(z.object({
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        
+        const limit = input?.limit || 50;
+        const offset = input?.offset || 0;
+        
+        const { reminderHistory } = await import("../drizzle/schema");
+        const { desc } = await import("drizzle-orm");
+        
+        const history = await db.select()
+          .from(reminderHistory)
+          .where(eq(reminderHistory.userId, ctx.user.id))
+          .orderBy(desc(reminderHistory.sentAt))
+          .limit(limit)
+          .offset(offset);
+        
+        return history;
+      }),
   }),
   
   calendar: router({

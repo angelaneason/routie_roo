@@ -1298,3 +1298,46 @@
 - [ ] Test email reminder system with different date scenarios
 - [ ] Add ability to configure which date types trigger reminders
 - [ ] Add reminder history/log for tracking sent notifications
+
+
+## Document Viewer in Contact Detail View
+
+- [x] Add Documents tab to contact detail view
+- [x] Display list of all uploaded documents for a contact
+- [x] Show file name, upload date, file size for each document
+- [x] Add download button for each document
+- [x] Add delete button for each document with confirmation
+- [x] Show empty state when no documents exist
+- [x] Add upload button in documents tab
+- [x] Test document viewer UI and functionality
+
+## Scheduled Reminder Job for Daily Email Checks
+
+- [x] Create scheduled job to run daily at 9 AM
+- [x] Job checks all users for upcoming important dates
+- [x] Send email reminders based on configured intervals
+- [x] Log successful and failed reminder sends
+- [x] Handle timezone considerations for scheduling
+- [x] Test scheduled job execution
+- [ ] Verify emails are sent at correct intervals
+
+## Reminder History Log and Tracking System
+
+- [x] Create reminder_history table in database
+- [x] Track: contactId, dateType, reminderDate, sentAt, sentTo, status
+- [x] Add backend query to fetch reminder history
+- [x] Create "Sent Reminders" page in UI
+- [x] Display reminder history with filters (date range, contact, status)
+- [x] Show success/failure status for each reminder
+- [x] Add pagination for large reminder lists
+- [x] Test reminder history tracking and display
+
+
+## Configure Which Date Types Trigger Email Reminders
+
+- [x] Add enabledReminderDateTypes field to users table (JSON array)
+- [x] Update backend to filter reminders by enabled date types only
+- [x] Add UI in Settings to show checkbox list of all date types
+- [x] Allow user to toggle each date type on/off for reminders
+- [x] Default to all date types enabled for backward compatibility
+- [x] Test that only enabled date types trigger reminders
