@@ -1341,3 +1341,12 @@
 - [x] Allow user to toggle each date type on/off for reminders
 - [x] Default to all date types enabled for backward compatibility
 - [x] Test that only enabled date types trigger reminders
+
+
+## Reorganize Settings Page
+
+- [x] Group settings into logical sections with clear headers
+- [x] Site Configuration section (distance units, calling service, app preferences)
+- [x] Contacts section (important date types, comment options, email reminders)
+- [x] Routes section (starting points, stop types, stop duration, calendar integration)
+- [x] Improve visual hierarchy and spacing between sections
