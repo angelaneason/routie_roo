@@ -1468,3 +1468,12 @@
 
 - [x] Make "Everyone you connect with along the journey" tagline span full width of section
 - [x] Adjust layout so tagline is not constrained by title column
+
+
+## Calendar Display Bug
+
+- [x] Investigate why calendar is not showing any events
+- [x] Check calendar.getEvents backend procedure
+- [x] Verify Calendar.tsx component rendering
+- [x] Check for console errors in browser
+- [x] Test with different date ranges

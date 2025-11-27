@@ -2312,18 +2312,18 @@ export const appRouter = router({
         // Get rescheduled stops (missed waypoints with rescheduledDate)
         const rescheduledStops = await db
           .select({
-            waypoint: route_waypoints,
+            waypoint: routeWaypoints,
             route: routes,
           })
-          .from(route_waypoints)
-          .innerJoin(routes, eq(route_waypoints.routeId, routes.id))
+          .from(routeWaypoints)
+          .innerJoin(routes, eq(routeWaypoints.routeId, routes.id))
           .where(
             and(
               eq(routes.userId, ctx.user.id),
-              eq(route_waypoints.status, 'missed'),
-              sql`${route_waypoints.rescheduledDate} IS NOT NULL`,
-              sql`${route_waypoints.rescheduledDate} >= ${firstDay}`,
-              sql`${route_waypoints.rescheduledDate} <= ${lastDay}`
+              eq(routeWaypoints.status, 'missed'),
+              sql`${routeWaypoints.rescheduledDate} IS NOT NULL`,
+              sql`${routeWaypoints.rescheduledDate} >= ${firstDay}`,
+              sql`${routeWaypoints.rescheduledDate} <= ${lastDay}`
             )
           );
         
