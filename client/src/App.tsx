@@ -23,6 +23,7 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/calendar" component={Calendar} />
       <Route path="/route/:id" component={RouteDetail} />
+      <Route path="/share/:token" component={SharedRouteExecution} />
       <Route path="/missed-stops" component={MissedStops} />
       <Route path="/archived-routes" component={ArchivedRoutes} />
       <Route path={"/changed-addresses"} component={ChangedAddresses} />
