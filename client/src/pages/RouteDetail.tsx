@@ -7,14 +7,16 @@ import { Label } from "@/components/ui/label";
 import { MapView } from "@/components/Map";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon, Download } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon, Download, Sparkles, Archive } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
+import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { StopStatusBadge, type StopStatus } from "@/components/StopStatusBadge";
 import { SortableWaypointItem } from "@/components/SortableWaypointItem";
+import RouteNotes from "@/components/RouteNotes";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "wouter";
+import { Link, useParams, useLocation } from "wouter";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -37,6 +39,7 @@ import { CSS } from "@dnd-kit/utilities";
 export default function RouteDetail() {
   const { id } = useParams<{ id: string }>();
   const routeId = id;
+  const [, navigate] = useLocation();
   const { user, isAuthenticated } = useAuth();
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
@@ -52,9 +55,17 @@ export default function RouteDetail() {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editRouteName, setEditRouteName] = useState("");
+  const [editRouteNotes, setEditRouteNotes] = useState("");
+  const [editFolderId, setEditFolderId] = useState<number | null>(null);
+  const [editStartingPoint, setEditStartingPoint] = useState("");
   const [showAddContactDialog, setShowAddContactDialog] = useState(false);
   const [editingWaypointId, setEditingWaypointId] = useState<number | null>(null);
   const [editingAddress, setEditingAddress] = useState("");
+  const [editingContactId, setEditingContactId] = useState<number | null>(null);
+  const [updateContactAddress, setUpdateContactAddress] = useState(false);
+  const [validatingAddress, setValidatingAddress] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -108,9 +119,30 @@ export default function RouteDetail() {
   const recalculateRouteMutation = trpc.routes.recalculateRoute.useMutation({
     onSuccess: (data) => {
       routeQuery.refetch();
+      toast.success("Route recalculated");
     },
     onError: (error) => {
-      console.error("Failed to recalculate route:", error.message);
+      toast.error(`Failed to recalculate: ${error.message}`);
+    },
+  });
+
+  const archiveRouteMutation = trpc.routes.archiveRoute.useMutation({
+    onSuccess: () => {
+      toast.success("Route archived");
+      navigate("/");
+    },
+    onError: (error) => {
+      toast.error(`Failed to archive: ${error.message}`);
+    },
+  });
+
+  const reoptimizeRouteMutation = trpc.routes.reoptimizeRoute.useMutation({
+    onSuccess: (data) => {
+      routeQuery.refetch();
+      toast.success(data.message);
+    },
+    onError: (error) => {
+      toast.error(`Failed to re-optimize: ${error.message}`);
     },
   });
 
@@ -129,10 +161,16 @@ export default function RouteDetail() {
   });
 
   const updateAddressMutation = trpc.routes.updateWaypointAddress.useMutation({
-    onSuccess: () => {
-      toast.success("Address updated");
+    onSuccess: (_, variables) => {
+      if (variables.updateContact) {
+        toast.success("Address updated for route and contact");
+      } else {
+        toast.success("Address updated for route only");
+      }
       setEditingWaypointId(null);
       setEditingAddress("");
+      setEditingContactId(null);
+      setUpdateContactAddress(false);
       routeQuery.refetch();
       // Recalculate route after updating address
       if (routeId) {
@@ -142,6 +180,57 @@ export default function RouteDetail() {
     onError: (error) => {
       toast.error(`Failed to update address: ${error.message}`);
     },
+  });
+  
+  const validateAddressMutation = trpc.contacts.validateAddress.useMutation({
+    onSuccess: (result) => {
+      if (result.isValid && result.formattedAddress) {
+        // Automatically update the address field with the validated address
+        setEditingAddress(result.formattedAddress);
+        toast.success(`✓ Address validated and updated to: ${result.formattedAddress}`);
+      } else if (result.error) {
+        toast.error(result.error);
+      }
+      setValidatingAddress(false);
+    },
+    onError: (error) => {
+      toast.error(`Validation failed: ${error.message}`);
+      setValidatingAddress(false);
+    },
+  });
+  
+  const handleValidateWaypointAddress = () => {
+    if (!editingAddress || editingAddress.trim().length === 0) {
+      toast.error("Please enter an address first");
+      return;
+    }
+    setValidatingAddress(true);
+    validateAddressMutation.mutate({ address: editingAddress });
+  };
+
+  const updateRouteMutation = trpc.routes.update.useMutation({
+    onSuccess: () => {
+      toast.success("Route updated successfully");
+      setShowEditDialog(false);
+      routeQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Failed to update route: ${error.message}`);
+    },
+  });
+
+  const clearCalendarEventsMutation = trpc.routes.clearCalendarEvents.useMutation({
+    onSuccess: () => {
+      toast.success("Calendar events cleared");
+      routeQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Failed to clear calendar events: ${error.message}`);
+    },
+  });
+
+  const foldersQuery = trpc.folders.list.useQuery(undefined, {
+    enabled: isAuthenticated,
   });
 
   const closeDialog = () => {
@@ -245,23 +334,14 @@ export default function RouteDetail() {
           const route = result.routes[0];
           
           if (route && route.legs) {
-            // First marker at the start location
+            // First marker at the start location (Routie Roo mascot)
             const startMarker = new google.maps.Marker({
               position: route.legs[0].start_location,
               map,
-              label: {
-                text: "1",
-                color: "white",
-                fontSize: "14px",
-                fontWeight: "bold",
-              },
               icon: {
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 20,
-                fillColor: "#4F46E5",
-                fillOpacity: 1,
-                strokeColor: "white",
-                strokeWeight: 2,
+                url: '/routie-roo-marker.png',
+                scaledSize: new google.maps.Size(48, 64),
+                anchor: new google.maps.Point(24, 64),
               },
             });
             newMarkers.push(startMarker);
@@ -273,7 +353,7 @@ export default function RouteDetail() {
                   position: leg.end_location,
                   map,
                   label: {
-                    text: String(index + 2),
+                    text: String(index + 1),
                     color: "white",
                     fontSize: "14px",
                     fontWeight: "bold",
@@ -297,7 +377,7 @@ export default function RouteDetail() {
               position: lastLeg.end_location,
               map,
               label: {
-                text: String(waypoints.length),
+                text: String(waypoints.length - 1),
                 color: "white",
                 fontSize: "14px",
                 fontWeight: "bold",
@@ -391,6 +471,16 @@ export default function RouteDetail() {
   const handleCopyRoute = () => {
     if (!routeId) return;
     copyRouteMutation.mutate({ routeId: parseInt(routeId) });
+  };
+
+  const handleArchiveRoute = () => {
+    if (!routeId) return;
+    archiveRouteMutation.mutate({ routeId: parseInt(routeId) });
+  };
+
+  const handleReoptimizeRoute = () => {
+    if (!routeId) return;
+    reoptimizeRouteMutation.mutate({ routeId: parseInt(routeId) });
   };
 
   const handleExportToCSV = () => {
@@ -522,7 +612,7 @@ export default function RouteDetail() {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {isEditMode ? (
                 <>
                   <Button variant="outline" size="sm" onClick={() => setIsEditMode(false)}>
@@ -539,34 +629,46 @@ export default function RouteDetail() {
                   </Button>
                 </>
               ) : (
-                <>
-                  <Button variant="outline" size="sm" onClick={() => setIsEditMode(true)}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Route
+                 <>                  {/* Primary Actions */}
+                  <Button variant="outline" size="sm" onClick={handleReoptimizeRoute} disabled={reoptimizeRouteMutation.isPending}>
+                    {reoptimizeRouteMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4 mr-2" />
+                    )}
+                    Re-optimize
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleCopyRoute}>
-                    <CopyIcon className="h-4 w-4 mr-2" />
-                    Copy Route
+                  <Button size="sm" onClick={handleOpenInGoogleMaps}>
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open in Maps
                   </Button>
+                  
+                  {/* Sharing Actions */}
                   <Button variant="outline" size="sm" onClick={handleCopyShareLink}>
                     <Copy className="h-4 w-4 mr-2" />
                     Copy Link
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)}>
                     <Share2 className="h-4 w-4 mr-2" />
-                    Share for Execution
+                    Share
+                  </Button>
+                  
+                  {/* Secondary Actions */}
+                  <Button variant="outline" size="sm" onClick={handleCopyRoute}>
+                    <CopyIcon className="h-4 w-4 mr-2" />
+                    Copy
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleAddToCalendar}>
                     <Calendar className="h-4 w-4 mr-2" />
-                    Add to Calendar
+                    Calendar
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleExportToCSV}>
                     <Download className="h-4 w-4 mr-2" />
-                    Export to CSV
+                    Export
                   </Button>
-                  <Button size="sm" onClick={handleOpenInGoogleMaps}>
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Open in Google Maps
+                  <Button variant="outline" size="sm" onClick={handleArchiveRoute} disabled={archiveRouteMutation.isPending}>
+                    <Archive className="h-4 w-4 mr-2" />
+                    Archive
                   </Button>
                 </>
               )}
@@ -634,26 +736,38 @@ export default function RouteDetail() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Waypoints & Execution</span>
-                  <span className="text-sm font-normal text-muted-foreground">
-                    {waypoints.filter((w: any) => w.status === "complete").length} of {waypoints.length} complete
-                  </span>
-                </CardTitle>
-                <CardDescription>
-                  {isEditMode ? "Add or remove waypoints" : "Track your route progress"}
-                </CardDescription>
-                {isEditMode && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="mt-3 w-full"
-                    onClick={() => setShowAddContactDialog(true)}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Contact to Route
-                  </Button>
-                )}
+                <div className="space-y-1 mb-4">
+                  <CardTitle className="font-bold">Hop-By-Hop Navigation</CardTitle>
+                  <CardDescription className="italic">
+                    Every hop in order — smooth, simple, efficient.
+                  </CardDescription>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditRouteName(route?.name || "");
+                        setEditRouteNotes(route?.notes || "");
+                        setEditFolderId(route?.folderId || null);
+                        setEditStartingPoint(route?.startingPointAddress || "");
+                        setShowEditDialog(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Route
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowAddContactDialog(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Contact
+                    </Button>
+                  </div>
+                </div>
                 {!isEditMode && waypoints.length > 0 && (
                   <>
                     <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
@@ -762,12 +876,21 @@ export default function RouteDetail() {
                           onEditAddress={() => {
                             setEditingWaypointId(waypoint.id);
                             setEditingAddress(waypoint.address);
+                            setEditingContactId(waypoint.contactId || null);
+                            setUpdateContactAddress(false); // Reset to default (temporary)
                           }}
                         />
                       ))}
                     </div>
                   </SortableContext>
                 </DndContext>
+              </CardContent>
+            </Card>
+
+            {/* Route Notes */}
+            <Card>
+              <CardContent className="pt-6">
+                <RouteNotes routeId={Number(routeId)} />
               </CardContent>
             </Card>
           </div>
@@ -785,7 +908,7 @@ export default function RouteDetail() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="start-time">Start Time</Label>
+              <Label htmlFor="start-time" className="!font-bold">Start Time</Label>
               <Input
                 id="start-time"
                 type="datetime-local"
@@ -829,7 +952,7 @@ export default function RouteDetail() {
           <div className="space-y-4 py-4">
             {actionType === "miss" && (
               <div className="space-y-2">
-                <Label htmlFor="missed-reason">Reason for Missing Stop *</Label>
+                <Label htmlFor="missed-reason" className="!font-bold">Reason for Missing Stop *</Label>
                 <textarea
                   id="missed-reason"
                   placeholder="e.g., Customer not home, gate locked, wrong address..."
@@ -843,7 +966,7 @@ export default function RouteDetail() {
 
             {actionType === "reschedule" && (
               <div className="space-y-2">
-                <Label htmlFor="reschedule-date">Reschedule Date and Time *</Label>
+                <Label htmlFor="reschedule-date" className="!font-bold">Reschedule Date and Time *</Label>
                 <Input
                   id="reschedule-date"
                   type="datetime-local"
@@ -855,7 +978,7 @@ export default function RouteDetail() {
 
             {(actionType === "complete" || actionType === "note" || actionType === "miss") && (
               <div className="space-y-2">
-                <Label htmlFor="execution-notes">
+                <Label htmlFor="execution-notes" className="!font-bold">
                   Notes {actionType === "note" ? "*" : "(Optional)"}
                 </Label>
                 <textarea
@@ -907,7 +1030,7 @@ export default function RouteDetail() {
               </div>
             ) : (
               <div className="space-y-2">
-                <Label>Share Link</Label>
+                <Label className="!font-bold">Share Link</Label>
                 <div className="flex gap-2">
                   <Input
                     readOnly
@@ -947,6 +1070,105 @@ export default function RouteDetail() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Route Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Route</DialogTitle>
+            <DialogDescription>
+              Update route name, notes, folder, or starting point
+            </DialogDescription>
+          </DialogHeader>
+          {route?.googleCalendarId && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 space-y-2">
+              <p className="text-sm text-yellow-800">
+                ⚠️ This route has calendar events. Changes won't update automatically in Google Calendar.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (confirm("Clear calendar event tracking for this route? You can recreate events after editing.")) {
+                    clearCalendarEventsMutation.mutate({ routeId: parseInt(routeId!) });
+                  }
+                }}
+                disabled={clearCalendarEventsMutation.isPending}
+              >
+                {clearCalendarEventsMutation.isPending ? "Clearing..." : "Delete Calendar Events"}
+              </Button>
+            </div>
+          )}
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-route-name" className="!font-bold">Route Name</Label>
+              <Input
+                id="edit-route-name"
+                value={editRouteName}
+                onChange={(e) => setEditRouteName(e.target.value)}
+                placeholder="Enter route name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-route-notes" className="!font-bold">Notes (Optional)</Label>
+              <Input
+                id="edit-route-notes"
+                value={editRouteNotes}
+                onChange={(e) => setEditRouteNotes(e.target.value)}
+                placeholder="Add any notes or details about this route"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-folder" className="!font-bold">Folder (Optional)</Label>
+              <select
+                id="edit-folder"
+                value={editFolderId || ""}
+                onChange={(e) => setEditFolderId(e.target.value ? parseInt(e.target.value) : null)}
+                className="w-full px-3 py-2 border border-input rounded-md bg-background"
+              >
+                <option value="">No folder</option>
+                {foldersQuery.data?.map((folder) => (
+                  <option key={folder.id} value={folder.id}>
+                    {folder.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-starting-point" className="!font-bold">Starting Point (Optional)</Label>
+              <Input
+                id="edit-starting-point"
+                value={editStartingPoint}
+                onChange={(e) => setEditStartingPoint(e.target.value)}
+                placeholder="Enter starting address"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!editRouteName.trim()) {
+                  toast.error("Route name cannot be empty");
+                  return;
+                }
+                updateRouteMutation.mutate({
+                  routeId: parseInt(routeId!),
+                  name: editRouteName,
+                  notes: editRouteNotes || undefined,
+                  folderId: editFolderId,
+                  startingPointAddress: editStartingPoint || undefined,
+                });
+              }}
+              disabled={updateRouteMutation.isPending}
+            >
+              {updateRouteMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Address Dialog */}
       <Dialog open={editingWaypointId !== null} onOpenChange={(open) => !open && setEditingWaypointId(null)}>
         <DialogContent>
@@ -958,13 +1180,68 @@ export default function RouteDetail() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-address">Address</Label>
-              <Input
-                id="edit-address"
-                value={editingAddress}
-                onChange={(e) => setEditingAddress(e.target.value)}
-                placeholder="Enter new address"
-              />
+              <Label htmlFor="edit-address" className="!font-bold">Address</Label>
+              <div className="flex gap-2">
+                <AddressAutocomplete
+                  id="edit-address"
+                  value={editingAddress}
+                  onChange={setEditingAddress}
+                  placeholder="Start typing address for suggestions..."
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleValidateWaypointAddress}
+                  disabled={validatingAddress || !editingAddress}
+                  className="shrink-0"
+                >
+                  {validatingAddress ? (
+                    <>
+                      <div className="h-4 w-4 mr-1 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      Validating...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 mr-1" />
+                      Validate
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+            
+            <div className="space-y-3 pt-2 border-t">
+              <Label className="!font-bold">Address Update Scope</Label>
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="address-scope"
+                    checked={!updateContactAddress}
+                    onChange={() => setUpdateContactAddress(false)}
+                    className="w-4 h-4"
+                  />
+                  <div>
+                    <div className="font-medium">Temporary (route only)</div>
+                    <div className="text-sm text-muted-foreground">Update address for this route only</div>
+                  </div>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="address-scope"
+                    checked={updateContactAddress}
+                    onChange={() => setUpdateContactAddress(true)}
+                    className="w-4 h-4"
+                  />
+                  <div>
+                    <div className="font-medium">Update contact address permanently</div>
+                    <div className="text-sm text-muted-foreground">Save this address to the contact's profile</div>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -980,6 +1257,8 @@ export default function RouteDetail() {
                 updateAddressMutation.mutate({
                   waypointId: editingWaypointId!,
                   address: editingAddress,
+                  updateContact: updateContactAddress,
+                  contactId: editingContactId || undefined,
                 });
               }}
               disabled={updateAddressMutation.isPending}

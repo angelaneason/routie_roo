@@ -13,6 +13,31 @@ export const users = mysqlTable("users", {
   preferredCallingService: mysqlEnum("preferredCallingService", ["phone", "google-voice", "whatsapp", "skype", "facetime"]).default("phone"),
   distanceUnit: mysqlEnum("distanceUnit", ["km", "miles"]).default("km"),
   defaultStartingPoint: text("defaultStartingPoint"), // User's default starting address for routes
+  defaultStopDuration: int("defaultStopDuration").default(30), // Default stop duration in minutes (15, 30, 45, 60)
+  eventDurationMode: mysqlEnum("eventDurationMode", ["stop_only", "include_drive"]).default("stop_only"), // Calendar event duration mode
+  googleCalendarAccessToken: text("googleCalendarAccessToken"), // Google Calendar OAuth access token
+  googleCalendarRefreshToken: text("googleCalendarRefreshToken"), // Google Calendar OAuth refresh token
+  googleCalendarTokenExpiry: timestamp("googleCalendarTokenExpiry"), // When the access token expires
+  googleCalendarList: text("googleCalendarList"), // JSON: Array of { id, summary, backgroundColor } from Google Calendar API
+  calendarPreferences: text("calendarPreferences"), // JSON: { visibleCalendars: string[], defaultCalendar: string }
+  autoArchiveDays: int("autoArchiveDays"), // Days after completion to auto-archive (null = never)
+  schedulingEmail: varchar("schedulingEmail", { length: 320 }), // Email for scheduling team
+  enableDateReminders: int("enableDateReminders").default(0).notNull(), // 0 = disabled, 1 = enabled
+  reminderIntervals: text("reminderIntervals"), // JSON array of days before date to send reminders (e.g., [30, 10, 5])
+  enabledReminderDateTypes: text("enabledReminderDateTypes"), // JSON array of date types that trigger reminders (e.g., ["License Renewal", "Birthday"])
+  // Stage-specific email templates (30 days, 10 days, 5 days, past due)
+  reminderEmail30DaysSubject: text("reminderEmail30DaysSubject"),
+  reminderEmail30DaysBodyContact: text("reminderEmail30DaysBodyContact"),
+  reminderEmail30DaysBodyTeam: text("reminderEmail30DaysBodyTeam"),
+  reminderEmail10DaysSubject: text("reminderEmail10DaysSubject"),
+  reminderEmail10DaysBodyContact: text("reminderEmail10DaysBodyContact"),
+  reminderEmail10DaysBodyTeam: text("reminderEmail10DaysBodyTeam"),
+  reminderEmail5DaysSubject: text("reminderEmail5DaysSubject"),
+  reminderEmail5DaysBodyContact: text("reminderEmail5DaysBodyContact"),
+  reminderEmail5DaysBodyTeam: text("reminderEmail5DaysBodyTeam"),
+  reminderEmailPastDueSubject: text("reminderEmailPastDueSubject"),
+  reminderEmailPastDueBodyContact: text("reminderEmailPastDueBodyContact"),
+  reminderEmailPastDueBodyTeam: text("reminderEmailPastDueBodyTeam"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -35,6 +60,7 @@ export const routes = mysqlTable("routes", {
   optimized: boolean("optimized").default(true).notNull(), // Whether waypoints were optimized
   folderId: int("folderId"), // Optional folder/category ID
   calendarId: int("calendarId"), // Optional calendar ID for scheduling
+  googleCalendarId: varchar("googleCalendarId", { length: 255 }), // Google Calendar ID (e.g., 'primary' or calendar email)
   notes: text("notes"), // Optional notes/description for the route
   startingPointAddress: text("startingPointAddress"), // Starting point address for this route
   distanceUnit: mysqlEnum("distanceUnit", ["km", "miles"]).default("km"), // Owner's preferred distance unit
@@ -44,6 +70,8 @@ export const routes = mysqlTable("routes", {
   sharedAt: timestamp("sharedAt"), // When share link was generated
   completedAt: timestamp("completedAt"), // When all waypoints were completed/missed
   scheduledDate: timestamp("scheduledDate"), // When the route is scheduled to be executed
+  isArchived: boolean("isArchived").default(false).notNull(), // Whether route is archived
+  archivedAt: timestamp("archivedAt"), // When route was archived
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -64,6 +92,8 @@ export const routeWaypoints = mysqlTable("route_waypoints", {
   longitude: varchar("longitude", { length: 32 }), // Longitude coordinate
   phoneNumbers: text("phoneNumbers"), // JSON array of {value, type, label}
   contactLabels: text("contactLabels"), // JSON array of contact labels from Google
+  importantDates: text("importantDates"), // JSON array of {type, date} from contact
+  comments: text("comments"), // JSON array of {option, customText} from contact
   stopType: mysqlEnum("stopType", ["pickup", "delivery", "meeting", "visit", "other"]).default("other"), // Type of stop
   stopColor: varchar("stopColor", { length: 7 }).default("#3b82f6"), // Hex color for marker
   // Execution workflow fields
@@ -94,6 +124,11 @@ export const cachedContacts = mysqlTable("cached_contacts", {
   photoUrl: text("photoUrl"), // Contact photo URL from Google
   labels: text("labels"), // JSON array of contact labels/groups from Google
   isActive: int("isActive").default(1).notNull(), // 1 = active, 0 = inactive
+  importantDates: text("importantDates"), // JSON array of {type: string, date: string} - user-defined important dates
+  comments: text("comments"), // JSON array of {option: string, customText?: string} - user-defined comments
+  originalAddress: text("originalAddress"), // Original address from Google Contacts (for tracking changes)
+  addressModified: int("addressModified").default(0).notNull(), // 1 if address was modified in Routie Roo, 0 if not
+  addressModifiedAt: timestamp("addressModifiedAt"), // When address was last modified
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -161,3 +196,106 @@ export const calendars = mysqlTable("calendars", {
 
 export type Calendar = typeof calendars.$inferSelect;
 export type InsertCalendar = typeof calendars.$inferInsert;
+
+/**
+ * Route notes table - stores timestamped comments/notes for routes
+ */
+export const routeNotes = mysqlTable("route_notes", {
+  id: int("id").autoincrement().primaryKey(),
+  routeId: int("routeId").notNull(), // Route this note belongs to
+  userId: int("userId").notNull(), // User who created the note
+  note: text("note").notNull(), // Note content
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type RouteNote = typeof routeNotes.$inferSelect;
+export type InsertRouteNote = typeof routeNotes.$inferInsert;
+
+/**
+ * Important Date Types table - user-defined types for contact important dates
+ */
+export const importantDateTypes = mysqlTable("important_date_types", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Owner of the date type
+  name: varchar("name", { length: 100 }).notNull(), // Date type name (e.g., "Birthday", "Anniversary", "Renewal Date")
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ImportantDateType = typeof importantDateTypes.$inferSelect;
+export type InsertImportantDateType = typeof importantDateTypes.$inferInsert;
+
+/**
+ * Comment Options table - user-defined comment options for contacts
+ */
+export const commentOptions = mysqlTable("comment_options", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Owner of the comment option
+  option: varchar("option", { length: 255 }).notNull(), // Comment option text (e.g., "VIP Client", "Needs Follow-up")
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CommentOption = typeof commentOptions.$inferSelect;
+export type InsertCommentOption = typeof commentOptions.$inferInsert;
+
+/**
+ * Contact Documents table - stores uploaded documents for contacts
+ */
+export const contactDocuments = mysqlTable("contact_documents", {
+  id: int("id").autoincrement().primaryKey(),
+  contactId: int("contactId").notNull(), // Contact this document belongs to
+  userId: int("userId").notNull(), // User who uploaded the document
+  fileName: varchar("fileName", { length: 255 }).notNull(), // Original file name
+  fileKey: text("fileKey").notNull(), // S3 storage key
+  fileUrl: text("fileUrl").notNull(), // Public URL to access the file
+  fileSize: int("fileSize").notNull(), // File size in bytes
+  mimeType: varchar("mimeType", { length: 100 }).notNull(), // File MIME type
+  uploadedAt: timestamp("uploadedAt").defaultNow().notNull(),
+});
+
+export type ContactDocument = typeof contactDocuments.$inferSelect;
+export type InsertContactDocument = typeof contactDocuments.$inferInsert;
+
+/**
+ * Reminder History table - tracks sent email reminders for important dates
+ */
+export const reminderHistory = mysqlTable("reminder_history", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // User who owns the contact
+  contactId: int("contactId").notNull(), // Contact the reminder was sent for
+  contactName: varchar("contactName", { length: 255 }).notNull(), // Contact name (denormalized for history)
+  dateType: varchar("dateType", { length: 100 }).notNull(), // Type of date (e.g., "License Renewal", "Birthday")
+  importantDate: varchar("importantDate", { length: 50 }).notNull(), // The actual important date
+  reminderType: varchar("reminderType", { length: 50 }).notNull(), // "30_days", "10_days", "5_days", "past_due"
+  sentTo: text("sentTo").notNull(), // JSON array of email addresses sent to
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+  status: mysqlEnum("status", ["success", "failed"]).notNull(), // Whether email was sent successfully
+  errorMessage: text("errorMessage"), // Error message if failed
+});
+
+export type ReminderHistory = typeof reminderHistory.$inferSelect;
+export type InsertReminderHistory = typeof reminderHistory.$inferInsert;
+
+/**
+ * Reschedule History table - tracks all reschedule events for missed stops
+ */
+export const rescheduleHistory = mysqlTable("reschedule_history", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // User who owns the route
+  waypointId: int("waypointId").notNull(), // Waypoint that was rescheduled
+  routeId: int("routeId").notNull(), // Original route
+  routeName: varchar("routeName", { length: 255 }).notNull(), // Route name (denormalized)
+  contactName: varchar("contactName", { length: 255 }).notNull(), // Contact name (denormalized)
+  address: text("address").notNull(), // Stop address (denormalized)
+  originalDate: timestamp("originalDate"), // Original scheduled date (if route was scheduled)
+  rescheduledDate: timestamp("rescheduledDate").notNull(), // New rescheduled date
+  missedReason: text("missedReason"), // Reason for missing the stop
+  status: mysqlEnum("status", ["pending", "completed", "re_missed", "cancelled"]).default("pending").notNull(),
+  completedAt: timestamp("completedAt"), // When the rescheduled stop was completed
+  notes: text("notes"), // Additional notes
+  createdAt: timestamp("createdAt").defaultNow().notNull(), // When the reschedule was created
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type RescheduleHistory = typeof rescheduleHistory.$inferSelect;
+export type InsertRescheduleHistory = typeof rescheduleHistory.$inferInsert;

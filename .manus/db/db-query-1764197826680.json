@@ -1,0 +1,22 @@
+{
+  "query": "SELECT id, `option` FROM `comment_options` ORDER BY `option`",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, `option` FROM `comment_options` ORDER BY `option`",
+  "rows": [
+    {
+      "id": "2",
+      "option": "Needs Follow-up"
+    },
+    {
+      "id": "6",
+      "option": "Special Instructions"
+    },
+    {
+      "id": "1",
+      "option": "VIP Client"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\toption\n2\tNeeds Follow-up\n6\tSpecial Instructions\n1\tVIP Client\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

@@ -80,7 +80,14 @@ export default function SharedRouteExecution() {
   });
 
   const route = routeQuery.data?.route;
-  const waypoints = routeQuery.data?.waypoints || [];
+  const allWaypoints = routeQuery.data?.waypoints || [];
+  
+  // Filter waypoints that have valid coordinates for map rendering
+  const validWaypoints = allWaypoints.filter(wp => wp.latitude && wp.longitude);
+  const missingCoordinates = allWaypoints.length - validWaypoints.length;
+  
+  // Use all waypoints for the list, but only valid ones for the map
+  const waypoints = allWaypoints;
 
   // Sync local waypoints with fetched data
   useEffect(() => {
@@ -90,15 +97,15 @@ export default function SharedRouteExecution() {
   }, [waypoints]);
 
   useEffect(() => {
-    if (!map || !directionsRenderer || waypoints.length < 2) return;
+    if (!map || !directionsRenderer || validWaypoints.length < 2) return;
 
     // Trigger map resize to ensure proper rendering on mobile
     google.maps.event.trigger(map, 'resize');
 
     const directionsService = new google.maps.DirectionsService();
-    const origin = waypoints[0];
-    const destination = waypoints[waypoints.length - 1];
-    const waypointList = waypoints.slice(1, -1).map(wp => ({
+    const origin = validWaypoints[0];
+    const destination = validWaypoints[validWaypoints.length - 1];
+    const waypointList = validWaypoints.slice(1, -1).map(wp => ({
       location: new google.maps.LatLng(parseFloat(wp.latitude!), parseFloat(wp.longitude!)),
       stopover: true,
     }));
@@ -119,9 +126,9 @@ export default function SharedRouteExecution() {
           
           // Wait for map to be fully rendered before adding markers (helps on mobile)
           setTimeout(() => {
-            // Add numbered markers for each waypoint
+            // Add numbered markers for each valid waypoint
             const newMarkers: google.maps.Marker[] = [];
-            waypoints.forEach((waypoint, index) => {
+            validWaypoints.forEach((waypoint, index) => {
               const marker = new google.maps.Marker({
               position: new google.maps.LatLng(
                 parseFloat(waypoint.latitude!),
@@ -287,6 +294,15 @@ export default function SharedRouteExecution() {
           </div>
         </div>
 
+        {/* Warning for missing coordinates */}
+        {missingCoordinates > 0 && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-sm text-yellow-800">
+              ⚠️ {missingCoordinates} stop{missingCoordinates > 1 ? 's' : ''} could not be located on the map due to missing address coordinates. The route is shown with available locations only.
+            </p>
+          </div>
+        )}
+
         {/* Map */}
         <Card>
           <CardContent className="p-0">
@@ -310,7 +326,7 @@ export default function SharedRouteExecution() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">
-                {formatDistance(route.totalDistance || 0, route.distanceUnit || "km")}
+                {formatDistance((route.totalDistance || 0) / 1000, route.distanceUnit || "km")}
               </p>
             </CardContent>
           </Card>

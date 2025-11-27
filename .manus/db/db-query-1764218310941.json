@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE reschedule_history SET userId = 38 WHERE userId = 3060004;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute UPDATE reschedule_history SET userId = 38 WHERE userId = 3060004;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 53
+}

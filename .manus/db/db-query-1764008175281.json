@@ -1,0 +1,30 @@
+{
+  "query": "SELECT rw.id, rw.latitude, rw.longitude, rw.address, rw.contactName \nFROM routes r \nJOIN route_waypoints rw ON r.id = rw.routeId \nWHERE r.shareToken = '74f21387-337f-4692-83c4-005d5c4638a3' \nORDER BY rw.id \nLIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT rw.id, rw.latitude, rw.longitude, rw.address, rw.contactName \nFROM routes r \nJOIN route_waypoints rw ON r.id = rw.routeId \nWHERE r.shareToken = '74f21387-337f-4692-83c4-005d5c4638a3' \nORDER BY rw.id \nLIMIT 5;",
+  "rows": [
+    {
+      "id": "330001",
+      "latitude": "32.6528135",
+      "longitude": "-97.05302089999999",
+      "address": "4960 Shady Oak Trail, Grand Prairie tx 75052",
+      "contactName": "Starting Point"
+    }
+  ],
+  "messages": [
+    "330002\t32.5948079\t-97.1417747\t2105 Crestwood Trail",
+    "Mansfield, TX 76063-7676",
+    "US\tWILSON Teressa",
+    "330003\t32.438866499999996\t-97.1068694\t255 FM157",
+    "Apt 4101, Venus, TX 76084-2112",
+    "US\tSHINE Linda",
+    "330004\t32.500350399999995\t-97.0988943\t14528 County Rd 511",
+    "Venus, TX 76084-3504",
+    "US\tCOUCH Sharon",
+    "330005\t32.470250199999995\t-97.0017069\t1409 S 3rd St",
+    "Midlothian, TX 76065-3639",
+    "US\tMITCHELL Becki"
+  ],
+  "stdout": "id\tlatitude\tlongitude\taddress\tcontactName\n330001\t32.6528135\t-97.05302089999999\t4960 Shady Oak Trail, Grand Prairie tx 75052\tStarting Point\n330002\t32.5948079\t-97.1417747\t2105 Crestwood Trail\nMansfield, TX 76063-7676\nUS\tWILSON Teressa\n330003\t32.438866499999996\t-97.1068694\t255 FM157\nApt 4101, Venus, TX 76084-2112\nUS\tSHINE Linda\n330004\t32.500350399999995\t-97.0988943\t14528 County Rd 511\nVenus, TX 76084-3504\nUS\tCOUCH Sharon\n330005\t32.470250199999995\t-97.0017069\t1409 S 3rd St\nMidlothian, TX 76065-3639\nUS\tMITCHELL Becki\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

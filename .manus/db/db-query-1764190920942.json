@@ -1,0 +1,15 @@
+{
+  "query": "SELECT name, importantDates, comments FROM cached_contacts WHERE name LIKE '%ABREU%' LIMIT 1",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT name, importantDates, comments FROM cached_contacts WHERE name LIKE '%ABREU%' LIMIT 1",
+  "rows": [
+    {
+      "name": "ABREU Carlos",
+      "importantDates": "[]",
+      "comments": "[{\"option\":\"VIP Client\",\"customText\":\"\"}]"
+    }
+  ],
+  "messages": [],
+  "stdout": "name\timportantDates\tcomments\nABREU Carlos\t[]\t[{\"option\":\"VIP Client\",\"customText\":\"\"}]\n",
+  "stderr": "",
+  "execution_time_ms": 126
+}
