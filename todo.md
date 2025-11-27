@@ -1407,3 +1407,15 @@
 - [x] Adjust button layout or card padding to prevent overflow
 - [x] Ensure all header buttons are fully visible
 - [x] Test on different screen sizes
+
+
+## Stage-Specific Email Templates
+
+- [x] Update database schema to store separate templates for each reminder stage
+- [x] Add fields for 30-day, 10-day, 5-day, and past-due templates (subject + body for contact and team)
+- [x] Update Settings UI to show tabbed or accordion interface for each stage
+- [x] Add emoji picker to all stage-specific template fields
+- [x] Update email sending logic to select correct template based on days until/past date
+- [x] Update email preview to show all four stage templates
+- [x] Provide default templates for each stage with appropriate tone/urgency
+- [x] Test that correct template is used for each reminder interval

@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { EmojiPickerButton } from "@/components/EmojiPickerButton";
 import { EmailPreviewDialog } from "@/components/EmailPreviewDialog";
+import { StageEmailTemplateEditor } from "@/components/StageEmailTemplateEditor";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { APP_TITLE } from "@/const";
@@ -371,111 +373,84 @@ export default function Settings() {
                       </div>
                     </div>
                     
-                    {/* Email Template Editor */}
+                    {/* Stage-Specific Email Template Editors */}
                     <div className="space-y-4 pt-4 border-t">
                       <div>
                         <Label className="text-base font-semibold">Email Template Customization</Label>
                         <p className="text-sm text-muted-foreground mt-1">
-                          Customize the email content sent to contacts and your team. Use template variables in curly braces: contactName, dateType, date, daysUntil
+                          Customize email content for each reminder stage. Each stage can have different tone and urgency.
                         </p>
                       </div>
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="email-subject">Email Subject</Label>
-                        <Input
-                          id="email-subject"
-                          placeholder="🔔 Reminder: {dateType} coming up in {daysUntil} days"
-                          defaultValue={currentUser?.reminderEmailSubject || ""}
-                          onBlur={(e) => {
-                            if (e.target.value !== currentUser?.reminderEmailSubject) {
-                              updateSettingsMutation.mutate({
-                                reminderEmailSubject: e.target.value || null
-                              });
-                            }
-                          }}
-                        />
-                        <p className="text-sm text-muted-foreground">
-                          Leave blank to use default template
-                        </p>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="email-body-contact">Email Body (For Contact)</Label>
-                        <div className="relative">
-                          <Textarea
-                            id="email-body-contact"
-                            placeholder="Hi {contactName} 👋\n\nThis is a friendly reminder from Routie Roo!\n\n📅 Important Date Approaching:\n- Type: {dateType}\n- Date: {date}\n- Days Until: {daysUntil} days"
-                            rows={8}
-                            defaultValue={currentUser?.reminderEmailBodyContact || ""}
-                            onBlur={(e) => {
-                              if (e.target.value !== currentUser?.reminderEmailBodyContact) {
-                                updateSettingsMutation.mutate({
-                                  reminderEmailBodyContact: e.target.value || null
-                                });
-                              }
-                            }}
-                            className="font-mono text-sm pr-10"
-                          />
-                          <div className="absolute bottom-2 right-2">
-                            <EmojiPickerButton
-                              onEmojiSelect={(emoji) => {
-                                const textarea = document.getElementById("email-body-contact") as HTMLTextAreaElement;
-                                if (textarea) {
-                                  const cursorPos = textarea.selectionStart;
-                                  const textBefore = textarea.value.substring(0, cursorPos);
-                                  const textAfter = textarea.value.substring(cursorPos);
-                                  textarea.value = textBefore + emoji + textAfter;
-                                  textarea.focus();
-                                  textarea.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
-                                  textarea.dispatchEvent(new Event('blur', { bubbles: true }));
-                                }
+                      <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="30days">
+                          <AccordionTrigger>30 Days Before Reminder</AccordionTrigger>
+                          <AccordionContent>
+                            <StageEmailTemplateEditor
+                              stage="30days"
+                              stageLabel="30 Days Before"
+                              stageDescription="First gentle reminder sent 30 days before the important date"
+                              subjectValue={currentUser?.reminderEmail30DaysSubject}
+                              contactBodyValue={currentUser?.reminderEmail30DaysBodyContact}
+                              teamBodyValue={currentUser?.reminderEmail30DaysBodyTeam}
+                              onUpdate={(field, value) => {
+                                updateSettingsMutation.mutate({ [field]: value });
                               }}
                             />
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Leave blank to use default template. Emojis are supported! 🦘
-                        </p>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="email-body-team">Email Body (For Scheduling Team)</Label>
-                        <div className="relative">
-                          <Textarea
-                            id="email-body-team"
-                            placeholder="Hi Team,\n\nA reminder has been sent to {contactName} regarding their upcoming {dateType} on {date} ({daysUntil} days away).\n\nYou may want to follow up to ensure they're prepared."
-                            rows={6}
-                            defaultValue={currentUser?.reminderEmailBodyTeam || ""}
-                            onBlur={(e) => {
-                              if (e.target.value !== currentUser?.reminderEmailBodyTeam) {
-                                updateSettingsMutation.mutate({
-                                  reminderEmailBodyTeam: e.target.value || null
-                                });
-                              }
-                            }}
-                            className="font-mono text-sm pr-10"
-                          />
-                          <div className="absolute bottom-2 right-2">
-                            <EmojiPickerButton
-                              onEmojiSelect={(emoji) => {
-                                const textarea = document.getElementById("email-body-team") as HTMLTextAreaElement;
-                                if (textarea) {
-                                  const cursorPos = textarea.selectionStart;
-                                  const textBefore = textarea.value.substring(0, cursorPos);
-                                  const textAfter = textarea.value.substring(cursorPos);
-                                  textarea.value = textBefore + emoji + textAfter;
-                                  textarea.focus();
-                                  textarea.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
-                                  textarea.dispatchEvent(new Event('blur', { bubbles: true }));
-                                }
+                          </AccordionContent>
+                        </AccordionItem>
+                        
+                        <AccordionItem value="10days">
+                          <AccordionTrigger>10 Days Before Reminder</AccordionTrigger>
+                          <AccordionContent>
+                            <StageEmailTemplateEditor
+                              stage="10days"
+                              stageLabel="10 Days Before"
+                              stageDescription="Second reminder with increased urgency sent 10 days before"
+                              subjectValue={currentUser?.reminderEmail10DaysSubject}
+                              contactBodyValue={currentUser?.reminderEmail10DaysBodyContact}
+                              teamBodyValue={currentUser?.reminderEmail10DaysBodyTeam}
+                              onUpdate={(field, value) => {
+                                updateSettingsMutation.mutate({ [field]: value });
                               }}
                             />
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Leave blank to use default template
-                        </p>
-                      </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                        
+                        <AccordionItem value="5days">
+                          <AccordionTrigger>5 Days Before Reminder (Urgent)</AccordionTrigger>
+                          <AccordionContent>
+                            <StageEmailTemplateEditor
+                              stage="5days"
+                              stageLabel="5 Days Before"
+                              stageDescription="Final urgent reminder sent 5 days before the date"
+                              subjectValue={currentUser?.reminderEmail5DaysSubject}
+                              contactBodyValue={currentUser?.reminderEmail5DaysBodyContact}
+                              teamBodyValue={currentUser?.reminderEmail5DaysBodyTeam}
+                              onUpdate={(field, value) => {
+                                updateSettingsMutation.mutate({ [field]: value });
+                              }}
+                            />
+                          </AccordionContent>
+                        </AccordionItem>
+                        
+                        <AccordionItem value="pastdue">
+                          <AccordionTrigger>Past Due Notice (Overdue)</AccordionTrigger>
+                          <AccordionContent>
+                            <StageEmailTemplateEditor
+                              stage="pastdue"
+                              stageLabel="Past Due"
+                              stageDescription="Overdue notice sent after the important date has passed"
+                              subjectValue={currentUser?.reminderEmailPastDueSubject}
+                              contactBodyValue={currentUser?.reminderEmailPastDueBodyContact}
+                              teamBodyValue={currentUser?.reminderEmailPastDueBodyTeam}
+                              onUpdate={(field, value) => {
+                                updateSettingsMutation.mutate({ [field]: value });
+                              }}
+                            />
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
                     </div>
                     
                     <div className="flex items-center justify-between pt-4 border-t">
@@ -803,13 +778,30 @@ export default function Settings() {
         </div>
       </main>
 
-      <EmailPreviewDialog
-        open={showEmailPreview}
-        onOpenChange={setShowEmailPreview}
-        emailSubject={currentUser?.reminderEmailSubject}
-        emailBodyContact={currentUser?.reminderEmailBodyContact}
-        emailBodyTeam={currentUser?.reminderEmailBodyTeam}
-      />
+          <EmailPreviewDialog
+            open={showEmailPreview}
+            onOpenChange={setShowEmailPreview}
+            templates30Days={{
+              subject: currentUser?.reminderEmail30DaysSubject,
+              bodyContact: currentUser?.reminderEmail30DaysBodyContact,
+              bodyTeam: currentUser?.reminderEmail30DaysBodyTeam,
+            }}
+            templates10Days={{
+              subject: currentUser?.reminderEmail10DaysSubject,
+              bodyContact: currentUser?.reminderEmail10DaysBodyContact,
+              bodyTeam: currentUser?.reminderEmail10DaysBodyTeam,
+            }}
+            templates5Days={{
+              subject: currentUser?.reminderEmail5DaysSubject,
+              bodyContact: currentUser?.reminderEmail5DaysBodyContact,
+              bodyTeam: currentUser?.reminderEmail5DaysBodyTeam,
+            }}
+            templatesPastDue={{
+              subject: currentUser?.reminderEmailPastDueSubject,
+              bodyContact: currentUser?.reminderEmailPastDueBodyContact,
+              bodyTeam: currentUser?.reminderEmailPastDueBodyTeam,
+            }}
+          />
     </div>
   );
 }

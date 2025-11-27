@@ -25,9 +25,19 @@ export const users = mysqlTable("users", {
   enableDateReminders: int("enableDateReminders").default(0).notNull(), // 0 = disabled, 1 = enabled
   reminderIntervals: text("reminderIntervals"), // JSON array of days before date to send reminders (e.g., [30, 10, 5])
   enabledReminderDateTypes: text("enabledReminderDateTypes"), // JSON array of date types that trigger reminders (e.g., ["License Renewal", "Birthday"])
-  reminderEmailSubject: text("reminderEmailSubject"), // Custom email subject template
-  reminderEmailBodyContact: text("reminderEmailBodyContact"), // Custom email body for contact
-  reminderEmailBodyTeam: text("reminderEmailBodyTeam"), // Custom email body for scheduling team
+  // Stage-specific email templates (30 days, 10 days, 5 days, past due)
+  reminderEmail30DaysSubject: text("reminderEmail30DaysSubject"),
+  reminderEmail30DaysBodyContact: text("reminderEmail30DaysBodyContact"),
+  reminderEmail30DaysBodyTeam: text("reminderEmail30DaysBodyTeam"),
+  reminderEmail10DaysSubject: text("reminderEmail10DaysSubject"),
+  reminderEmail10DaysBodyContact: text("reminderEmail10DaysBodyContact"),
+  reminderEmail10DaysBodyTeam: text("reminderEmail10DaysBodyTeam"),
+  reminderEmail5DaysSubject: text("reminderEmail5DaysSubject"),
+  reminderEmail5DaysBodyContact: text("reminderEmail5DaysBodyContact"),
+  reminderEmail5DaysBodyTeam: text("reminderEmail5DaysBodyTeam"),
+  reminderEmailPastDueSubject: text("reminderEmailPastDueSubject"),
+  reminderEmailPastDueBodyContact: text("reminderEmailPastDueBodyContact"),
+  reminderEmailPastDueBodyTeam: text("reminderEmailPastDueBodyTeam"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

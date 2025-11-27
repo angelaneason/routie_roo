@@ -98,6 +98,7 @@ export async function getUpcomingDateReminders(userId: number) {
 /**
  * Send email reminder for an important date
  * Sends to both contact and scheduling team
+ * Uses stage-specific templates based on days until date
  */
 export async function sendDateReminder(params: {
   userId: number;
@@ -110,19 +111,66 @@ export async function sendDateReminder(params: {
   daysUntil: number;
   isPastDue: boolean;
 }) {
-  // Note: This would integrate with your email service
-  // For now, we'll use the notification API as a placeholder
-  
-  const subject = params.isPastDue
-    ? `PAST DUE: ${params.dateType} for ${params.contactName}`
-    : `Reminder: ${params.dateType} for ${params.contactName} in ${params.daysUntil} days`;
+  const db = await getDb();
+  if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
-  const message = params.isPastDue
-    ? `${params.contactName}'s ${params.dateType} (${params.date}) is past due by ${Math.abs(params.daysUntil)} days.`
-    : `${params.contactName}'s ${params.dateType} is coming up on ${params.date} (${params.daysUntil} days from now).`;
+  // Get user's custom email templates
+  const user = await db.select().from(users).where(eq(users.id, params.userId)).limit(1);
+  if (!user.length) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+  }
+
+  // Determine which template to use based on daysUntil
+  let subjectTemplate: string | null = null;
+  let contactBodyTemplate: string | null = null;
+  let teamBodyTemplate: string | null = null;
+  
+  if (params.isPastDue) {
+    subjectTemplate = user[0].reminderEmailPastDueSubject;
+    contactBodyTemplate = user[0].reminderEmailPastDueBodyContact;
+    teamBodyTemplate = user[0].reminderEmailPastDueBodyTeam;
+  } else if (params.daysUntil <= 5) {
+    subjectTemplate = user[0].reminderEmail5DaysSubject;
+    contactBodyTemplate = user[0].reminderEmail5DaysBodyContact;
+    teamBodyTemplate = user[0].reminderEmail5DaysBodyTeam;
+  } else if (params.daysUntil <= 10) {
+    subjectTemplate = user[0].reminderEmail10DaysSubject;
+    contactBodyTemplate = user[0].reminderEmail10DaysBodyContact;
+    teamBodyTemplate = user[0].reminderEmail10DaysBodyTeam;
+  } else {
+    // 30 days or more
+    subjectTemplate = user[0].reminderEmail30DaysSubject;
+    contactBodyTemplate = user[0].reminderEmail30DaysBodyContact;
+    teamBodyTemplate = user[0].reminderEmail30DaysBodyTeam;
+  }
+
+  // Default templates if user hasn't customized
+  const defaultSubject = params.isPastDue
+    ? `❗ OVERDUE: ${params.dateType} is past due`
+    : `🔔 Reminder: ${params.dateType} coming up in ${params.daysUntil} days`;
+
+  const defaultContactBody = params.isPastDue
+    ? `Hi ${params.contactName} 👋\n\nThis is an OVERDUE notice from Routie Roo!\n\n📅 Important Date Status:\n- Type: ${params.dateType}\n- Date: ${params.date}\n- Status: PAST DUE\n\n❗ Your ${params.dateType} is now overdue. Please take action immediately!\n\nBest regards,\nThe Routie Roo Team 🦘`
+    : `Hi ${params.contactName} 👋\n\nThis is a reminder from Routie Roo!\n\n📅 Important Date Approaching:\n- Type: ${params.dateType}\n- Date: ${params.date}\n- Days Until: ${params.daysUntil} days\n\nBest regards,\nThe Routie Roo Team 🦘`;
+
+  const defaultTeamBody = params.isPastDue
+    ? `Hi Team,\n\nAn OVERDUE notice has been sent to ${params.contactName} regarding their ${params.dateType} which was due on ${params.date}.\n\nThis is past due - urgent follow-up required.`
+    : `Hi Team,\n\nA reminder has been sent to ${params.contactName} regarding their upcoming ${params.dateType} on ${params.date} (${params.daysUntil} days away).\n\nYou may want to follow up to ensure they're prepared.`;
+
+  // Apply template variables
+  const applyVars = (template: string) => {
+    return template
+      .replace(/{contactName}/g, params.contactName)
+      .replace(/{dateType}/g, params.dateType)
+      .replace(/{date}/g, params.date)
+      .replace(/{daysUntil}/g, params.daysUntil.toString());
+  };
+
+  const subject = subjectTemplate ? applyVars(subjectTemplate) : defaultSubject;
+  const contactBody = contactBodyTemplate ? applyVars(contactBodyTemplate) : defaultContactBody;
+  const teamBody = teamBodyTemplate ? applyVars(teamBodyTemplate) : defaultTeamBody;
 
   // Log to reminder history
-  const db = await getDb();
   if (db) {
     try {
       await db.insert(reminderHistory).values({
@@ -141,12 +189,13 @@ export async function sendDateReminder(params: {
   }
   
   // TODO: Implement actual email sending
-  // For now, just return success
+  // For now, just return success with stage-specific content
   return {
     success: true,
     sentTo: [params.contactEmail, params.schedulingEmail].filter(Boolean),
     subject,
-    message,
+    contactBody,
+    teamBody,
   };
 }
 
