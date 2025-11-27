@@ -1271,3 +1271,30 @@
 - [ ] Test "Mark as Synced" removes contacts from report
 - [ ] Test CSV export format is compatible with Google Contacts import
 - [ ] Verify report shows only unsynced modified contacts
+
+
+## Document Upload for Labeled Contacts
+
+- [x] Add documents table to database schema (contactId, fileName, fileUrl, fileKey, uploadedAt, fileSize, mimeType)
+- [x] Create document upload UI component with drag-and-drop
+- [x] Implement S3 file upload for contact documents
+- [x] Add document list display on contact cards
+- [x] Add bulk document upload for contacts filtered by label (e.g., "Prairie PT")
+- [x] Add document download functionality
+- [x] Add document delete functionality
+- [x] Support multiple file types (PDF, Word, images, etc.)
+- [x] Add file size validation (max 10MB per file)
+- [x] Test document upload and retrieval
+
+## Email Reminders for Important Dates
+
+- [x] Add email notification settings to user preferences table
+- [x] Add scheduling email address field to settings
+- [x] Create email reminder configuration UI in Settings page
+- [x] Implement reminder intervals (30 days, 10 days, 5 days before, past due)
+- [ ] Create scheduled job to check for upcoming important dates
+- [ ] Implement email sending functionality using notification API
+- [ ] Add email template for date reminders (License Renewal, etc.)
+- [ ] Test email reminder system with different date scenarios
+- [ ] Add ability to configure which date types trigger reminders
+- [ ] Add reminder history/log for tracking sent notifications

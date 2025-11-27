@@ -21,6 +21,9 @@ export const users = mysqlTable("users", {
   googleCalendarList: text("googleCalendarList"), // JSON: Array of { id, summary, backgroundColor } from Google Calendar API
   calendarPreferences: text("calendarPreferences"), // JSON: { visibleCalendars: string[], defaultCalendar: string }
   autoArchiveDays: int("autoArchiveDays"), // Days after completion to auto-archive (null = never)
+  schedulingEmail: varchar("schedulingEmail", { length: 320 }), // Email address for scheduling team to receive reminders
+  enableDateReminders: int("enableDateReminders").default(1), // 1 = enabled, 0 = disabled
+  reminderIntervals: text("reminderIntervals"), // JSON: Array of reminder days [30, 10, 5] before important dates
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -220,3 +223,21 @@ export const commentOptions = mysqlTable("comment_options", {
 
 export type CommentOption = typeof commentOptions.$inferSelect;
 export type InsertCommentOption = typeof commentOptions.$inferInsert;
+
+/**
+ * Contact Documents table - stores uploaded documents for contacts
+ */
+export const contactDocuments = mysqlTable("contact_documents", {
+  id: int("id").autoincrement().primaryKey(),
+  contactId: int("contactId").notNull(), // Contact this document belongs to
+  userId: int("userId").notNull(), // User who uploaded the document
+  fileName: varchar("fileName", { length: 255 }).notNull(), // Original file name
+  fileKey: text("fileKey").notNull(), // S3 storage key
+  fileUrl: text("fileUrl").notNull(), // Public URL to access the file
+  fileSize: int("fileSize").notNull(), // File size in bytes
+  mimeType: varchar("mimeType", { length: 100 }).notNull(), // File MIME type
+  uploadedAt: timestamp("uploadedAt").defaultNow().notNull(),
+});
+
+export type ContactDocument = typeof contactDocuments.$inferSelect;
+export type InsertContactDocument = typeof contactDocuments.$inferInsert;

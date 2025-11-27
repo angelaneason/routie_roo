@@ -21,11 +21,13 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { APP_TITLE, APP_LOGO, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon, Archive, FileText } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon, Archive, FileText, Paperclip } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { ContactEditDialog } from "@/components/ContactEditDialog";
 import { ContactImportDialog } from "@/components/ContactImportDialog";
+import { DocumentUploadDialog } from "@/components/DocumentUploadDialog";
+import { BulkDocumentUploadDialog } from "@/components/BulkDocumentUploadDialog";
 import { StopTypeSelector, getStopTypeConfig, type StopType } from "@/components/StopTypeSelector";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -60,6 +62,10 @@ export default function Home() {
   const [showCalendarSelectionDialog, setShowCalendarSelectionDialog] = useState(false);
   const [calendarData, setCalendarData] = useState<any>(null);
   const [selectedCalendar, setSelectedCalendar] = useState<string>("");
+  const [showDocumentUpload, setShowDocumentUpload] = useState(false);
+  const [uploadContactId, setUploadContactId] = useState<number | null>(null);
+  const [uploadContactName, setUploadContactName] = useState<string>("");
+  const [showBulkDocumentUpload, setShowBulkDocumentUpload] = useState(false);
 
   // Check for OAuth callback status
   useEffect(() => {
@@ -779,6 +785,14 @@ export default function Home() {
                       <Upload className="h-4 w-4" />
                       <span className="ml-2">Import CSV</span>
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowBulkDocumentUpload(true)}
+                    >
+                      <Paperclip className="h-4 w-4" />
+                      <span className="ml-2">Bulk Upload Doc</span>
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -1015,6 +1029,19 @@ export default function Home() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
+                            onClick={() => {
+                              setUploadContactId(contact.id);
+                              setUploadContactName(contact.name || "Contact");
+                              setShowDocumentUpload(true);
+                            }}
+                            title="Upload Document"
+                          >
+                            <Paperclip className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
                             onClick={() => setEditingContact(contact)}
                           >
                             <Edit className="h-4 w-4" />
@@ -1193,6 +1220,30 @@ export default function Home() {
           }}
         />
       )}
+      
+      {/* Document Upload Dialog */}
+      {uploadContactId && (
+        <DocumentUploadDialog
+          open={showDocumentUpload}
+          onOpenChange={setShowDocumentUpload}
+          contactId={uploadContactId}
+          contactName={uploadContactName}
+          onUploadComplete={() => {
+            // Refresh contacts if needed
+            contactsQuery.refetch();
+          }}
+        />
+      )}
+      
+      {/* Bulk Document Upload Dialog */}
+      <BulkDocumentUploadDialog
+        open={showBulkDocumentUpload}
+        onOpenChange={setShowBulkDocumentUpload}
+        onUploadComplete={() => {
+          // Refresh contacts if needed
+          contactsQuery.refetch();
+        }}
+      />
 
       {/* Calendar Selection Dialog */}
       <Dialog open={showCalendarSelectionDialog} onOpenChange={setShowCalendarSelectionDialog}>

@@ -422,6 +422,76 @@ export const appRouter = router({
       const { markAllAddressesSynced } = await import("./changedAddresses");
       return await markAllAddressesSynced(ctx.user.id);
     }),
+    
+    // Upload document for a contact
+    uploadDocument: protectedProcedure
+      .input(z.object({
+        contactId: z.number(),
+        fileName: z.string(),
+        fileData: z.string(), // base64 encoded file data
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { uploadContactDocument } = await import("./documents");
+        const fileBuffer = Buffer.from(input.fileData, 'base64');
+        return await uploadContactDocument({
+          contactId: input.contactId,
+          userId: ctx.user.id,
+          fileName: input.fileName,
+          fileBuffer,
+          mimeType: input.mimeType,
+        });
+      }),
+    
+    // Get documents for a contact
+    getDocuments: protectedProcedure
+      .input(z.object({
+        contactId: z.number(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const { getContactDocuments } = await import("./documents");
+        return await getContactDocuments(input.contactId, ctx.user.id);
+      }),
+    
+    // Delete a document
+    deleteDocument: protectedProcedure
+      .input(z.object({
+        documentId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { deleteContactDocument } = await import("./documents");
+        return await deleteContactDocument(input.documentId, ctx.user.id);
+      }),
+    
+    // Get contacts by label
+    getContactsByLabel: protectedProcedure
+      .input(z.object({
+        label: z.string(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const { getContactsByLabel } = await import("./documents");
+        return await getContactsByLabel(ctx.user.id, input.label);
+      }),
+    
+    // Bulk upload document to multiple contacts
+    bulkUploadDocument: protectedProcedure
+      .input(z.object({
+        contactIds: z.array(z.number()),
+        fileName: z.string(),
+        fileData: z.string(), // base64 encoded file data
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { bulkUploadDocument } = await import("./documents");
+        const fileBuffer = Buffer.from(input.fileData, 'base64');
+        return await bulkUploadDocument({
+          contactIds: input.contactIds,
+          userId: ctx.user.id,
+          fileName: input.fileName,
+          fileBuffer,
+          mimeType: input.mimeType,
+        });
+      }),
   }),
 
   folders: router({
@@ -1877,6 +1947,9 @@ export const appRouter = router({
         defaultStopDuration: z.number().optional(), // Stop duration in minutes
         eventDurationMode: z.enum(["stop_only", "include_drive"]).optional(), // Calendar event duration mode
         autoArchiveDays: z.number().nullable().optional(), // null = never auto-archive
+        schedulingEmail: z.string().optional(), // Email for scheduling team reminders
+        enableDateReminders: z.boolean().optional(), // Enable/disable date reminders
+        reminderIntervals: z.array(z.number()).optional(), // Days before dates to send reminders
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -1889,6 +1962,9 @@ export const appRouter = router({
         if (input.defaultStopDuration !== undefined) updateData.defaultStopDuration = input.defaultStopDuration;
         if (input.eventDurationMode !== undefined) updateData.eventDurationMode = input.eventDurationMode;
         if (input.autoArchiveDays !== undefined) updateData.autoArchiveDays = input.autoArchiveDays;
+        if (input.schedulingEmail !== undefined) updateData.schedulingEmail = input.schedulingEmail;
+        if (input.enableDateReminders !== undefined) updateData.enableDateReminders = input.enableDateReminders ? 1 : 0;
+        if (input.reminderIntervals !== undefined) updateData.reminderIntervals = JSON.stringify(input.reminderIntervals);
 
         await db.update(users)
           .set(updateData)
@@ -2053,6 +2129,18 @@ export const appRouter = router({
         await deleteCommentOption(input.id);
         return { success: true };
       }),
+    
+    // Get upcoming date reminders
+    getUpcomingReminders: protectedProcedure.query(async ({ ctx }) => {
+      const { getUpcomingDateReminders } = await import("./emailReminders");
+      return await getUpcomingDateReminders(ctx.user.id);
+    }),
+    
+    // Process and send all pending reminders
+    processReminders: protectedProcedure.mutation(async ({ ctx }) => {
+      const { processUserReminders } = await import("./emailReminders");
+      return await processUserReminders(ctx.user.id);
+    }),
   }),
   
   calendar: router({

@@ -218,6 +218,20 @@
       "when": 1764205825608,
       "tag": "0030_classy_moondragon",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "5",
+      "when": 1764208211111,
+      "tag": "0031_boring_sunspot",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1764208444771,
+      "tag": "0032_dear_doctor_doom",
+      "breakpoints": true
     }
   ]
 }

@@ -259,6 +259,86 @@ export default function Settings() {
                 </CardContent>
               </Card>
 
+              {/* Email Reminders */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Email Reminders for Important Dates</CardTitle>
+                  <CardDescription>
+                    Automatically send email reminders when contact important dates (License Renewal, etc.) are approaching
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="scheduling-email">Scheduling Team Email</Label>
+                    <Input
+                      id="scheduling-email"
+                      type="email"
+                      placeholder="scheduling@example.com"
+                      defaultValue={currentUser?.schedulingEmail || ""}
+                      onBlur={(e) => {
+                        if (e.target.value !== currentUser?.schedulingEmail) {
+                          updateSettingsMutation.mutate({
+                            schedulingEmail: e.target.value
+                          });
+                        }
+                      }}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Reminders will be sent to both the contact's email AND this scheduling team email
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Reminder Intervals (Days Before Date)</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        placeholder="30, 10, 5"
+                        defaultValue={
+                          currentUser?.reminderIntervals
+                            ? JSON.parse(currentUser.reminderIntervals).join(", ")
+                            : "30, 10, 5"
+                        }
+                        onBlur={(e) => {
+                          try {
+                            const intervals = e.target.value
+                              .split(",")
+                              .map(s => parseInt(s.trim()))
+                              .filter(n => !isNaN(n));
+                            updateSettingsMutation.mutate({
+                              reminderIntervals: intervals
+                            });
+                          } catch {
+                            toast.error("Invalid format. Use comma-separated numbers like: 30, 10, 5");
+                          }
+                        }}
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Enter days before the date to send reminders (e.g., 30, 10, 5). Past due reminders are sent automatically.
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Enable Date Reminders</Label>
+                      <p className="text-sm text-muted-foreground">Turn on/off automatic email reminders</p>
+                    </div>
+                    <Button
+                      variant={currentUser?.enableDateReminders ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        updateSettingsMutation.mutate({
+                          enableDateReminders: !currentUser?.enableDateReminders
+                        });
+                      }}
+                    >
+                      {currentUser?.enableDateReminders ? "Enabled" : "Disabled"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Google Calendar Connection */}
               <Card>
                 <CardHeader>
