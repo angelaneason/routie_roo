@@ -1462,3 +1462,9 @@
 - [x] Verify backend generateShareToken and getSharedRoute procedures
 - [x] Test share route generation and access
 - [x] Ensure share link works for public access (no auth required)
+
+
+## Kangaroo Crew Section Layout Update
+
+- [x] Make "Everyone you connect with along the journey" tagline span full width of section
+- [x] Adjust layout so tagline is not constrained by title column

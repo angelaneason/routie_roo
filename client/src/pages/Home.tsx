@@ -789,13 +789,16 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-4">
                       <CardTitle className="font-bold">Your Kangaroo Crew</CardTitle>
-                      <CardDescription className="italic">
-                        Everyone you connect with along the journey.
-                      </CardDescription>
                     </div>
+                    <CardDescription className="italic">
+                      Everyone you connect with along the journey.
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0"></div>
                     <div className="flex flex-wrap gap-2 justify-end">
                       <Button
                         variant="outline"
