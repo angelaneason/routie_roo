@@ -10,11 +10,6 @@ import RouteDetail from "./pages/RouteDetail";
 import MissedStops from "./pages/MissedStops";
 import SharedRouteExecution from "./pages/SharedRouteExecution";
 import Calendar from "./pages/Calendar";
-import ArchivedRoutes from "./pages/ArchivedRoutes";
-import ChangedAddresses from "./pages/ChangedAddresses";
-import ReminderHistory from "./pages/ReminderHistory";
-import RescheduleHistory from "./pages/RescheduleHistory";
-import AdminUsers from "./pages/AdminUsers";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -24,13 +19,8 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/calendar" component={Calendar} />
       <Route path="/route/:id" component={RouteDetail} />
-      <Route path="/share/:token" component={SharedRouteExecution} />
       <Route path="/missed-stops" component={MissedStops} />
-      <Route path="/archived-routes" component={ArchivedRoutes} />
-      <Route path={"/changed-addresses"} component={ChangedAddresses} />
-      <Route path={"/reminder-history"} component={ReminderHistory} />
-      <Route path={"/reschedule-history"} component={RescheduleHistory} />
-      <Route path={"/admin/users"} component={AdminUsers} />
+      <Route path="/share/:token" component={SharedRouteExecution} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

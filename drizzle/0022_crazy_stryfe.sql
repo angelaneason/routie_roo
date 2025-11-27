@@ -1,1 +1,0 @@
-ALTER TABLE `routes` ADD `googleCalendarId` varchar(255);

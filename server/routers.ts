@@ -1,6 +1,5 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
-import { ENV } from "./_core/env";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
@@ -15,21 +14,12 @@ import {
   getUserCachedContacts,
   clearUserCachedContacts,
   getDb,
-  getUserByOpenId,
   deleteRoute,
   updateRoute,
   createFolder,
   getUserFolders,
   updateFolder,
-  deleteFolder,
-  createImportantDateType,
-  getUserImportantDateTypes,
-  updateImportantDateType,
-  deleteImportantDateType,
-  createCommentOption,
-  getUserCommentOptions,
-  updateCommentOption,
-  deleteCommentOption
+  deleteFolder
 } from "./db";
 import { 
   getGoogleAuthUrl, 
@@ -37,17 +27,15 @@ import {
   fetchGoogleContacts, 
   fetchContactGroupNames,
   parseGoogleContacts,
-  createCalendarEvent,
-  getCalendarList
+  createCalendarEvent
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
-import { validateAddress } from "./addressValidation";
-import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes, InsertRoute, cachedContacts, rescheduleHistory } from "../drizzle/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { users, routes, routeWaypoints, stopTypes, savedStartingPoints } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 // Helper to calculate route using Google Maps Routes API
-async function calculateRoute(waypoints: Array<{ address: string; name?: string }>, optimize: boolean = false) {
+async function calculateRoute(waypoints: Array<{ address: string; name?: string }>) {
   const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
   
   if (!GOOGLE_MAPS_API_KEY) {
@@ -89,10 +77,7 @@ async function calculateRoute(waypoints: Array<{ address: string; name?: string 
     requestBody.intermediates = intermediates.map(wp => ({
       address: wp.address,
     }));
-    // Set optimizeWaypointOrder if optimization is requested
-    if (optimize) {
-      requestBody.optimizeWaypointOrder = true;
-    }
+    // Don't set optimizeWaypointOrder - we'll handle ordering manually
   }
 
   const response = await fetch(
@@ -145,8 +130,9 @@ export const appRouter = router({
   contacts: router({
     // Get Google OAuth URL
     getGoogleAuthUrl: protectedProcedure.query(({ ctx }) => {
-      // Use public URL from ENV to avoid internal Azure container address
-      const redirectUri = `${ENV.publicUrl}/api/oauth/google/callback`;
+      const protocol = ctx.req.protocol || 'https';
+      const host = ctx.req.headers.host || '';
+      const redirectUri = `${protocol}://${host}/api/oauth/google/callback`;
       const state = ctx.user.id.toString();
       return { url: getGoogleAuthUrl(redirectUri, state) };
     }),
@@ -211,8 +197,9 @@ export const appRouter = router({
     // Refresh contacts from Google
     refresh: protectedProcedure.mutation(async ({ ctx }) => {
       // This will trigger a new OAuth flow
-      // Use public URL from ENV to avoid internal Azure container address
-      const redirectUri = `${ENV.publicUrl}/api/oauth/google/callback`;
+      const protocol = ctx.req.protocol || 'https';
+      const host = ctx.req.headers.host || '';
+      const redirectUri = `${protocol}://${host}/api/oauth/google/callback`;
       const state = ctx.user.id.toString();
       return { url: getGoogleAuthUrl(redirectUri, state) };
     }),
@@ -228,14 +215,6 @@ export const appRouter = router({
           value: z.string(),
           label: z.string(),
         })),
-        importantDates: z.array(z.object({
-          type: z.string(),
-          date: z.string(),
-        })).optional(),
-        comments: z.array(z.object({
-          option: z.string(),
-          customText: z.string().optional(),
-        })).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -243,53 +222,14 @@ export const appRouter = router({
 
         const { cachedContacts } = await import("../drizzle/schema");
         
-        // Get current contact to check if address changed
-        const currentContact = await db.select().from(cachedContacts)
-          .where(eq(cachedContacts.id, input.contactId))
-          .limit(1);
-        
-        if (!currentContact.length) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Contact not found" });
-        }
-        
-        const updateData: any = {
-          name: input.name,
-          email: input.email,
-          address: input.address,
-          phoneNumbers: JSON.stringify(input.phoneNumbers),
-          updatedAt: new Date(),
-        };
-        
-        // Track address changes
-        const oldAddress = currentContact[0].address;
-        const newAddress = input.address;
-        
-        // If this is the first time we're tracking the original address, save it
-        if (!currentContact[0].originalAddress && oldAddress) {
-          updateData.originalAddress = oldAddress;
-        }
-        
-        // If address changed from original, mark as modified
-        const originalAddress = currentContact[0].originalAddress || oldAddress;
-        if (originalAddress && newAddress && originalAddress !== newAddress) {
-          updateData.addressModified = 1;
-          updateData.addressModifiedAt = new Date();
-        } else if (originalAddress === newAddress) {
-          // If address was changed back to original, clear modified flag
-          updateData.addressModified = 0;
-          updateData.addressModifiedAt = null;
-        }
-        
-        if (input.importantDates !== undefined) {
-          updateData.importantDates = JSON.stringify(input.importantDates);
-        }
-        
-        if (input.comments !== undefined) {
-          updateData.comments = JSON.stringify(input.comments);
-        }
-        
         await db.update(cachedContacts)
-          .set(updateData)
+          .set({
+            name: input.name,
+            email: input.email,
+            address: input.address,
+            phoneNumbers: JSON.stringify(input.phoneNumbers),
+            updatedAt: new Date(),
+          })
           .where(eq(cachedContacts.id, input.contactId));
 
         return { success: true };
@@ -391,107 +331,6 @@ export const appRouter = router({
           errors,
         };
       }),
-
-    // Validate address using Google Maps Geocoding API
-    validateAddress: protectedProcedure
-      .input(z.object({
-        address: z.string(),
-      }))
-      .mutation(async ({ input }) => {        const result = await validateAddress(input.address);
-        return result;
-      }),
-    
-    // Get contacts with modified addresses
-    getChangedAddresses: protectedProcedure.query(async ({ ctx }) => {
-      const { getChangedAddresses } = await import("./changedAddresses");
-      return await getChangedAddresses(ctx.user.id);
-    }),
-    
-    // Mark a contact's address as synced
-    markAddressSynced: protectedProcedure
-      .input(z.object({
-        contactId: z.number(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const { markAddressSynced } = await import("./changedAddresses");
-        return await markAddressSynced(input.contactId, ctx.user.id);
-      }),
-    
-    // Mark all contacts' addresses as synced
-    markAllAddressesSynced: protectedProcedure.mutation(async ({ ctx }) => {
-      const { markAllAddressesSynced } = await import("./changedAddresses");
-      return await markAllAddressesSynced(ctx.user.id);
-    }),
-    
-    // Upload document for a contact
-    uploadDocument: protectedProcedure
-      .input(z.object({
-        contactId: z.number(),
-        fileName: z.string(),
-        fileData: z.string(), // base64 encoded file data
-        mimeType: z.string(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const { uploadContactDocument } = await import("./documents");
-        const fileBuffer = Buffer.from(input.fileData, 'base64');
-        return await uploadContactDocument({
-          contactId: input.contactId,
-          userId: ctx.user.id,
-          fileName: input.fileName,
-          fileBuffer,
-          mimeType: input.mimeType,
-        });
-      }),
-    
-    // Get documents for a contact
-    getDocuments: protectedProcedure
-      .input(z.object({
-        contactId: z.number(),
-      }))
-      .query(async ({ ctx, input }) => {
-        const { getContactDocuments } = await import("./documents");
-        return await getContactDocuments(input.contactId, ctx.user.id);
-      }),
-    
-    // Delete a document
-    deleteDocument: protectedProcedure
-      .input(z.object({
-        documentId: z.number(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const { deleteContactDocument } = await import("./documents");
-        return await deleteContactDocument(input.documentId, ctx.user.id);
-      }),
-    
-    // Get contacts by label
-    getContactsByLabel: protectedProcedure
-      .input(z.object({
-        label: z.string(),
-      }))
-      .query(async ({ ctx, input }) => {
-        const { getContactsByLabel } = await import("./documents");
-        return await getContactsByLabel(ctx.user.id, input.label);
-      }),
-    
-    // Bulk upload document to multiple contacts
-    bulkUploadDocument: protectedProcedure
-      .input(z.object({
-        contactIds: z.array(z.number()),
-        fileName: z.string(),
-        fileData: z.string(), // base64 encoded file data
-        mimeType: z.string(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const { bulkUploadDocument } = await import("./documents");
-        const fileBuffer = Buffer.from(input.fileData, 'base64');
-        return await bulkUploadDocument({
-          contactIds: input.contactIds,
-          userId: ctx.user.id,
-          fileName: input.fileName,
-          fileBuffer,
-          mimeType: input.mimeType,
-        });
-      }),
   }),
 
   folders: router({
@@ -552,8 +391,6 @@ export const appRouter = router({
           address: z.string(),
           phoneNumbers: z.string().optional(), // JSON string of phone numbers
           contactLabels: z.string().optional(), // JSON string of contact labels
-          importantDates: z.string().optional(), // JSON string of important dates
-          comments: z.string().optional(), // JSON string of comments
           stopType: z.enum(["pickup", "delivery", "meeting", "visit", "other"]).optional(),
           stopColor: z.string().optional(),
         })).min(2),
@@ -568,14 +405,23 @@ export const appRouter = router({
         let routeData;
         let orderedWaypoints = input.waypoints;
         
-        // Calculate route using Google Maps API
-        routeData = await calculateRoute(
-          input.waypoints.map(wp => ({
-            address: wp.address,
-            name: wp.contactName,
-          })),
-          input.optimizeRoute // Pass optimization flag
-        );
+        if (input.optimizeRoute) {
+          // Calculate route using Google Maps API with optimization
+          routeData = await calculateRoute(
+            input.waypoints.map(wp => ({
+              address: wp.address,
+              name: wp.contactName,
+            }))
+          );
+        } else {
+          // Calculate route without optimization (keep user order)
+          routeData = await calculateRoute(
+            input.waypoints.map(wp => ({
+              address: wp.address,
+              name: wp.contactName,
+            }))
+          );
+        }
 
         // Create route record
         const shareId = nanoid(12);
@@ -624,8 +470,6 @@ export const appRouter = router({
             longitude: leg?.startLocation?.latLng?.longitude?.toString() || null,
             phoneNumbers: wp.phoneNumbers || null,
             contactLabels: wp.contactLabels || null,
-            importantDates: wp.importantDates || null,
-            comments: wp.comments || null,
             stopType: wp.stopType || "other",
             stopColor: wp.stopColor || "#3b82f6",
           };
@@ -641,9 +485,10 @@ export const appRouter = router({
         };
       }),
 
-    // List user's routes (excludes archived by default)
+    // List user's routes
     list: protectedProcedure.query(async ({ ctx }) => {
-      return await getUserRoutes(ctx.user.id);
+      const routes = await getUserRoutes(ctx.user.id);
+      return routes;
     }),
 
     // Get route details
@@ -769,162 +614,6 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    // Update route properties
-    update: protectedProcedure
-      .input(z.object({
-        routeId: z.number(),
-        name: z.string().min(1).optional(),
-        notes: z.string().optional(),
-        folderId: z.number().nullable().optional(),
-        startingPointAddress: z.string().optional(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const route = await getRouteById(input.routeId);
-        
-        if (!route || route.userId !== ctx.user.id) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Access denied",
-          });
-        }
-
-        const updates: Partial<InsertRoute> = {};
-        if (input.name !== undefined) updates.name = input.name;
-        if (input.notes !== undefined) updates.notes = input.notes;
-        if (input.folderId !== undefined) updates.folderId = input.folderId;
-        if (input.startingPointAddress !== undefined) updates.startingPointAddress = input.startingPointAddress;
-
-        await updateRoute(input.routeId, updates);
-        return { success: true };
-      }),
-
-    // Clear calendar event tracking from route
-    clearCalendarEvents: protectedProcedure
-      .input(z.object({
-        routeId: z.number(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const route = await getRouteById(input.routeId);
-        
-        if (!route || route.userId !== ctx.user.id) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Access denied",
-          });
-        }
-
-        // Clear the calendar tracking fields
-        await updateRoute(input.routeId, {
-          googleCalendarId: null,
-        });
-        
-        return { success: true };
-      }),
-
-    // Create individual calendar events for each waypoint
-    createWaypointEvents: protectedProcedure
-      .input(z.object({
-        routeId: z.number(),
-        calendarId: z.string(),
-        startTime: z.string(),
-        accessToken: z.string(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const route = await getRouteById(input.routeId);
-        
-        if (!route || route.userId !== ctx.user.id) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Route not found",
-          });
-        }
-
-        const waypoints = await getRouteWaypoints(input.routeId);
-        const startDate = new Date(input.startTime);
-        let currentTime = startDate.getTime();
-        
-        // Get user's default stop duration (default to 30 minutes if not set)
-        const userStopDurationMinutes = ctx.user.defaultStopDuration || 30;
-        const stopDuration = userStopDurationMinutes * 60 * 1000; // Convert to milliseconds
-        
-        // Get user's event duration mode (default to stop_only)
-        const eventDurationMode = ctx.user.eventDurationMode || 'stop_only';
-        
-        // Calculate travel time per segment (rough estimate)
-        const travelTimePerSegment = (route.totalDuration! * 1000) / waypoints.length;
-        
-        const createdEvents = [];
-
-        // Create individual event for each waypoint
-        for (let i = 0; i < waypoints.length; i++) {
-          const wp = waypoints[i];
-          const isLast = i === waypoints.length - 1;
-          
-          let eventStart: Date;
-          let eventEnd: Date;
-          
-          if (eventDurationMode === 'include_drive') {
-            // Mode: Include drive time in event
-            // Event starts at current time (includes drive to this location)
-            // Event ends after stop duration
-            eventStart = new Date(currentTime);
-            eventEnd = new Date(currentTime + stopDuration + (i > 0 ? travelTimePerSegment : 0));
-          } else {
-            // Mode: Stop time only (default)
-            // Event shows just the time at the location
-            // Drive time is added between events
-            eventStart = new Date(currentTime);
-            eventEnd = new Date(currentTime + stopDuration);
-          }
-          
-          try {
-            const { eventId, htmlLink } = await createCalendarEvent(
-              input.accessToken,
-              {
-                summary: `${route.name} - Stop ${i + 1}: ${wp.contactName || 'Waypoint'}`,
-                description: `Address: ${wp.address}${wp.phoneNumbers ? `\nPhone: ${wp.phoneNumbers}` : ''}${wp.executionNotes ? `\nNotes: ${wp.executionNotes}` : ''}`,
-                start: eventStart.toISOString(),
-                end: eventEnd.toISOString(),
-                location: wp.address,
-              },
-              input.calendarId
-            );
-            
-            createdEvents.push({ waypointId: wp.id, eventId, htmlLink });
-          } catch (error) {
-            console.error(`Failed to create event for waypoint ${wp.id}:`, error);
-          }
-          
-          // Move to next time slot
-          if (!isLast) {
-            if (eventDurationMode === 'include_drive') {
-              // Next event starts right after this one ends
-              currentTime = eventEnd.getTime();
-            } else {
-              // Add travel time between events
-              currentTime = eventEnd.getTime() + travelTimePerSegment;
-            }
-          }
-        }
-
-        // Update route with scheduled info
-        const db = await getDb();
-        if (db) {
-          await db.update(routes)
-            .set({
-              scheduledDate: startDate,
-              googleCalendarId: input.calendarId,
-            })
-            .where(eq(routes.id, input.routeId));
-        }
-
-        return {
-          success: true,
-          eventsCreated: createdEvents.length,
-          events: createdEvents,
-        };
-      }),
-
     // Get calendar authorization URL
     getCalendarAuthUrl: protectedProcedure
       .input(z.object({
@@ -948,8 +637,7 @@ export const appRouter = router({
           startTime: input.startTime,
         });
 
-        // Use public URL from ENV to avoid internal Azure container address
-        const redirectUri = `${ENV.publicUrl}/api/oauth/google/calendar-callback`;
+        const redirectUri = `${ctx.req.protocol}://${ctx.req.get('host')}/api/oauth/google/calendar-callback`;
         return { url: getGoogleAuthUrl(redirectUri, state) };
       }),
 
@@ -1066,20 +754,6 @@ export const appRouter = router({
         if (!route || route.userId !== ctx.user.id) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
         }
-
-        // Log to reschedule history
-        await db.insert(rescheduleHistory).values({
-          userId: ctx.user.id,
-          waypointId: input.waypointId,
-          routeId: waypoint[0].routeId,
-          routeName: route.name,
-          contactName: waypoint[0].contactName || 'Unknown',
-          address: waypoint[0].address,
-          originalDate: route.scheduledDate,
-          rescheduledDate: new Date(input.rescheduledDate),
-          missedReason: waypoint[0].missedReason,
-          status: 'pending',
-        });
 
         await db.update(routeWaypoints)
           .set({ 
@@ -1363,8 +1037,6 @@ export const appRouter = router({
         waypointId: z.number(),
         address: z.string(),
         contactName: z.string().optional(),
-        updateContact: z.boolean().optional(),
-        contactId: z.number().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -1390,46 +1062,6 @@ export const appRouter = router({
         await db.update(routeWaypoints)
           .set(updateData)
           .where(eq(routeWaypoints.id, input.waypointId));
-
-        // If user wants to update contact address permanently
-        if (input.updateContact && input.contactId) {
-          // Get current contact to check if address changed
-          const currentContact = await db.select().from(cachedContacts)
-            .where(and(
-              eq(cachedContacts.id, input.contactId),
-              eq(cachedContacts.userId, ctx.user.id)
-            ))
-            .limit(1);
-          
-          if (currentContact.length) {
-            const contactUpdateData: any = { address: input.address };
-            const oldAddress = currentContact[0].address;
-            const newAddress = input.address;
-            
-            // If this is the first time we're tracking the original address, save it
-            if (!currentContact[0].originalAddress && oldAddress) {
-              contactUpdateData.originalAddress = oldAddress;
-            }
-            
-            // If address changed from original, mark as modified
-            const originalAddress = currentContact[0].originalAddress || oldAddress;
-            if (originalAddress && newAddress && originalAddress !== newAddress) {
-              contactUpdateData.addressModified = 1;
-              contactUpdateData.addressModifiedAt = new Date();
-            } else if (originalAddress === newAddress) {
-              // If address was changed back to original, clear modified flag
-              contactUpdateData.addressModified = 0;
-              contactUpdateData.addressModifiedAt = null;
-            }
-            
-            await db.update(cachedContacts)
-              .set(contactUpdateData)
-              .where(and(
-                eq(cachedContacts.id, input.contactId),
-                eq(cachedContacts.userId, ctx.user.id)
-              ));
-          }
-        }
 
         return { success: true };
       }),
@@ -1536,243 +1168,6 @@ export const appRouter = router({
         };
       }),
 
-    // Re-optimize route by finding best positions for new stops
-    reoptimizeRoute: protectedProcedure
-      .input(z.object({
-        routeId: z.number(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-
-        // Get route and verify ownership
-        const route = await getRouteById(input.routeId);
-        if (!route || route.userId !== ctx.user.id) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
-        }
-
-        // Get all waypoints
-        const allWaypoints = await db.select()
-          .from(routeWaypoints)
-          .where(eq(routeWaypoints.routeId, input.routeId))
-          .orderBy(routeWaypoints.position);
-
-        if (allWaypoints.length < 2) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Route must have at least 2 waypoints" });
-        }
-
-        // Identify "new" stops: waypoints added after route creation
-        const routeCreatedAt = new Date(route.createdAt);
-        const newStops = allWaypoints.filter(wp => new Date(wp.createdAt) > routeCreatedAt);
-        const existingStops = allWaypoints.filter(wp => new Date(wp.createdAt) <= routeCreatedAt);
-
-        if (newStops.length === 0) {
-          // No new stops - just recalculate route with current order to update map
-          const currentRouteData = await calculateRoute(
-            allWaypoints.map(wp => ({
-              address: wp.address,
-              name: wp.contactName || undefined,
-            }))
-          );
-
-          // Update route distance and duration
-          await db.update(routes)
-            .set({
-              totalDistance: currentRouteData.distanceMeters,
-              totalDuration: parseInt(currentRouteData.duration.replace('s', '')),
-            })
-            .where(eq(routes.id, input.routeId));
-
-          // Update waypoint coordinates from fresh route calculation
-          for (let i = 0; i < allWaypoints.length; i++) {
-            const leg = currentRouteData.legs?.[i];
-            if (leg?.startLocation?.latLng) {
-              await db.update(routeWaypoints)
-                .set({
-                  latitude: leg.startLocation.latLng.latitude?.toString() || null,
-                  longitude: leg.startLocation.latLng.longitude?.toString() || null,
-                })
-                .where(eq(routeWaypoints.id, allWaypoints[i].id));
-            }
-          }
-
-          return { 
-            message: "Route recalculated with current order", 
-            optimizedCount: 0,
-            totalDistance: currentRouteData.distanceMeters,
-            totalDuration: parseInt(currentRouteData.duration.replace('s', '')),
-          };
-        }
-
-        // For each new stop, find the best insertion position
-        let currentOrder = [...existingStops];
-        
-        for (const newStop of newStops) {
-          let bestPosition = currentOrder.length; // Default: append at end
-          let bestDistance = Infinity;
-
-          // Try inserting at each position
-          for (let i = 1; i < currentOrder.length; i++) { // Start at 1 to skip origin
-            const testOrder = [
-              ...currentOrder.slice(0, i),
-              newStop,
-              ...currentOrder.slice(i)
-            ];
-
-            try {
-              // Calculate route distance with this order
-              const routeData = await calculateRoute(
-                testOrder.map(wp => ({
-                  address: wp.address,
-                  name: wp.contactName || undefined,
-                }))
-              );
-
-              if (routeData.distanceMeters < bestDistance) {
-                bestDistance = routeData.distanceMeters;
-                bestPosition = i;
-              }
-            } catch (error) {
-              // Skip this position if route calculation fails
-              continue;
-            }
-          }
-
-          // Insert at best position
-          currentOrder = [
-            ...currentOrder.slice(0, bestPosition),
-            newStop,
-            ...currentOrder.slice(bestPosition)
-          ];
-        }
-
-        // Update waypoint positions in database
-        for (let i = 0; i < currentOrder.length; i++) {
-          await db.update(routeWaypoints)
-            .set({ position: i })
-            .where(eq(routeWaypoints.id, currentOrder[i].id));
-        }
-
-        // Recalculate final route distance and duration
-        const finalRouteData = await calculateRoute(
-          currentOrder.map(wp => ({
-            address: wp.address,
-            name: wp.contactName || undefined,
-          }))
-        );
-
-        await db.update(routes)
-          .set({
-            totalDistance: finalRouteData.distanceMeters,
-            totalDuration: parseInt(finalRouteData.duration.replace('s', '')),
-          })
-          .where(eq(routes.id, input.routeId));
-
-        // Update waypoint coordinates from fresh route calculation
-        for (let i = 0; i < currentOrder.length; i++) {
-          const leg = finalRouteData.legs?.[i];
-          if (leg?.startLocation?.latLng) {
-            await db.update(routeWaypoints)
-              .set({
-                latitude: leg.startLocation.latLng.latitude?.toString() || null,
-                longitude: leg.startLocation.latLng.longitude?.toString() || null,
-              })
-              .where(eq(routeWaypoints.id, currentOrder[i].id));
-          }
-        }
-
-        return {
-          message: `Optimized ${newStops.length} new stop(s)`,
-          optimizedCount: newStops.length,
-          totalDistance: finalRouteData.distanceMeters,
-          totalDuration: parseInt(finalRouteData.duration.replace('s', '')),
-        };
-      }),
-
-    // Archive a route
-    archiveRoute: protectedProcedure
-      .input(z.object({ routeId: z.number() }))
-      .mutation(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-
-        // Verify route ownership
-        const route = await getRouteById(input.routeId);
-        if (!route || route.userId !== ctx.user.id) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
-        }
-
-        await db.update(routes)
-          .set({ 
-            isArchived: true, 
-            archivedAt: new Date() 
-          })
-          .where(eq(routes.id, input.routeId));
-
-        return { success: true };
-      }),
-
-    // Unarchive a route
-    unarchiveRoute: protectedProcedure
-      .input(z.object({ routeId: z.number() }))
-      .mutation(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-
-        // Verify route ownership
-        const route = await getRouteById(input.routeId);
-        if (!route || route.userId !== ctx.user.id) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
-        }
-
-        await db.update(routes)
-          .set({ 
-            isArchived: false, 
-            archivedAt: null 
-          })
-          .where(eq(routes.id, input.routeId));
-
-        return { success: true };
-      }),
-
-    // Get archived routes
-    getArchivedRoutes: protectedProcedure
-      .query(async ({ ctx }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-
-        const archivedRoutes = await db.select({
-          id: routes.id,
-          userId: routes.userId,
-          name: routes.name,
-          shareId: routes.shareId,
-          isPublic: routes.isPublic,
-          totalDistance: routes.totalDistance,
-          totalDuration: routes.totalDuration,
-          optimized: routes.optimized,
-          folderId: routes.folderId,
-          calendarId: routes.calendarId,
-          scheduledDate: routes.scheduledDate,
-          shareToken: routes.shareToken,
-          completedAt: routes.completedAt,
-          isArchived: routes.isArchived,
-          archivedAt: routes.archivedAt,
-          distanceUnit: routes.distanceUnit,
-          notes: routes.notes,
-          createdAt: routes.createdAt,
-          updatedAt: routes.updatedAt,
-          waypointCount: sql<number>`(SELECT COUNT(*) FROM route_waypoints WHERE route_waypoints.routeId = routes.id)`,
-          completedWaypointCount: sql<number>`(SELECT COUNT(*) FROM route_waypoints WHERE route_waypoints.routeId = routes.id AND route_waypoints.status = 'complete')`
-        })
-          .from(routes)
-          .where(and(
-            eq(routes.userId, ctx.user.id),
-            eq(routes.isArchived, true)
-          ));
-
-        return archivedRoutes;
-      }),
-
     // Get all missed waypoints that need rescheduling (for manager dashboard)
     getMissedWaypoints: protectedProcedure
       .query(async ({ ctx }) => {
@@ -1807,159 +1202,6 @@ export const appRouter = router({
 
         return result;
       }),
-
-    // Get reschedule history
-    getRescheduleHistory: protectedProcedure
-      .input(z.object({
-        status: z.enum(["pending", "completed", "re_missed", "cancelled"]).optional(),
-      }).optional())
-      .query(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-
-        let query = db.select()
-          .from(rescheduleHistory)
-          .where(eq(rescheduleHistory.userId, ctx.user.id));
-
-        // Filter by status if provided
-        if (input?.status) {
-          query = db.select()
-            .from(rescheduleHistory)
-            .where(
-              and(
-                eq(rescheduleHistory.userId, ctx.user.id),
-                eq(rescheduleHistory.status, input.status)
-              )
-            );
-        }
-
-        const history = await query.orderBy(desc(rescheduleHistory.createdAt));
-        return history;
-      }),
-
-    // Update reschedule history status
-    updateRescheduleStatus: protectedProcedure
-      .input(z.object({
-        historyId: z.number(),
-        status: z.enum(["pending", "completed", "re_missed", "cancelled"]),
-      }))
-      .mutation(async ({ ctx, input }) => {        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-
-        // Verify history entry belongs to user
-        const history = await db.select()
-          .from(rescheduleHistory)
-          .where(eq(rescheduleHistory.id, input.historyId))
-          .limit(1);
-
-        if (!history.length || history[0].userId !== ctx.user.id) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
-        }
-
-        await db.update(rescheduleHistory)
-          .set({ status: input.status })
-          .where(eq(rescheduleHistory.id, input.historyId));
-
-        return { success: true };
-      }),
-
-    // Add note to route
-    addNote: protectedProcedure
-      .input(z.object({
-        routeId: z.number(),
-        note: z.string().min(1),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-
-        // Verify route belongs to user
-        const route = await getRouteById(input.routeId);
-        if (!route || route.userId !== ctx.user.id) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Route not found" });
-        }
-
-        await db.insert(routeNotes).values({
-          routeId: input.routeId,
-          userId: ctx.user.id,
-          note: input.note,
-        });
-
-        return { success: true };
-      }),
-
-    // Get notes for a route
-    getNotes: protectedProcedure
-      .input(z.object({
-        routeId: z.number(),
-      }))
-      .query(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-
-        // Verify route belongs to user
-        const route = await getRouteById(input.routeId);
-        if (!route || route.userId !== ctx.user.id) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Route not found" });
-        }
-
-        const notes = await db.select()
-          .from(routeNotes)
-          .where(eq(routeNotes.routeId, input.routeId))
-          .orderBy(desc(routeNotes.createdAt));
-
-        return notes;
-      }),
-
-    // Update note
-    updateNote: protectedProcedure
-      .input(z.object({
-        noteId: z.number(),
-        note: z.string().min(1),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-
-        // Verify note belongs to user
-        const [note] = await db.select()
-          .from(routeNotes)
-          .where(eq(routeNotes.id, input.noteId));
-
-        if (!note || note.userId !== ctx.user.id) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Note not found" });
-        }
-
-        await db.update(routeNotes)
-          .set({ note: input.note })
-          .where(eq(routeNotes.id, input.noteId));
-
-        return { success: true };
-      }),
-
-    // Delete note
-    deleteNote: protectedProcedure
-      .input(z.object({
-        noteId: z.number(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-
-        // Verify note belongs to user
-        const [note] = await db.select()
-          .from(routeNotes)
-          .where(eq(routeNotes.id, input.noteId));
-
-        if (!note || note.userId !== ctx.user.id) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Note not found" });
-        }
-
-        await db.delete(routeNotes)
-          .where(eq(routeNotes.id, input.noteId));
-
-        return { success: true };
-      }),
   }),
 
   settings: router({
@@ -1978,48 +1220,11 @@ export const appRouter = router({
         return { success: true };
       }),
     
-    // Get Google Calendar connection URL
-    getCalendarConnectionUrl: protectedProcedure
-      .mutation(async ({ ctx }) => {
-        const state = JSON.stringify({
-          userId: ctx.user.id,
-          action: 'calendar',
-        });
-
-        const redirectUri = `${ENV.publicUrl}/api/oauth/google/callback`;
-        const { getGoogleAuthUrl } = await import('./googleAuth');
-        return { url: getGoogleAuthUrl(redirectUri, state) };
-      }),
-
-    // Disconnect Google Calendar
-    disconnectCalendar: protectedProcedure
-      .mutation(async ({ ctx }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-
-        await db.update(users)
-          .set({
-            googleCalendarAccessToken: null,
-            googleCalendarRefreshToken: null,
-            googleCalendarTokenExpiry: null,
-          })
-          .where(eq(users.id, ctx.user.id));
-
-        return { success: true };
-      }),
-
     updatePreferences: protectedProcedure
       .input(z.object({
         preferredCallingService: z.enum(["phone", "google-voice", "whatsapp", "skype", "facetime"]).optional(),
         distanceUnit: z.enum(["km", "miles"]).optional(),
         defaultStartingPoint: z.string().optional(),
-        defaultStopDuration: z.number().optional(), // Stop duration in minutes
-        eventDurationMode: z.enum(["stop_only", "include_drive"]).optional(), // Calendar event duration mode
-        autoArchiveDays: z.number().nullable().optional(), // null = never auto-archive
-        schedulingEmail: z.string().optional(), // Email for scheduling team reminders
-        enableDateReminders: z.boolean().optional(), // Enable/disable date reminders
-        reminderIntervals: z.array(z.number()).optional(), // Days before dates to send reminders
-        enabledReminderDateTypes: z.array(z.string()).optional(), // Date types that trigger reminders
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -2028,14 +1233,7 @@ export const appRouter = router({
         const updateData: any = {};
         if (input.preferredCallingService) updateData.preferredCallingService = input.preferredCallingService;
         if (input.distanceUnit) updateData.distanceUnit = input.distanceUnit;
-        if (input.defaultStartingPoint !== undefined) updateData.defaultStartingPoint = input.defaultStartingPoint;
-        if (input.defaultStopDuration !== undefined) updateData.defaultStopDuration = input.defaultStopDuration;
-        if (input.eventDurationMode !== undefined) updateData.eventDurationMode = input.eventDurationMode;
-        if (input.autoArchiveDays !== undefined) updateData.autoArchiveDays = input.autoArchiveDays;
-        if (input.schedulingEmail !== undefined) updateData.schedulingEmail = input.schedulingEmail;
-        if (input.enableDateReminders !== undefined) updateData.enableDateReminders = input.enableDateReminders ? 1 : 0;
-        if (input.reminderIntervals !== undefined) updateData.reminderIntervals = JSON.stringify(input.reminderIntervals);
-        if (input.enabledReminderDateTypes !== undefined) updateData.enabledReminderDateTypes = JSON.stringify(input.enabledReminderDateTypes);
+        if (input.defaultStartingPoint !== undefined) updateData.defaultStartingPoint = input.defaultStartingPoint || null;
 
         await db.update(users)
           .set(updateData)
@@ -2128,438 +1326,9 @@ export const appRouter = router({
 
         return { success: true };
       }),
-
-    // Important Date Types management
-    listImportantDateTypes: protectedProcedure.query(async ({ ctx }) => {
-      return getUserImportantDateTypes(ctx.user.id);
-    }),
-
-    createImportantDateType: protectedProcedure
-      .input(z.object({
-        name: z.string().min(1).max(100),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        await createImportantDateType({
-          userId: ctx.user.id,
-          name: input.name,
-        });
-        return { success: true };
-      }),
-
-    updateImportantDateType: protectedProcedure
-      .input(z.object({
-        id: z.number(),
-        name: z.string().min(1).max(100),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        await updateImportantDateType(input.id, input.name);
-        return { success: true };
-      }),
-
-    deleteImportantDateType: protectedProcedure
-      .input(z.object({
-        id: z.number(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        await deleteImportantDateType(input.id);
-        return { success: true };
-      }),
-
-    // Comment Options management
-    listCommentOptions: protectedProcedure.query(async ({ ctx }) => {
-      return getUserCommentOptions(ctx.user.id);
-    }),
-
-    createCommentOption: protectedProcedure
-      .input(z.object({
-        option: z.string().min(1).max(255),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        await createCommentOption({
-          userId: ctx.user.id,
-          option: input.option,
-        });
-        return { success: true };
-      }),
-
-    updateCommentOption: protectedProcedure
-      .input(z.object({
-        id: z.number(),
-        option: z.string().min(1).max(255),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        await updateCommentOption(input.id, input.option);
-        return { success: true };
-      }),
-
-    deleteCommentOption: protectedProcedure
-      .input(z.object({
-        id: z.number(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        await deleteCommentOption(input.id);
-        return { success: true };
-      }),
-    
-    // Get upcoming date reminders
-    getUpcomingReminders: protectedProcedure.query(async ({ ctx }) => {
-      const { getUpcomingDateReminders } = await import("./emailReminders");
-      return await getUpcomingDateReminders(ctx.user.id);
-    }),
-    
-    // Process and send all pending reminders
-    processReminders: protectedProcedure.mutation(async ({ ctx }) => {
-      const { processUserReminders } = await import("./emailReminders");
-      return await processUserReminders(ctx.user.id);
-    }),
-    
-    // Get reminder history for the user
-    getReminderHistory: protectedProcedure
-      .input(z.object({
-        limit: z.number().optional(),
-        offset: z.number().optional(),
-      }).optional())
-      .query(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-        
-        const limit = input?.limit || 50;
-        const offset = input?.offset || 0;
-        
-        const { reminderHistory } = await import("../drizzle/schema");
-        const { desc } = await import("drizzle-orm");
-        
-        const history = await db.select()
-          .from(reminderHistory)
-          .where(eq(reminderHistory.userId, ctx.user.id))
-          .orderBy(desc(reminderHistory.sentAt))
-          .limit(limit)
-          .offset(offset);
-        
-        return history;
-      }),
-  }),
-  
-  calendar: router({
-    // Get user's calendar list from database (stored during OAuth)
-    getCalendarList: protectedProcedure.query(async ({ ctx }) => {
-      const db = await getDb();
-      if (!db) return [];
-      
-      // Fetch user from database to get stored calendar list
-      console.log('[getCalendarList] Fetching calendar list for user ID:', ctx.user.id);
-      const user = await db.select()
-        .from(users)
-        .where(eq(users.id, ctx.user.id))
-        .limit(1);
-      
-      console.log('[getCalendarList] User found:', user.length > 0);
-      if (user.length > 0) {
-        console.log('[getCalendarList] User email:', user[0].email);
-        console.log('[getCalendarList] googleCalendarList value:', user[0].googleCalendarList);
-      }
-      console.log('[getCalendarList] Has googleCalendarList:', !!user[0]?.googleCalendarList);
-      
-      if (!user.length || !user[0].googleCalendarList) {
-        console.log('[getCalendarList] No calendar list found, returning empty array');
-        return [];
-      }
-      
-      try {
-        // Parse stored calendar list JSON
-        const calendars = JSON.parse(user[0].googleCalendarList);
-        return calendars;
-      } catch (error) {
-        console.error('[Calendar] Error parsing calendar list:', error);
-        return [];
-      }
-    }),
-    
-    // Update calendar visibility preferences
-    updateCalendarPreferences: protectedProcedure
-      .input(z.object({
-        visibleCalendars: z.array(z.string()),
-        defaultCalendar: z.string().optional(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-        
-        await db.update(users)
-          .set({
-            calendarPreferences: JSON.stringify(input),
-          })
-          .where(eq(users.id, ctx.user.id));
-        
-        return { success: true };
-      }),
-    // Get calendar events for a specific month
-    getEvents: protectedProcedure
-      .input(z.object({
-        month: z.number().min(1).max(12),
-        year: z.number(),
-        visibleCalendars: z.array(z.string()).optional(), // Optional: filter by visible calendar IDs
-      }))
-      .query(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-        
-        // Use year and month for filtering
-        
-        const allEvents: any[] = [];
-        
-        // Get all routes scheduled in this month
-        const scheduledRoutes = await db
-          .select()
-          .from(routes)
-          .where(
-            and(
-              eq(routes.userId, ctx.user.id),
-              sql`YEAR(${routes.scheduledDate}) = ${input.year}`,
-              sql`MONTH(${routes.scheduledDate}) = ${input.month}`
-            )
-          );
-        
-        // Convert routes to calendar events
-        scheduledRoutes.forEach(route => {
-          allEvents.push({
-            id: `route-${route.id}`,
-            routeId: route.id,
-            summary: route.name,
-            start: route.scheduledDate?.toISOString() || '',
-            end: route.scheduledDate ? new Date(route.scheduledDate.getTime() + (route.totalDuration || 0) * 1000).toISOString() : '',
-            type: 'route',
-            color: '#3b82f6', // Blue for routes
-          });
-        });
-        
-        // Get rescheduled stops (missed waypoints with rescheduledDate)
-        const rescheduledStops = await db
-          .select({
-            waypoint: routeWaypoints,
-            route: routes,
-          })
-          .from(routeWaypoints)
-          .innerJoin(routes, eq(routeWaypoints.routeId, routes.id))
-          .where(
-            and(
-              eq(routes.userId, ctx.user.id),
-              eq(routeWaypoints.status, 'missed'),
-              sql`${routeWaypoints.rescheduledDate} IS NOT NULL`,
-              sql`YEAR(${routeWaypoints.rescheduledDate}) = ${input.year}`,
-              sql`MONTH(${routeWaypoints.rescheduledDate}) = ${input.month}`
-            )
-          );
-        
-        // Convert rescheduled stops to calendar events
-        rescheduledStops.forEach(({ waypoint, route }) => {
-          allEvents.push({
-            id: `rescheduled-${waypoint.id}`,
-            waypointId: waypoint.id,
-            routeId: route.id,
-            routeName: route.name,
-            summary: `🔄 ${waypoint.contactName}`,
-            description: `Rescheduled stop from route: ${route.name}`,
-            start: waypoint.rescheduledDate?.toISOString() || '',
-            end: waypoint.rescheduledDate ? new Date(waypoint.rescheduledDate.getTime() + 30 * 60 * 1000).toISOString() : '', // 30 min default
-            location: waypoint.address,
-            type: 'rescheduled',
-            color: '#f59e0b', // Orange for rescheduled stops
-          });
-        });
-        
-        // Fetch Google Calendar events if user has connected their calendar
-        // Get user data directly from database by ID to get calendar tokens
-        const userResult = await db.select()
-          .from(users)
-          .where(eq(users.id, ctx.user.id))
-          .limit(1);
-        
-        const freshUser = userResult.length > 0 ? userResult[0] : null;
-        
-        if (freshUser?.googleCalendarAccessToken) {
-          try {
-            let accessToken = freshUser.googleCalendarAccessToken;
-            
-            // Check if token is expired and refresh if needed
-            if (freshUser.googleCalendarTokenExpiry && freshUser.googleCalendarRefreshToken) {
-              const isExpired = new Date(freshUser.googleCalendarTokenExpiry) < new Date();
-              
-              if (isExpired) {
-                console.log('[Calendar] Access token expired, refreshing...');
-                const { refreshAccessToken } = await import('./googleAuth');
-                const newToken = await refreshAccessToken(freshUser.googleCalendarRefreshToken);
-                
-                // Update token in database
-                const expiryDate = new Date(Date.now() + newToken.expires_in * 1000);
-                await db.update(users)
-                  .set({
-                    googleCalendarAccessToken: newToken.access_token,
-                    googleCalendarTokenExpiry: expiryDate,
-                  })
-                  .where(eq(users.id, ctx.user.id));
-                
-                accessToken = newToken.access_token;
-                console.log('[Calendar] Token refreshed successfully');
-              }
-            }
-            
-            const { getAllCalendarEvents } = await import('./googleAuth');
-            const googleEvents = await getAllCalendarEvents(
-              accessToken,
-              firstDay.toISOString(),
-              lastDay.toISOString(),
-              input.visibleCalendars // Pass visible calendar IDs to filter
-            );
-            
-            // Add Google Calendar events
-            googleEvents.forEach(event => {
-              allEvents.push({
-                id: `google-${event.id}`,
-                summary: event.summary,
-                description: event.description,
-                start: event.start,
-                end: event.end,
-                location: event.location,
-                type: 'google',
-                color: event.color || '#6b7280', // Use calendar color or gray
-                htmlLink: event.htmlLink,
-                calendarId: event.calendarId, // Include calendar ID for color-coding
-                calendarName: event.calendarName,
-              });
-            });
-          } catch (error) {
-            console.error('[Calendar] Failed to fetch Google Calendar events:', error);
-            // Continue without Google Calendar events
-          }
-        }
-        
-        // Sort by start time
-        return allEvents.sort((a, b) => 
-          new Date(a.start).getTime() - new Date(b.start).getTime()
-        );
-      }),
-    
-    // Create a new calendar event
-    createEvent: protectedProcedure
-      .input(z.object({
-        title: z.string().min(1),
-        startDate: z.string(),
-        startTime: z.string().optional(),
-        endDate: z.string(),
-        endTime: z.string().optional(),
-        allDay: z.boolean(),
-        calendarId: z.string(),
-        description: z.string().optional(),
-        recurrence: z.string().optional(), // RRULE format
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-        
-        // Get user's calendar tokens
-        const userResult = await db.select()
-          .from(users)
-          .where(eq(users.id, ctx.user.id))
-          .limit(1);
-        
-        const user = userResult.length > 0 ? userResult[0] : null;
-        
-        if (!user?.googleCalendarAccessToken) {
-          throw new TRPCError({ code: "UNAUTHORIZED", message: "Google Calendar not connected" });
-        }
-        
-        let accessToken = user.googleCalendarAccessToken;
-        
-        // Check if token is expired and refresh if needed
-        if (user.googleCalendarTokenExpiry && user.googleCalendarRefreshToken) {
-          const isExpired = new Date(user.googleCalendarTokenExpiry) < new Date();
-          
-          if (isExpired) {
-            console.log('[Calendar] Access token expired, refreshing...');
-            const { refreshAccessToken } = await import('./googleAuth');
-            const newToken = await refreshAccessToken(user.googleCalendarRefreshToken);
-            
-            // Update token in database
-            const expiryDate = new Date(Date.now() + newToken.expires_in * 1000);
-            await db.update(users)
-              .set({
-                googleCalendarAccessToken: newToken.access_token,
-                googleCalendarTokenExpiry: expiryDate,
-              })
-              .where(eq(users.id, ctx.user.id));
-            
-            accessToken = newToken.access_token;
-            console.log('[Calendar] Token refreshed successfully');
-          }
-        }
-        
-        // Build event object for Google Calendar API
-        const event: any = {
-          summary: input.title,
-          description: input.description,
-        };
-        
-        if (input.allDay) {
-          // All-day events use date format (YYYY-MM-DD)
-          event.start = { date: input.startDate };
-          event.end = { date: input.endDate };
-        } else {
-          // Timed events use dateTime format (ISO 8601)
-          const startDateTime = `${input.startDate}T${input.startTime || '09:00'}:00`;
-          const endDateTime = `${input.endDate}T${input.endTime || '10:00'}:00`;
-          event.start = { dateTime: startDateTime, timeZone: 'America/New_York' };
-          event.end = { dateTime: endDateTime, timeZone: 'America/New_York' };
-        }
-        
-        // Add recurrence if specified
-        if (input.recurrence) {
-          event.recurrence = [input.recurrence];
-        }
-        
-        // Call Google Calendar API to create event
-        try {
-          const response = await fetch(
-            `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(input.calendarId)}/events`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(event),
-            }
-          );
-          
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error('[Calendar] Failed to create event:', errorData);
-            throw new TRPCError({ 
-              code: "INTERNAL_SERVER_ERROR", 
-              message: `Failed to create calendar event: ${errorData.error?.message || 'Unknown error'}` 
-            });
-          }
-          
-          const createdEvent = await response.json();
-          console.log('[Calendar] Event created successfully:', createdEvent.id);
-          
-          return { 
-            success: true, 
-            eventId: createdEvent.id,
-            htmlLink: createdEvent.htmlLink 
-          };
-        } catch (error: any) {
-          console.error('[Calendar] Error creating event:', error);
-          throw new TRPCError({ 
-            code: "INTERNAL_SERVER_ERROR", 
-            message: error.message || 'Failed to create calendar event' 
-          });
-        }
-      }),
   }),
 
-  stopTypes: router({
-    // Get user's stop types
+  stopTypes: router({    // Get user's stop types
     list: protectedProcedure.query(async ({ ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
@@ -2622,133 +1391,6 @@ export const appRouter = router({
           .delete(stopTypes)
           .where(eq(stopTypes.id, input.id));
         
-        return { success: true };
-      }),
-  }),
-
-  admin: router({
-    listUsers: protectedProcedure.query(async ({ ctx }) => {
-      // Only admins can list users
-      if (ctx.user.role !== 'admin') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
-      }
-
-      const db = await getDb();
-      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
-
-      // Get all users with route and contact counts
-      const allUsers = await db.select().from(users);
-
-      const usersWithStats = await Promise.all(
-        allUsers.map(async (user) => {
-          const routeCount = await db
-            .select({ count: sql<number>`count(*)` })
-            .from(routes)
-            .where(eq(routes.userId, user.id));
-
-          const contactCount = await db
-            .select({ count: sql<number>`count(*)` })
-            .from(cachedContacts)
-            .where(eq(cachedContacts.userId, user.id));
-
-          return {
-            ...user,
-            routeCount: Number(routeCount[0]?.count || 0),
-            contactCount: Number(contactCount[0]?.count || 0),
-          };
-        })
-      );
-
-      return usersWithStats;
-    }),
-
-    mergeUsers: protectedProcedure
-      .input(z.object({
-        sourceUserId: z.number(),
-        targetUserId: z.number(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        // Only admins can merge users
-        if (ctx.user.role !== 'admin') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
-        }
-
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
-
-        // Transfer routes
-        await db
-          .update(routes)
-          .set({ userId: input.targetUserId })
-          .where(eq(routes.userId, input.sourceUserId));
-
-        // Transfer contacts
-        await db
-          .update(cachedContacts)
-          .set({ userId: input.targetUserId })
-          .where(eq(cachedContacts.userId, input.sourceUserId));
-
-        // Transfer reschedule history
-        await db
-          .update(rescheduleHistory)
-          .set({ userId: input.targetUserId })
-          .where(eq(rescheduleHistory.userId, input.sourceUserId));
-
-        // Transfer stop types
-        await db
-          .update(stopTypes)
-          .set({ userId: input.targetUserId })
-          .where(eq(stopTypes.userId, input.sourceUserId));
-
-        // Delete source user
-        await db
-          .delete(users)
-          .where(eq(users.id, input.sourceUserId));
-
-        return { success: true };
-      }),
-
-    deleteUser: protectedProcedure
-      .input(z.object({
-        userId: z.number(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        // Only admins can delete users
-        if (ctx.user.role !== 'admin') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
-        }
-
-        // Cannot delete yourself
-        if (input.userId === ctx.user.id) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot delete your own account' });
-        }
-
-        const db = await getDb();
-        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
-
-        // Check if user has any data
-        const routeCount = await db
-          .select({ count: sql<number>`count(*)` })
-          .from(routes)
-          .where(eq(routes.userId, input.userId));
-
-        const contactCount = await db
-          .select({ count: sql<number>`count(*)` })
-          .from(cachedContacts)
-          .where(eq(cachedContacts.userId, input.userId));
-
-        if (Number(routeCount[0]?.count || 0) > 0 || Number(contactCount[0]?.count || 0) > 0) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cannot delete user with existing routes or contacts. Merge user first.',
-          });
-        }
-
-        // Delete user
-        await db
-          .delete(users)
-          .where(eq(users.id, input.userId));
-
         return { success: true };
       }),
   }),

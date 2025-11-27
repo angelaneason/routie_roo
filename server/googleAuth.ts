@@ -52,7 +52,7 @@ export function getGoogleAuthUrl(redirectUri: string, state?: string): string {
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: redirectUri,
     response_type: "code",
-    scope: "https://www.googleapis.com/auth/contacts https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
+    scope: "https://www.googleapis.com/auth/contacts https://www.googleapis.com/auth/calendar.events",
     access_type: "offline",
     prompt: "consent",
   });
@@ -294,45 +294,6 @@ export async function updateGoogleContact(
 /**
  * Create a Google Calendar event for a route
  */
-/**
- * Fetch user's calendar list from Google Calendar API
- */
-export async function getCalendarList(
-  accessToken: string
-): Promise<Array<{ id: string; summary: string; primary?: boolean; backgroundColor?: string }>> {
-  console.log('[Calendar] Fetching calendar list...');
-  
-  const response = await fetch(
-    "https://www.googleapis.com/calendar/v3/users/me/calendarList",
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
-
-  console.log('[Calendar] Calendar list response status:', response.status);
-
-  if (!response.ok) {
-    const error = await response.text();
-    console.error('[Calendar] Failed to fetch calendar list:', error);
-    throw new Error(`Failed to fetch calendar list (${response.status}): ${error}`);
-  }
-
-  const data = await response.json();
-  console.log('[Calendar] Successfully fetched', data.items?.length || 0, 'calendars');
-  
-  return data.items.map((cal: any) => ({
-    id: cal.id,
-    summary: cal.summary,
-    primary: cal.primary,
-    backgroundColor: cal.backgroundColor,
-  }));
-}
-
-/**
- * Create a calendar event in the specified calendar
- */
 export async function createCalendarEvent(
   accessToken: string,
   event: {
@@ -341,11 +302,10 @@ export async function createCalendarEvent(
     start: string; // ISO 8601 datetime
     end: string; // ISO 8601 datetime
     location?: string;
-  },
-  calendarId: string = 'primary'
+  }
 ): Promise<{ eventId: string; htmlLink: string }> {
   const response = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`,
+    "https://www.googleapis.com/calendar/v3/calendars/primary/events",
     {
       method: "POST",
       headers: {
@@ -377,143 +337,5 @@ export async function createCalendarEvent(
   return {
     eventId: data.id,
     htmlLink: data.htmlLink,
-  };
-}
-
-/**
- * Fetch Google Calendar events for a specific date range
- */
-export async function getCalendarEvents(
-  accessToken: string,
-  timeMin: string, // ISO 8601 datetime
-  timeMax: string, // ISO 8601 datetime
-  calendarId: string = 'primary'
-): Promise<Array<{
-  id: string;
-  summary: string;
-  description?: string;
-  start: string;
-  end: string;
-  location?: string;
-  htmlLink?: string;
-  colorId?: string;
-}>> {
-  const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`);
-  url.searchParams.append('timeMin', timeMin);
-  url.searchParams.append('timeMax', timeMax);
-  url.searchParams.append('singleEvents', 'true');
-  url.searchParams.append('orderBy', 'startTime');
-  url.searchParams.append('maxResults', '250');
-
-  const response = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to fetch calendar events: ${error}`);
-  }
-
-  const data = await response.json();
-  
-  return (data.items || []).map((event: any) => ({
-    id: event.id,
-    summary: event.summary || '(No title)',
-    description: event.description,
-    start: event.start.dateTime || event.start.date,
-    end: event.end.dateTime || event.end.date,
-    location: event.location,
-    htmlLink: event.htmlLink,
-    colorId: event.colorId,
-  }));
-}
-
-/**
- * Fetch events from all user's calendars for a date range
- */
-export async function getAllCalendarEvents(
-  accessToken: string,
-  timeMin: string,
-  timeMax: string,
-  calendarIds?: string[] // Optional: filter by specific calendar IDs
-): Promise<Array<{
-  id: string;
-  summary: string;
-  description?: string;
-  start: string;
-  end: string;
-  location?: string;
-  htmlLink?: string;
-  colorId?: string;
-  calendarId?: string;
-  calendarName?: string;
-}>> {
-  // First, get all calendars
-  const calendars = await getCalendarList(accessToken);
-  
-  // Filter calendars if calendarIds provided
-  const targetCalendars = calendarIds && calendarIds.length > 0
-    ? calendars.filter(cal => calendarIds.includes(cal.id))
-    : calendars;
-  
-  // Fetch events from each calendar
-  const allEvents = await Promise.all(
-    targetCalendars.map(async (calendar) => {
-      try {
-        const events = await getCalendarEvents(accessToken, timeMin, timeMax, calendar.id);
-        return events.map(event => ({
-          ...event,
-          calendarId: calendar.id,
-          calendarName: calendar.summary,
-        }));
-      } catch (error) {
-        console.error(`Failed to fetch events from calendar ${calendar.summary}:`, error);
-        return [];
-      }
-    })
-  );
-  
-  // Flatten and sort by start time
-  return allEvents
-    .flat()
-    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-}
-
-
-/**
- * Refresh an expired Google OAuth access token
- */
-export async function refreshAccessToken(refreshToken: string): Promise<{
-  access_token: string;
-  expires_in: number;
-}> {
-  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-    throw new Error("Google OAuth credentials not configured");
-  }
-
-  const response = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
-      refresh_token: refreshToken,
-      grant_type: "refresh_token",
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to refresh token: ${error}`);
-  }
-
-  const data = await response.json();
-  return {
-    access_token: data.access_token,
-    expires_in: data.expires_in,
   };
 }

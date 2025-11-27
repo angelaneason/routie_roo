@@ -1,1 +1,0 @@
-ALTER TABLE `users` ADD `schedulingEmail` varchar(320);

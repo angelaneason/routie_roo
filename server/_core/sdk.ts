@@ -269,13 +269,6 @@ class SDKServer {
     const sessionUserId = session.openId;
     const signedInAt = new Date();
     let user = await db.getUserByOpenId(sessionUserId);
-    
-    console.log('[SDK] authenticateRequest - user from DB:', {
-      id: user?.id,
-      email: user?.email,
-      hasCalendarToken: !!user?.googleCalendarAccessToken,
-      userKeys: user ? Object.keys(user) : []
-    });
 
     // If user not in DB, sync from OAuth server automatically
     if (!user) {

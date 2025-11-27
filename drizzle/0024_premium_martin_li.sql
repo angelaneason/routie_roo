@@ -1,1 +1,0 @@
-ALTER TABLE `users` ADD `eventDurationMode` enum('stop_only','include_drive') DEFAULT 'stop_only';

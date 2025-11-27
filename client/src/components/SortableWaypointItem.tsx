@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { StopStatusBadge } from "@/components/StopStatusBadge";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
-import { CheckCircle2, XCircle, MessageSquare, Calendar, GripVertical, Trash2, Edit3, MapPin, Flag } from "lucide-react";
+import { CheckCircle2, XCircle, MessageSquare, Calendar, GripVertical, Trash2, Edit3, MapPin } from "lucide-react";
 
 interface SortableWaypointItemProps {
   waypoint: any;
@@ -61,11 +61,7 @@ export function SortableWaypointItem({
           <GripVertical className="h-5 w-5 text-muted-foreground" />
         </div>
         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-          {waypoint.position === 0 ? (
-            <Flag className="h-4 w-4" />
-          ) : (
-            index
-          )}
+          {index + 1}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -77,10 +73,10 @@ export function SortableWaypointItem({
                 const labels = JSON.parse(waypoint.contactLabels);
                 const filteredLabels = labels.filter((label: string) => {
                   const lower = label.toLowerCase();
-                  return lower !== 'mycontacts' && lower !== 'starred' && !label.startsWith('contactGroups/');
+                  return lower !== 'mycontacts' && lower !== 'starred';
                 });
                 return filteredLabels.map((label: string) => (
-                  <span key={label} className="text-sm font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                  <span key={label} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
                     {label}
                   </span>
                 ));
@@ -111,47 +107,6 @@ export function SortableWaypointItem({
           <p className="text-sm text-muted-foreground">
             {waypoint.address}
           </p>
-          
-          {/* Important Dates */}
-          {waypoint.importantDates && (() => {
-            try {
-              const dates = JSON.parse(waypoint.importantDates);
-              if (dates.length > 0) {
-                return (
-                  <div className="mt-2 space-y-1">
-                    <p className="text-xs font-semibold text-muted-foreground">Important Dates:</p>
-                    {dates.map((date: any, idx: number) => (
-                      <div key={idx} className="text-xs text-muted-foreground">
-                        <span className="font-medium">{date.type}:</span> {new Date(date.date).toLocaleDateString()}
-                      </div>
-                    ))}
-                  </div>
-                );
-              }
-            } catch (e) {}
-            return null;
-          })()}
-          
-          {/* Comments */}
-          {waypoint.comments && (() => {
-            try {
-              const comments = JSON.parse(waypoint.comments);
-              if (comments.length > 0) {
-                return (
-                  <div className="mt-2 space-y-1">
-                    <p className="text-xs font-semibold text-muted-foreground">Comments:</p>
-                    {comments.map((comment: any, idx: number) => (
-                      <div key={idx} className="text-xs text-muted-foreground">
-                        {comment.option === "Other" ? comment.customText : comment.option}
-                      </div>
-                    ))}
-                  </div>
-                );
-              }
-            } catch (e) {}
-            return null;
-          })()}
-          
           {waypoint.executionNotes && (
             <div className="mt-2 text-sm bg-blue-50 p-2 rounded">
               <p className="font-medium text-blue-900">Notes:</p>
@@ -204,64 +159,67 @@ export function SortableWaypointItem({
       
       {/* Controls */}
       <div className="flex gap-2 flex-wrap pt-2 border-t">
-        {/* Edit controls - always visible */}
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onEditAddress}
-        >
-          <Edit3 className="h-4 w-4 mr-1" />
-          Edit Address
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-          onClick={onRemove}
-        >
-          <Trash2 className="h-4 w-4 mr-1" />
-          Remove
-        </Button>
-        
-        {/* Execution controls */}
-        {waypoint.status === "pending" && (
+        {isEditMode ? (
           <>
             <Button
               size="sm"
-              onClick={onComplete}
-              className="bg-green-600 hover:bg-green-700"
+              variant="outline"
+              onClick={onEditAddress}
             >
-              <CheckCircle2 className="h-4 w-4 mr-1" />
-              Complete
+              <Edit3 className="h-4 w-4 mr-1" />
+              Edit Address
             </Button>
             <Button
               size="sm"
               variant="destructive"
-              onClick={onMiss}
+              onClick={onRemove}
             >
-              <XCircle className="h-4 w-4 mr-1" />
-              Miss
+              <Trash2 className="h-4 w-4 mr-1" />
+              Remove
+            </Button>
+          </>
+        ) : (
+          <>
+            {waypoint.status === "pending" && (
+              <>
+                <Button
+                  size="sm"
+                  onClick={onComplete}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                  Complete
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={onMiss}
+                >
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Miss
+                </Button>
+              </>
+            )}
+            {waypoint.status === "missed" && waypoint.needsReschedule === 1 && (
+              <Button
+                size="sm"
+                onClick={onReschedule}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <Calendar className="h-4 w-4 mr-1" />
+                Reschedule
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onNote}
+            >
+              <MessageSquare className="h-4 w-4 mr-1" />
+              {waypoint.executionNotes ? "Edit Note" : "Add Note"}
             </Button>
           </>
         )}
-        {waypoint.status === "missed" && waypoint.needsReschedule === 1 && (
-          <Button
-            size="sm"
-            onClick={onReschedule}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            <Calendar className="h-4 w-4 mr-1" />
-            Reschedule
-          </Button>
-        )}
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onNote}
-        >
-          <MessageSquare className="h-4 w-4 mr-1" />
-          {waypoint.executionNotes ? "Edit Note" : "Add Note"}
-        </Button>
       </div>
     </div>
   );
