@@ -1477,3 +1477,9 @@
 - [x] Verify Calendar.tsx component rendering
 - [x] Check for console errors in browser
 - [x] Test with different date ranges
+
+
+## Kangaroo Crew Button Alignment
+
+- [x] Move action buttons (Refresh, Import CSV, Bulk Upload Doc) to the left
+- [x] Adjust button row layout to align with tagline instead of right-aligned

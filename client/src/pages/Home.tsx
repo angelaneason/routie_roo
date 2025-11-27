@@ -797,9 +797,8 @@ export default function Home() {
                       Everyone you connect with along the journey.
                     </CardDescription>
                   </div>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0"></div>
-                    <div className="flex flex-wrap gap-2 justify-end">
+                  <div className="flex items-start gap-4">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         variant="outline"
                         size="sm"
