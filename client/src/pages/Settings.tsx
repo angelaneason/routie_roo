@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -132,7 +133,7 @@ export default function Settings() {
       </header>
 
       <main className="container py-8">
-        <div className="max-w-2xl mx-auto space-y-8">
+        <div className="max-w-4xl mx-auto space-y-6">
           <div>
             <h2 className="text-3xl font-bold">Settings</h2>
             <p className="text-muted-foreground mt-2">
@@ -145,32 +146,36 @@ export default function Settings() {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
-            <>
-              {/* Account Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Account Information</CardTitle>
-                  <CardDescription>Your account details</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label className="text-sm text-muted-foreground">Name</Label>
-                    <p className="text-base font-medium">{currentUser?.name || "Not set"}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm text-muted-foreground">Email</Label>
-                    <p className="text-base font-medium">{currentUser?.email || "Not set"}</p>
-                  </div>
-                </CardContent>
-              </Card>
+            <Tabs defaultValue="account" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="account">Account</TabsTrigger>
+                <TabsTrigger value="site">Site Config</TabsTrigger>
+                <TabsTrigger value="contacts">Contacts</TabsTrigger>
+                <TabsTrigger value="routes">Routes</TabsTrigger>
+              </TabsList>
 
-              {/* ========== SITE CONFIGURATION SECTION ========== */}
-              <div className="space-y-4">
-                <div className="border-t pt-6">
-                  <h3 className="text-2xl font-bold mb-2">Site Configuration</h3>
-                  <p className="text-sm text-muted-foreground">General application preferences</p>
-                </div>
+              {/* ========== ACCOUNT TAB ========== */}
+              <TabsContent value="account" className="space-y-4 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Account Information</CardTitle>
+                    <CardDescription>Your account details</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Name</Label>
+                      <p className="text-base font-medium">{currentUser?.name || "Not set"}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Email</Label>
+                      <p className="text-base font-medium">{currentUser?.email || "Not set"}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
+              {/* ========== SITE CONFIGURATION TAB ========== */}
+              <TabsContent value="site" className="space-y-4 mt-6">
                 {/* Calling Preferences */}
                 <Card>
                   <CardHeader>
@@ -237,15 +242,10 @@ export default function Settings() {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
+              </TabsContent>
 
-              {/* ========== CONTACTS SECTION ========== */}
-              <div className="space-y-4">
-                <div className="border-t pt-6">
-                  <h3 className="text-2xl font-bold mb-2">Contacts</h3>
-                  <p className="text-sm text-muted-foreground">Manage contact-related settings and reminders</p>
-                </div>
-
+              {/* ========== CONTACTS TAB ========== */}
+              <TabsContent value="contacts" className="space-y-4 mt-6">
                 {/* Important Date Types */}
                 <ImportantDateTypesSettings />
 
@@ -394,15 +394,10 @@ export default function Settings() {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
+              </TabsContent>
 
-              {/* ========== ROUTES SECTION ========== */}
-              <div className="space-y-4">
-                <div className="border-t pt-6">
-                  <h3 className="text-2xl font-bold mb-2">Routes</h3>
-                  <p className="text-sm text-muted-foreground">Configure route planning and calendar settings</p>
-                </div>
-
+              {/* ========== ROUTES TAB ========== */}
+              <TabsContent value="routes" className="space-y-4 mt-6">
                 {/* Starting Points */}
                 <Card>
                   <CardHeader>
@@ -685,8 +680,8 @@ export default function Settings() {
                     )}
                   </CardContent>
                 </Card>
-              </div>
-            </>
+              </TabsContent>
+            </Tabs>
           )}
         </div>
       </main>

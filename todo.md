@@ -1350,3 +1350,12 @@
 - [x] Contacts section (important date types, comment options, email reminders)
 - [x] Routes section (starting points, stop types, stop duration, calendar integration)
 - [x] Improve visual hierarchy and spacing between sections
+
+
+## Tabbed Settings Layout
+
+- [x] Convert Settings page to use tabs instead of long scrolling page
+- [x] Create tabs: Account, Site Config, Contacts, Routes
+- [x] Use shadcn/ui Tabs component for clean implementation
+- [x] Ensure mobile responsiveness
+- [x] Test tab switching and content display
