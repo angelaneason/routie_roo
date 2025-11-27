@@ -1483,3 +1483,68 @@
 
 - [x] Move action buttons (Refresh, Import CSV, Bulk Upload Doc) to the left
 - [x] Adjust button row layout to align with tagline instead of right-aligned
+
+
+## Rescheduled Stops Not Showing on Calendar
+
+- [x] Fix rescheduleWaypoint procedure to log to reschedule_history table
+- [x] Backfill existing rescheduled stops into history table
+- [x] Add "Mark as Completed" action to reschedule history page
+- [x] Add "Mark as Re-Missed" action to reschedule history page
+- [ ] Fix calendar query timezone issue preventing rescheduled stops from appearing
+- [ ] Test that rescheduled stops appear on calendar after fix
+
+
+## Rescheduled Stops Calendar Improvements
+
+- [ ] Make rescheduled stops display as full event blocks on calendar (not small icons)
+- [ ] Add title/contact name to rescheduled stop calendar events
+- [ ] Ensure rescheduled stops have proper time display on calendar
+- [ ] Sync rescheduled stops to Google Calendar when created
+- [ ] Update Google Calendar event when reschedule status changes (completed/re-missed)
+- [ ] Delete Google Calendar event when reschedule is cancelled
+- [ ] Test that rescheduled stops appear as full events like routes
+- [ ] Test Google Calendar sync for rescheduled stops
+
+
+## Account Consolidation & Admin User Management
+
+### Immediate Fix
+- [x] Transfer all routes from user 3060004 to user 38
+- [x] Transfer all contacts from user 3060004 to user 38
+- [x] Update reschedule_history records to use user 38
+- [x] Verify rescheduled stops appear on calendar after consolidation
+
+### Admin User Management Page
+- [x] Create AdminUsers page component
+- [x] Add backend procedure to list all users with stats (route count, contact count)
+- [x] Show current logged-in user indicator
+- [x] Add "Merge Users" functionality to combine duplicate accounts
+- [x] Add "Transfer Routes" functionality to move routes between users
+- [x] Add "Delete User" functionality (with confirmation)
+- [ ] Add "View as User" functionality for debugging
+- [x] Add navigation link to Admin Users page in Settings
+- [x] Restrict access to admin role only
+
+### Testing
+- [x] Test account consolidation
+- [x] Test user merge functionality
+- [x] Test that calendar shows rescheduled stops after fix
+- [x] Verify both users see same data after consolidation
+
+
+## Google OAuth Verification
+
+### Testing Mode Setup (Immediate)
+- [ ] Document how to add test users in Google Cloud Console
+- [ ] Add team members' email addresses as test users
+- [ ] Verify test users don't see "unverified app" warning
+- [ ] Document testing mode limitations (100 users max)
+
+### Full Verification (Future)
+- [ ] Create privacy policy page
+- [ ] Create terms of service page
+- [ ] Add homepage with app description
+- [ ] Submit OAuth verification request to Google
+- [ ] Respond to Google's verification questions
+- [ ] Wait for approval (1-2 weeks)

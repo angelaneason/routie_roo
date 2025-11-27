@@ -15,11 +15,22 @@ export default function RescheduleHistory() {
   const { isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const utils = trpc.useUtils();
 
   const historyQuery = trpc.routes.getRescheduleHistory.useQuery(
     { status: statusFilter === "all" ? undefined : statusFilter },
     { enabled: isAuthenticated }
   );
+
+  const updateStatusMutation = trpc.routes.updateRescheduleStatus.useMutation({
+    onSuccess: () => {
+      utils.routes.getRescheduleHistory.invalidate();
+    },
+  });
+
+  const handleUpdateStatus = (historyId: number, status: "completed" | "re_missed") => {
+    updateStatusMutation.mutate({ historyId, status });
+  };
 
   if (!isAuthenticated) {
     navigate("/");
@@ -171,6 +182,24 @@ export default function RescheduleHistory() {
                           <p className="font-medium text-lg">{item.contactName}</p>
                           <p className="text-sm text-muted-foreground">{item.address}</p>
                         </div>
+                        {item.status === "pending" && (
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleUpdateStatus(item.id, "completed")}
+                            >
+                              Mark Completed
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleUpdateStatus(item.id, "re_missed")}
+                            >
+                              Mark Re-Missed
+                            </Button>
+                          </div>
+                        )}
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">

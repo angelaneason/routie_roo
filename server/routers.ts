@@ -1837,6 +1837,32 @@ export const appRouter = router({
         return history;
       }),
 
+    // Update reschedule history status
+    updateRescheduleStatus: protectedProcedure
+      .input(z.object({
+        historyId: z.number(),
+        status: z.enum(["pending", "completed", "re_missed", "cancelled"]),
+      }))
+      .mutation(async ({ ctx, input }) => {        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify history entry belongs to user
+        const history = await db.select()
+          .from(rescheduleHistory)
+          .where(eq(rescheduleHistory.id, input.historyId))
+          .limit(1);
+
+        if (!history.length || history[0].userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        await db.update(rescheduleHistory)
+          .set({ status: input.status })
+          .where(eq(rescheduleHistory.id, input.historyId));
+
+        return { success: true };
+      }),
+
     // Add note to route
     addNote: protectedProcedure
       .input(z.object({
@@ -2278,9 +2304,7 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
         
-        // Get first and last day of the month
-        const firstDay = new Date(input.year, input.month - 1, 1);
-        const lastDay = new Date(input.year, input.month, 0, 23, 59, 59);
+        // Use year and month for filtering
         
         const allEvents: any[] = [];
         
@@ -2291,8 +2315,8 @@ export const appRouter = router({
           .where(
             and(
               eq(routes.userId, ctx.user.id),
-              sql`${routes.scheduledDate} >= ${firstDay}`,
-              sql`${routes.scheduledDate} <= ${lastDay}`
+              sql`YEAR(${routes.scheduledDate}) = ${input.year}`,
+              sql`MONTH(${routes.scheduledDate}) = ${input.month}`
             )
           );
         
@@ -2322,8 +2346,8 @@ export const appRouter = router({
               eq(routes.userId, ctx.user.id),
               eq(routeWaypoints.status, 'missed'),
               sql`${routeWaypoints.rescheduledDate} IS NOT NULL`,
-              sql`${routeWaypoints.rescheduledDate} >= ${firstDay}`,
-              sql`${routeWaypoints.rescheduledDate} <= ${lastDay}`
+              sql`YEAR(${routeWaypoints.rescheduledDate}) = ${input.year}`,
+              sql`MONTH(${routeWaypoints.rescheduledDate}) = ${input.month}`
             )
           );
         
@@ -2598,6 +2622,133 @@ export const appRouter = router({
           .delete(stopTypes)
           .where(eq(stopTypes.id, input.id));
         
+        return { success: true };
+      }),
+  }),
+
+  admin: router({
+    listUsers: protectedProcedure.query(async ({ ctx }) => {
+      // Only admins can list users
+      if (ctx.user.role !== 'admin') {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+      }
+
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+
+      // Get all users with route and contact counts
+      const allUsers = await db.select().from(users);
+
+      const usersWithStats = await Promise.all(
+        allUsers.map(async (user) => {
+          const routeCount = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(routes)
+            .where(eq(routes.userId, user.id));
+
+          const contactCount = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(cachedContacts)
+            .where(eq(cachedContacts.userId, user.id));
+
+          return {
+            ...user,
+            routeCount: Number(routeCount[0]?.count || 0),
+            contactCount: Number(contactCount[0]?.count || 0),
+          };
+        })
+      );
+
+      return usersWithStats;
+    }),
+
+    mergeUsers: protectedProcedure
+      .input(z.object({
+        sourceUserId: z.number(),
+        targetUserId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Only admins can merge users
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+        }
+
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+
+        // Transfer routes
+        await db
+          .update(routes)
+          .set({ userId: input.targetUserId })
+          .where(eq(routes.userId, input.sourceUserId));
+
+        // Transfer contacts
+        await db
+          .update(cachedContacts)
+          .set({ userId: input.targetUserId })
+          .where(eq(cachedContacts.userId, input.sourceUserId));
+
+        // Transfer reschedule history
+        await db
+          .update(rescheduleHistory)
+          .set({ userId: input.targetUserId })
+          .where(eq(rescheduleHistory.userId, input.sourceUserId));
+
+        // Transfer stop types
+        await db
+          .update(stopTypes)
+          .set({ userId: input.targetUserId })
+          .where(eq(stopTypes.userId, input.sourceUserId));
+
+        // Delete source user
+        await db
+          .delete(users)
+          .where(eq(users.id, input.sourceUserId));
+
+        return { success: true };
+      }),
+
+    deleteUser: protectedProcedure
+      .input(z.object({
+        userId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Only admins can delete users
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+        }
+
+        // Cannot delete yourself
+        if (input.userId === ctx.user.id) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot delete your own account' });
+        }
+
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+
+        // Check if user has any data
+        const routeCount = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(routes)
+          .where(eq(routes.userId, input.userId));
+
+        const contactCount = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(cachedContacts)
+          .where(eq(cachedContacts.userId, input.userId));
+
+        if (Number(routeCount[0]?.count || 0) > 0 || Number(contactCount[0]?.count || 0) > 0) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Cannot delete user with existing routes or contacts. Merge user first.',
+          });
+        }
+
+        // Delete user
+        await db
+          .delete(users)
+          .where(eq(users.id, input.userId));
+
         return { success: true };
       }),
   }),

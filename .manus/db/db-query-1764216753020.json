@@ -1,0 +1,26 @@
+{
+  "query": "SELECT id, routeId, contactName, address, status, rescheduledDate, missedReason FROM route_waypoints WHERE status = 'missed' AND rescheduledDate IS NOT NULL LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, routeId, contactName, address, status, rescheduledDate, missedReason FROM route_waypoints WHERE status = 'missed' AND rescheduledDate IS NOT NULL LIMIT 10;",
+  "rows": [
+    {
+      "id": "570018",
+      "routeId": "510001",
+      "contactName": "WRIGHT Belinda",
+      "address": "1702 Biggs Ter, Arlington, TX 76010",
+      "status": "missed",
+      "rescheduledDate": "2025-11-30 17:00:00",
+      "missedReason": "This is the WRONG address - she is in Arlington NOW"
+    }
+  ],
+  "messages": [
+    "600008\t540001\tONEAL Alice\t3139 Guadaloupe",
+    "Grand Prairie, TX 75054-6727",
+    "US\tmissed\t2025-11-30 09:00:00\tneeded to run errands",
+    "600010\t540001\tSIMMONS Terrance\t2355 N State Hwy 360 Service Rd E apt 1016",
+    "Grand Prairie, TX 75050",
+    "US\tmissed\t2025-11-30 15:00:00\tr/s tomorrow"
+  ],
+  "stdout": "id\trouteId\tcontactName\taddress\tstatus\trescheduledDate\tmissedReason\n570018\t510001\tWRIGHT Belinda\t1702 Biggs Ter, Arlington, TX 76010\tmissed\t2025-11-30 17:00:00\tThis is the WRONG address - she is in Arlington NOW\n\n600008\t540001\tONEAL Alice\t3139 Guadaloupe\nGrand Prairie, TX 75054-6727\nUS\tmissed\t2025-11-30 09:00:00\tneeded to run errands\n\n600010\t540001\tSIMMONS Terrance\t2355 N State Hwy 360 Service Rd E apt 1016\nGrand Prairie, TX 75050\nUS\tmissed\t2025-11-30 15:00:00\tr/s tomorrow\n\n",
+  "stderr": "",
+  "execution_time_ms": 80
+}

@@ -1,0 +1,14 @@
+{
+  "query": "SELECT \n  (SELECT id FROM users ORDER BY lastSignedIn DESC LIMIT 1) as current_user_id,\n  (SELECT DISTINCT userId FROM reschedule_history LIMIT 1) as history_user_id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT \n  (SELECT id FROM users ORDER BY lastSignedIn DESC LIMIT 1) as current_user_id,\n  (SELECT DISTINCT userId FROM reschedule_history LIMIT 1) as history_user_id;",
+  "rows": [
+    {
+      "current_user_id": "3060004",
+      "history_user_id": "3060004"
+    }
+  ],
+  "messages": [],
+  "stdout": "current_user_id\thistory_user_id\n3060004\t3060004\n",
+  "stderr": "",
+  "execution_time_ms": 52
+}

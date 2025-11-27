@@ -1,0 +1,13 @@
+{
+  "query": "SHOW TABLES LIKE '%waypoint%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SHOW TABLES LIKE '%waypoint%';",
+  "rows": [
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y (%waypoint%)": "route_waypoints"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_gdFesFzxMsSKJbuPWiaC7y (%waypoint%)\nroute_waypoints\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

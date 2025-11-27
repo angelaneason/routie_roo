@@ -1,0 +1,19 @@
+{
+  "query": "SELECT rw.id as wpId, r.userId, r.id as routeId, r.name as routeName, rw.contactName, rw.address, rw.rescheduledDate \nFROM route_waypoints rw \nJOIN routes r ON rw.routeId = r.id \nWHERE rw.rescheduledDate IS NOT NULL \nLIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT rw.id as wpId, r.userId, r.id as routeId, r.name as routeName, rw.contactName, rw.address, rw.rescheduledDate \nFROM route_waypoints rw \nJOIN routes r ON rw.routeId = r.id \nWHERE rw.rescheduledDate IS NOT NULL \nLIMIT 1;",
+  "rows": [
+    {
+      "wpId": "570018",
+      "userId": "3060004",
+      "routeId": "510001",
+      "routeName": "Randy 11.25.25 Tues",
+      "contactName": "WRIGHT Belinda",
+      "address": "1702 Biggs Ter, Arlington, TX 76010",
+      "rescheduledDate": "2025-11-30 17:00:00"
+    }
+  ],
+  "messages": [],
+  "stdout": "wpId\tuserId\trouteId\trouteName\tcontactName\taddress\trescheduledDate\n570018\t3060004\t510001\tRandy 11.25.25 Tues\tWRIGHT Belinda\t1702 Biggs Ter, Arlington, TX 76010\t2025-11-30 17:00:00\n",
+  "stderr": "",
+  "execution_time_ms": 52
+}
