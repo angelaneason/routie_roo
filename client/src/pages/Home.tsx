@@ -767,43 +767,48 @@ export default function Home() {
 
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="font-bold">Your Kangaroo Crew</CardTitle>
-                    <CardDescription className="italic">
-                      Everyone you connect with along the journey.
-                    </CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSyncContacts}
-                      disabled={googleAuthQuery.isFetching}
-                    >
-                      {googleAuthQuery.isFetching ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-4 w-4" />
-                      )}
-                      <span className="ml-2">{hasContacts ? "Refresh" : "Sync Your Contacts"}</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowImportDialog(true)}
-                    >
-                      <Upload className="h-4 w-4" />
-                      <span className="ml-2">Import CSV</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowBulkDocumentUpload(true)}
-                    >
-                      <Paperclip className="h-4 w-4" />
-                      <span className="ml-2">Bulk Upload Doc</span>
-                    </Button>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="font-bold">Your Kangaroo Crew</CardTitle>
+                      <CardDescription className="italic">
+                        Everyone you connect with along the journey.
+                      </CardDescription>
+                    </div>
+                    <div className="flex flex-wrap gap-2 justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSyncContacts}
+                        disabled={googleAuthQuery.isFetching}
+                        className="whitespace-nowrap"
+                      >
+                        {googleAuthQuery.isFetching ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4" />
+                        )}
+                        <span className="ml-2">{hasContacts ? "Refresh" : "Sync Your Contacts"}</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowImportDialog(true)}
+                        className="whitespace-nowrap"
+                      >
+                        <Upload className="h-4 w-4" />
+                        <span className="ml-2">Import CSV</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowBulkDocumentUpload(true)}
+                        className="whitespace-nowrap"
+                      >
+                        <Paperclip className="h-4 w-4" />
+                        <span className="ml-2">Bulk Upload Doc</span>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardHeader>

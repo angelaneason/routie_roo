@@ -1403,7 +1403,7 @@
 
 ## Fix Kangaroo Crew Display Issue
 
-- [ ] Investigate why contacts section is cut off on home page
-- [ ] Fix layout/overflow issue preventing contacts from displaying
-- [ ] Ensure contacts list is fully visible and scrollable
-- [ ] Test on different screen sizes
+- [x] Fix "Bulk Upload Doc" button text getting cut off by card border
+- [x] Adjust button layout or card padding to prevent overflow
+- [x] Ensure all header buttons are fully visible
+- [x] Test on different screen sizes
