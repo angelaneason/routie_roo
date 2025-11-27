@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { EmojiPickerButton } from "@/components/EmojiPickerButton";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -587,13 +588,21 @@ export default function Home() {
 
                   <div className="space-y-2">
                     <Label htmlFor="routeNotes" className="text-sm !font-bold">Notes (Optional)</Label>
-                    <Textarea
-                      id="routeNotes"
-                      placeholder="Add any notes or details about this route..."
-                      value={routeNotes}
-                      onChange={(e) => setRouteNotes(e.target.value)}
-                      rows={3}
-                    />
+                    <div className="relative">
+                      <Textarea
+                        id="routeNotes"
+                        placeholder="Add any notes or details about this route..."
+                        value={routeNotes}
+                        onChange={(e) => setRouteNotes(e.target.value)}
+                        rows={3}
+                        className="pr-10"
+                      />
+                      <div className="absolute bottom-2 right-2">
+                        <EmojiPickerButton
+                          onEmojiSelect={(emoji) => setRouteNotes(routeNotes + emoji)}
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-2">

@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar as CalendarIconLucide, MessageSquare, Plus, X, CheckCircle2 } from "lucide-react";
+import { EmojiPickerButton } from "./EmojiPickerButton";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 
@@ -414,12 +415,20 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
                 </div>
                 
                 {comment.option === "Other" && (
-                  <Input
-                    value={comment.customText || ""}
-                    onChange={(e) => updateComment(index, "customText", e.target.value)}
-                    placeholder="Enter custom comment"
-                    className="ml-0"
-                  />
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      value={comment.customText || ""}
+                      onChange={(e) => updateComment(index, "customText", e.target.value)}
+                      placeholder="Enter custom comment"
+                      className="ml-0 flex-1"
+                    />
+                    <EmojiPickerButton
+                      onEmojiSelect={(emoji) => {
+                        const currentText = comment.customText || "";
+                        updateComment(index, "customText", currentText + emoji);
+                      }}
+                    />
+                  </div>
                 )}
               </div>
             ))}

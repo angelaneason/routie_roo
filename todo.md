@@ -1378,3 +1378,32 @@
 - [ ] Add emoji button next to comment textarea
 - [ ] Test emoji display in saved comments
 - [ ] Ensure emojis work across all comment fields (contact comments, route notes, route comments)
+
+
+## Emoji Picker Widget
+
+- [x] Install emoji-picker-react package
+- [x] Create reusable EmojiPicker component wrapper
+- [x] Add emoji picker button to contact comment fields
+- [x] Add emoji picker button to route notes textarea
+- [x] Add emoji picker button to email template textareas
+- [x] Style emoji picker to match app theme
+- [x] Test emoji insertion in all fields
+
+## Email Template Preview
+
+- [x] Create EmailPreviewDialog component
+- [x] Add "Preview Email" button in Settings Contacts tab
+- [x] Generate sample email with placeholder data (sample contact, date, etc.)
+- [x] Show both contact email and team email versions in preview
+- [x] Apply template variables substitution in preview
+- [x] Style preview to look like actual email
+- [x] Test preview with different template configurations
+
+
+## Fix Kangaroo Crew Display Issue
+
+- [ ] Investigate why contacts section is cut off on home page
+- [ ] Fix layout/overflow issue preventing contacts from displaying
+- [ ] Ensure contacts list is fully visible and scrollable
+- [ ] Test on different screen sizes

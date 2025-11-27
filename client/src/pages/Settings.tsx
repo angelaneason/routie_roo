@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { EmojiPickerButton } from "@/components/EmojiPickerButton";
+import { EmailPreviewDialog } from "@/components/EmailPreviewDialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { APP_TITLE } from "@/const";
@@ -21,7 +23,8 @@ export default function Settings() {
   const [, navigate] = useLocation();
   const [newPointName, setNewPointName] = React.useState("");
   const [newPointAddress, setNewPointAddress] = React.useState("");
-  const [editingId, setEditingId] = React.useState<number | null>(null);
+  const [editingStopType, setEditingStopType] = React.useState<number | null>(null);
+  const [showEmailPreview, setShowEmailPreview] = React.useState(false);
   const [editName, setEditName] = React.useState("");
   const [editAddress, setEditAddress] = React.useState("");
   
@@ -398,20 +401,38 @@ export default function Settings() {
                       
                       <div className="space-y-2">
                         <Label htmlFor="email-body-contact">Email Body (For Contact)</Label>
-                        <Textarea
-                          id="email-body-contact"
-                          placeholder="Hi {contactName} 👋\n\nThis is a friendly reminder from Routie Roo!\n\n📅 Important Date Approaching:\n- Type: {dateType}\n- Date: {date}\n- Days Until: {daysUntil} days"
-                          rows={8}
-                          defaultValue={currentUser?.reminderEmailBodyContact || ""}
-                          onBlur={(e) => {
-                            if (e.target.value !== currentUser?.reminderEmailBodyContact) {
-                              updateSettingsMutation.mutate({
-                                reminderEmailBodyContact: e.target.value || null
-                              });
-                            }
-                          }}
-                          className="font-mono text-sm"
-                        />
+                        <div className="relative">
+                          <Textarea
+                            id="email-body-contact"
+                            placeholder="Hi {contactName} 👋\n\nThis is a friendly reminder from Routie Roo!\n\n📅 Important Date Approaching:\n- Type: {dateType}\n- Date: {date}\n- Days Until: {daysUntil} days"
+                            rows={8}
+                            defaultValue={currentUser?.reminderEmailBodyContact || ""}
+                            onBlur={(e) => {
+                              if (e.target.value !== currentUser?.reminderEmailBodyContact) {
+                                updateSettingsMutation.mutate({
+                                  reminderEmailBodyContact: e.target.value || null
+                                });
+                              }
+                            }}
+                            className="font-mono text-sm pr-10"
+                          />
+                          <div className="absolute bottom-2 right-2">
+                            <EmojiPickerButton
+                              onEmojiSelect={(emoji) => {
+                                const textarea = document.getElementById("email-body-contact") as HTMLTextAreaElement;
+                                if (textarea) {
+                                  const cursorPos = textarea.selectionStart;
+                                  const textBefore = textarea.value.substring(0, cursorPos);
+                                  const textAfter = textarea.value.substring(cursorPos);
+                                  textarea.value = textBefore + emoji + textAfter;
+                                  textarea.focus();
+                                  textarea.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
+                                  textarea.dispatchEvent(new Event('blur', { bubbles: true }));
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           Leave blank to use default template. Emojis are supported! 🦘
                         </p>
@@ -419,20 +440,38 @@ export default function Settings() {
                       
                       <div className="space-y-2">
                         <Label htmlFor="email-body-team">Email Body (For Scheduling Team)</Label>
-                        <Textarea
-                          id="email-body-team"
-                          placeholder="Hi Team,\n\nA reminder has been sent to {contactName} regarding their upcoming {dateType} on {date} ({daysUntil} days away).\n\nYou may want to follow up to ensure they're prepared."
-                          rows={6}
-                          defaultValue={currentUser?.reminderEmailBodyTeam || ""}
-                          onBlur={(e) => {
-                            if (e.target.value !== currentUser?.reminderEmailBodyTeam) {
-                              updateSettingsMutation.mutate({
-                                reminderEmailBodyTeam: e.target.value || null
-                              });
-                            }
-                          }}
-                          className="font-mono text-sm"
-                        />
+                        <div className="relative">
+                          <Textarea
+                            id="email-body-team"
+                            placeholder="Hi Team,\n\nA reminder has been sent to {contactName} regarding their upcoming {dateType} on {date} ({daysUntil} days away).\n\nYou may want to follow up to ensure they're prepared."
+                            rows={6}
+                            defaultValue={currentUser?.reminderEmailBodyTeam || ""}
+                            onBlur={(e) => {
+                              if (e.target.value !== currentUser?.reminderEmailBodyTeam) {
+                                updateSettingsMutation.mutate({
+                                  reminderEmailBodyTeam: e.target.value || null
+                                });
+                              }
+                            }}
+                            className="font-mono text-sm pr-10"
+                          />
+                          <div className="absolute bottom-2 right-2">
+                            <EmojiPickerButton
+                              onEmojiSelect={(emoji) => {
+                                const textarea = document.getElementById("email-body-team") as HTMLTextAreaElement;
+                                if (textarea) {
+                                  const cursorPos = textarea.selectionStart;
+                                  const textBefore = textarea.value.substring(0, cursorPos);
+                                  const textAfter = textarea.value.substring(cursorPos);
+                                  textarea.value = textBefore + emoji + textAfter;
+                                  textarea.focus();
+                                  textarea.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
+                                  textarea.dispatchEvent(new Event('blur', { bubbles: true }));
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           Leave blank to use default template
                         </p>
@@ -440,6 +479,12 @@ export default function Settings() {
                     </div>
                     
                     <div className="flex items-center justify-between pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowEmailPreview(true)}
+                      >
+                        Preview Email Templates
+                      </Button>
                       <div>
                         <Label>Enable Date Reminders</Label>
                         <p className="text-sm text-muted-foreground">Turn on/off automatic email reminders</p>
@@ -757,6 +802,14 @@ export default function Settings() {
           )}
         </div>
       </main>
+
+      <EmailPreviewDialog
+        open={showEmailPreview}
+        onOpenChange={setShowEmailPreview}
+        emailSubject={currentUser?.reminderEmailSubject}
+        emailBodyContact={currentUser?.reminderEmailBodyContact}
+        emailBodyTeam={currentUser?.reminderEmailBodyTeam}
+      />
     </div>
   );
 }
