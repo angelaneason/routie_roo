@@ -175,3 +175,41 @@
     }
   }
 }
+
+/* Google Maps Autocomplete Dropdown Fix */
+/* Ensure the autocomplete dropdown appears above dialogs and other elements */
+.pac-container {
+  z-index: 10000 !important;
+  /* Higher than dialog z-index (usually 9999) */
+}
+
+/* Style the autocomplete dropdown to match the app theme */
+.pac-container {
+  border-radius: 0.5rem;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  margin-top: 4px;
+}
+
+.pac-item {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.pac-item:first-child {
+  border-top: none;
+}
+
+.pac-item:hover {
+  background-color: hsl(var(--accent));
+}
+
+.pac-item-query {
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+}
+
+.pac-matched {
+  font-weight: 600;
+}

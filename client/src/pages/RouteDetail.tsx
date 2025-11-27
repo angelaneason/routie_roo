@@ -65,6 +65,7 @@ export default function RouteDetail() {
   const [editingAddress, setEditingAddress] = useState("");
   const [editingContactId, setEditingContactId] = useState<number | null>(null);
   const [updateContactAddress, setUpdateContactAddress] = useState(false);
+  const [validatingAddress, setValidatingAddress] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -180,6 +181,38 @@ export default function RouteDetail() {
       toast.error(`Failed to update address: ${error.message}`);
     },
   });
+  
+  const validateAddressMutation = trpc.contacts.validateAddress.useMutation({
+    onSuccess: (result) => {
+      if (result.isValid && result.formattedAddress) {
+        toast.success(
+          `Address validated! ${result.formattedAddress}`,
+          {
+            action: {
+              label: "Use This",
+              onClick: () => setEditingAddress(result.formattedAddress!),
+            },
+          }
+        );
+      } else if (result.error) {
+        toast.error(result.error);
+      }
+      setValidatingAddress(false);
+    },
+    onError: (error) => {
+      toast.error(`Validation failed: ${error.message}`);
+      setValidatingAddress(false);
+    },
+  });
+  
+  const handleValidateWaypointAddress = () => {
+    if (!editingAddress || editingAddress.trim().length === 0) {
+      toast.error("Please enter an address first");
+      return;
+    }
+    setValidatingAddress(true);
+    validateAddressMutation.mutate({ address: editingAddress });
+  };
 
   const updateRouteMutation = trpc.routes.update.useMutation({
     onSuccess: () => {
@@ -1154,12 +1187,35 @@ export default function RouteDetail() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="edit-address" className="!font-bold">Address</Label>
-              <AddressAutocomplete
-                id="edit-address"
-                value={editingAddress}
-                onChange={setEditingAddress}
-                placeholder="Start typing address for suggestions..."
-              />
+              <div className="flex gap-2">
+                <AddressAutocomplete
+                  id="edit-address"
+                  value={editingAddress}
+                  onChange={setEditingAddress}
+                  placeholder="Start typing address for suggestions..."
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleValidateWaypointAddress}
+                  disabled={validatingAddress || !editingAddress}
+                  className="shrink-0"
+                >
+                  {validatingAddress ? (
+                    <>
+                      <div className="h-4 w-4 mr-1 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      Validating...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 mr-1" />
+                      Validate
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
             
             <div className="space-y-3 pt-2 border-t">

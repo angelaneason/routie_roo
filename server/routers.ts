@@ -41,6 +41,7 @@ import {
   getCalendarList
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
+import { validateAddress } from "./addressValidation";
 import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes, InsertRoute, cachedContacts } from "../drizzle/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
@@ -360,6 +361,15 @@ export const appRouter = router({
           failed: errors.length,
           errors,
         };
+      }),
+
+    // Validate address using Google Maps Geocoding API
+    validateAddress: protectedProcedure
+      .input(z.object({
+        address: z.string(),
+      }))
+      .mutation(async ({ input }) => {        const result = await validateAddress(input.address);
+        return result;
       }),
   }),
 

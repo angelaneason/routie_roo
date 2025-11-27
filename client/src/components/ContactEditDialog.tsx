@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar as CalendarIconLucide, MessageSquare, Plus, X } from "lucide-react";
+import { Calendar as CalendarIconLucide, MessageSquare, Plus, X, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 
@@ -71,10 +71,43 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
   // Removed openPopoverIndex state - using native date input instead
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [saving, setSaving] = useState(false);
+  const [validating, setValidating] = useState(false);
   
   // Fetch date types and comment options from settings
   const dateTypesQuery = trpc.settings.listImportantDateTypes.useQuery();
   const commentOptionsQuery = trpc.settings.listCommentOptions.useQuery();
+  
+  const validateAddressMutation = trpc.contacts.validateAddress.useMutation({
+    onSuccess: (result) => {
+      if (result.isValid && result.formattedAddress) {
+        toast.success(
+          `Address validated! ${result.formattedAddress}`,
+          {
+            action: {
+              label: "Use This",
+              onClick: () => setAddress(result.formattedAddress!),
+            },
+          }
+        );
+      } else if (result.error) {
+        toast.error(result.error);
+      }
+      setValidating(false);
+    },
+    onError: (error) => {
+      toast.error(`Validation failed: ${error.message}`);
+      setValidating(false);
+    },
+  });
+  
+  const handleValidateAddress = () => {
+    if (!address || address.trim().length === 0) {
+      toast.error("Please enter an address first");
+      return;
+    }
+    setValidating(true);
+    validateAddressMutation.mutate({ address });
+  };
 
   const addPhoneNumber = () => {
     setPhoneNumbers([...phoneNumbers, { value: "", label: "mobile" }]);
@@ -193,12 +226,35 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
 
           <div className="space-y-2">
             <Label htmlFor="address" className="text-sm !font-bold">Address</Label>
-            <AddressAutocomplete
-              id="address"
-              value={address}
-              onChange={setAddress}
-              placeholder="Start typing address for suggestions..."
-            />
+            <div className="flex gap-2">
+              <AddressAutocomplete
+                id="address"
+                value={address}
+                onChange={setAddress}
+                placeholder="Start typing address for suggestions..."
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleValidateAddress}
+                disabled={validating || !address}
+                className="shrink-0"
+              >
+                {validating ? (
+                  <>
+                    <div className="h-4 w-4 mr-1 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    Validating...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 mr-1" />
+                    Validate
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-2">

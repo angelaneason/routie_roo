@@ -1211,3 +1211,28 @@
 - [x] Your Contacts - "Your Kangaroo Crew" (bold) with subtitle "Everyone you connect with along the journey." (italic/cursive)
 - [x] Waypoints & Execution - "Hop-By-Hop Navigation" (bold) with subtitle "Every hop in order — smooth, simple, efficient." (italic/cursive)
 - [x] Missed Stops - "Missed Hops" with subtitle "Stops that need a second look before the route is complete." (italic/cursive)
+
+
+## Bug Fixes - Address Autocomplete
+
+- [x] Fix Google Places Autocomplete to include complete address with state and ZIP code
+- [x] Ensure formatted_address is properly captured when user selects from dropdown
+- [x] Load Google Maps API globally so autocomplete works on all pages
+- [ ] Fix z-index issue - dropdown appears but suggestions are not clickable
+- [ ] Test in ContactEditDialog
+- [ ] Test in RouteDetail Edit Address dialog
+
+
+## UI Updates - November 26, 2024
+
+- [x] Change "Missed Hops" header to "Mis-Hops" (play on mishaps)
+
+## Address Validation Feature - November 26, 2024
+
+- [x] Create backend tRPC procedure for address validation using Google Geocoding API
+- [x] Add "Validate Address" button next to address input in ContactEditDialog
+- [x] Add "Validate Address" button next to address input in RouteDetail Edit Address dialog
+- [x] Show validation results with toast messages (valid/suggestions/invalid)
+- [x] Allow user to accept suggested formatted address
+- [x] Add loading state to validation button
+- [x] Test address validation with various address formats (7/7 unit tests passing)
