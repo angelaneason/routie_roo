@@ -1548,3 +1548,9 @@
 - [ ] Submit OAuth verification request to Google
 - [ ] Respond to Google's verification questions
 - [ ] Wait for approval (1-2 weeks)
+
+## URGENT - Route Detail Page Error
+
+- [x] Fix "Route Not Found" error when clicking on routes
+- [x] Add missing columns to route_waypoints table
+- [x] Test route detail page loads correctly
