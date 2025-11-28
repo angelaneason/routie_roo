@@ -49,25 +49,32 @@ export function registerOAuthRoutes(app: Express) {
 
   // Handle Google OAuth callback
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
+    console.log("[OAuth] Callback received");
     const code = getQueryParam(req, "code");
 
     if (!code) {
+      console.log("[OAuth] No code provided");
       res.status(400).json({ error: "code is required" });
       return;
     }
 
+    console.log("[OAuth] Code received, starting token exchange");
     try {
       // Use public URL from ENV to avoid internal Azure container address
       const redirectUri = `${ENV.publicUrl}/api/oauth/callback`;
       const oauth2Client = getOAuth2Client(redirectUri);
 
       // Exchange code for tokens
+      console.log("[OAuth] Exchanging code for tokens...");
       const { tokens } = await oauth2Client.getToken(code);
+      console.log("[OAuth] Tokens received successfully");
       oauth2Client.setCredentials(tokens);
 
       // Get user info from Google
+      console.log("[OAuth] Fetching user info from Google...");
       const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
       const { data: userInfo } = await oauth2.userinfo.get();
+      console.log("[OAuth] User info received:", { id: userInfo.id, email: userInfo.email, name: userInfo.name });
 
       if (!userInfo.id) {
         res.status(400).json({ error: "User ID missing from Google response" });
@@ -75,6 +82,7 @@ export function registerOAuthRoutes(app: Express) {
       }
 
       // Create or update user in database
+      console.log("[OAuth] Upserting user to database...");
       await db.upsertUser({
         openId: `google_${userInfo.id}`, // Prefix to distinguish from Manus IDs
         name: userInfo.name || null,
@@ -82,8 +90,10 @@ export function registerOAuthRoutes(app: Express) {
         loginMethod: "google",
         lastSignedIn: new Date(),
       });
+      console.log("[OAuth] User upserted successfully");
 
       // Create session token (JWT)
+      console.log("[OAuth] Creating session token...");
       const secretKey = new TextEncoder().encode(ENV.jwtSecret);
       const sessionToken = await new SignJWT({
           openId: `google_${userInfo.id}`,
@@ -93,10 +103,13 @@ export function registerOAuthRoutes(app: Express) {
         .setProtectedHeader({ alg: "HS256", typ: "JWT" })
         .setExpirationTime("365d")
         .sign(secretKey);
+      console.log("[OAuth] Session token created successfully");
 
       // Set session cookie
+      console.log("[OAuth] Setting session cookie...");
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+      console.log("[OAuth] Session cookie set, redirecting to home page");
 
       // Store Google tokens for later use (contacts, calendar)
       // TODO: Store refresh token in database for long-term access
@@ -107,8 +120,9 @@ export function registerOAuthRoutes(app: Express) {
 
       res.redirect(302, "/");
     } catch (error) {
-      console.error("[OAuth] Callback failed", error);
-      res.status(500).json({ error: "OAuth callback failed" });
+      console.error("[OAuth] Callback failed with error:", error);
+      console.error("[OAuth] Error details:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      res.status(500).json({ error: "OAuth callback failed", details: error instanceof Error ? error.message : String(error) });
     }
   });
 

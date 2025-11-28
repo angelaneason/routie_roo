@@ -2305,6 +2305,8 @@ export const appRouter = router({
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
         
         // Use year and month for filtering
+        const firstDay = new Date(input.year, input.month - 1, 1);
+        const lastDay = new Date(input.year, input.month, 0, 23, 59, 59);
         
         const allEvents: any[] = [];
         
@@ -2422,7 +2424,7 @@ export const appRouter = router({
                 end: event.end,
                 location: event.location,
                 type: 'google',
-                color: event.color || '#6b7280', // Use calendar color or gray
+                color: event.colorId || '#6b7280', // Use calendar color or gray
                 htmlLink: event.htmlLink,
                 calendarId: event.calendarId, // Include calendar ID for color-coding
                 calendarName: event.calendarName,

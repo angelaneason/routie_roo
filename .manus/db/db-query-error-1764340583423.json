@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE routes \nADD COLUMN IF NOT EXISTS scheduledDate TIMESTAMP NULL,\nADD COLUMN IF NOT EXISTS shareToken VARCHAR(36) UNIQUE,\nADD COLUMN IF NOT EXISTS completedAt TIMESTAMP NULL,\nADD COLUMN IF NOT EXISTS isArchived BOOLEAN DEFAULT FALSE NOT NULL,\nADD COLUMN IF NOT EXISTS archivedAt TIMESTAMP NULL,\nADD COLUMN IF NOT EXISTS distanceUnit ENUM('km', 'miles') DEFAULT 'km',\nADD COLUMN IF NOT EXISTS notes TEXT,\nADD COLUMN IF NOT EXISTS startingPointAddress TEXT,\nADD COLUMN IF NOT EXISTS googleCalendarId VARCHAR(255);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute ALTER TABLE routes \nADD COLUMN IF NOT EXISTS scheduledDate TIMESTAMP NULL,\nADD COLUMN IF NOT EXISTS shareToken VARCHAR(36) UNIQUE,\nADD COLUMN IF NOT EXISTS completedAt TIMESTAMP NULL,\nADD COLUMN IF NOT EXISTS isArchived BOOLEAN DEFAULT FALSE NOT NULL,\nADD COLUMN IF NOT EXISTS archivedAt TIMESTAMP NULL,\nADD COLUMN IF NOT EXISTS distanceUnit ENUM('km', 'miles') DEFAULT 'km',\nADD COLUMN IF NOT EXISTS notes TEXT,\nADD COLUMN IF NOT EXISTS startingPointAddress TEXT,\nADD COLUMN IF NOT EXISTS googleCalendarId VARCHAR(255);",
+  "returncode": 1,
+  "logs": [
+    "ERROR 8200 (HY000) at line 1: unsupported add column 'sharetoken' constraint UNIQUE KEY when altering 'gdFesFzxMsSKJbuPWiaC7y.routes'"
+  ]
+}

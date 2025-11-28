@@ -29,6 +29,7 @@ export default function Settings() {
   const [showEmailPreview, setShowEmailPreview] = React.useState(false);
   const [editName, setEditName] = React.useState("");
   const [editAddress, setEditAddress] = React.useState("");
+  const [editingId, setEditingId] = React.useState<number | null>(null);
   
   // Check for calendar connection success
   React.useEffect(() => {
@@ -335,7 +336,7 @@ export default function Settings() {
                               const enabledTypes = currentUser?.enabledReminderDateTypes
                                 ? JSON.parse(currentUser.enabledReminderDateTypes)
                                 : null; // null means all enabled by default
-                              const isEnabled = enabledTypes === null || enabledTypes.includes(dateType.type);
+                              const isEnabled = enabledTypes === null || enabledTypes.includes(dateType.name);
                               
                               return (
                                 <label
@@ -348,11 +349,11 @@ export default function Settings() {
                                     onChange={(e) => {
                                       const currentEnabled = currentUser?.enabledReminderDateTypes
                                         ? JSON.parse(currentUser.enabledReminderDateTypes)
-                                        : dateTypesQuery.data?.map(dt => dt.type) || [];
+                                        : dateTypesQuery.data?.map(dt => dt.name) || [];
                                       
                                       const newEnabled = e.target.checked
-                                        ? [...currentEnabled, dateType.type]
-                                        : currentEnabled.filter((t: string) => t !== dateType.type);
+                                        ? [...currentEnabled, dateType.name]
+                                        : currentEnabled.filter((t: string) => t !== dateType.name);
                                       
                                       updateSettingsMutation.mutate({
                                         enabledReminderDateTypes: newEnabled
@@ -360,7 +361,7 @@ export default function Settings() {
                                     }}
                                     className="h-4 w-4"
                                   />
-                                  <span className="text-sm">{dateType.type}</span>
+                                  <span className="text-sm">{dateType.name}</span>
                                 </label>
                               );
                             })}
