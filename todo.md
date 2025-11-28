@@ -1554,3 +1554,10 @@
 - [x] Fix "Route Not Found" error when clicking on routes
 - [x] Add missing columns to route_waypoints table
 - [x] Test route detail page loads correctly
+
+## Calendar Integration Issues
+
+- [x] Fix "No calendars found" error on calendar page
+- [x] Fix Connect Calendar button to use proper OAuth flow
+- [ ] Test calendar connection and verify it works
+- [ ] Verify calendar events display correctly

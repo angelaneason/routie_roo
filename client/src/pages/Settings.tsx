@@ -108,6 +108,15 @@ export default function Settings() {
     }
   });
 
+  const getCalendarConnectionUrlMutation = trpc.settings.getCalendarConnectionUrl.useMutation({
+    onSuccess: (data) => {
+      window.location.href = data.url;
+    },
+    onError: (error) => {
+      toast.error(`Failed to initiate calendar connection: ${error.message}`);
+    }
+  });
+
   React.useEffect(() => {
     if (!isAuthenticated) {
       navigate("/");
@@ -763,11 +772,10 @@ export default function Settings() {
                           Connect your Google Calendar to automatically create events for your route stops.
                         </p>
                         <Button
-                          onClick={() => {
-                            window.location.href = "/api/oauth/google-calendar";
-                          }}
+                          onClick={() => getCalendarConnectionUrlMutation.mutate()}
+                          disabled={getCalendarConnectionUrlMutation.isPending}
                         >
-                          Connect Google Calendar
+                          {getCalendarConnectionUrlMutation.isPending ? "Connecting..." : "Connect Google Calendar"}
                         </Button>
                       </div>
                     )}
