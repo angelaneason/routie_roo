@@ -61,8 +61,7 @@ export function StageEmailTemplateEditor({
         <Label htmlFor={subjectFieldId}>Email Subject</Label>
         <Input
           id={subjectFieldId}
-          placeholder={defaults.subject}
-          defaultValue={subjectValue || ""}
+          defaultValue={subjectValue || defaults.subject}
           onBlur={(e) => {
             if (e.target.value !== subjectValue) {
               onUpdate(`reminderEmail${stage === "30days" ? "30Days" : stage === "10days" ? "10Days" : stage === "5days" ? "5Days" : "PastDue"}Subject`, e.target.value || null);
@@ -76,9 +75,8 @@ export function StageEmailTemplateEditor({
         <div className="relative">
           <Textarea
             id={contactBodyFieldId}
-            placeholder={defaults.contactBody}
             rows={8}
-            defaultValue={contactBodyValue || ""}
+            defaultValue={contactBodyValue || defaults.contactBody}
             onBlur={(e) => {
               if (e.target.value !== contactBodyValue) {
                 onUpdate(`reminderEmail${stage === "30days" ? "30Days" : stage === "10days" ? "10Days" : stage === "5days" ? "5Days" : "PastDue"}BodyContact`, e.target.value || null);
@@ -110,9 +108,8 @@ export function StageEmailTemplateEditor({
         <div className="relative">
           <Textarea
             id={teamBodyFieldId}
-            placeholder={defaults.teamBody}
             rows={6}
-            defaultValue={teamBodyValue || ""}
+            defaultValue={teamBodyValue || defaults.teamBody}
             onBlur={(e) => {
               if (e.target.value !== teamBodyValue) {
                 onUpdate(`reminderEmail${stage === "30days" ? "30Days" : stage === "10days" ? "10Days" : stage === "5days" ? "5Days" : "PastDue"}BodyTeam`, e.target.value || null);
