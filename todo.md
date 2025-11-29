@@ -1734,3 +1734,11 @@
 - [x] Create edit dialog with stop type selector and other editable fields
 - [x] Move stop type display to be more prominent - show before patient name or on first line
 - [x] Add backend mutation for updating waypoint stop type
+
+
+## Expand Edit Details Dialog
+- [x] Add address field to Edit Details dialog
+- [x] Add phone numbers editing to Edit Details dialog
+- [x] Update backend mutation to handle address and phone number updates
+- [ ] Remove redundant "Edit Address" button since it's now in Edit Details (keep for now - separate workflow)
+- [x] Test comprehensive waypoint editing (stop type, name, address, phone)

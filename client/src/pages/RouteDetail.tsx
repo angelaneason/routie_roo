@@ -72,6 +72,8 @@ export default function RouteDetail() {
   const [editWaypointName, setEditWaypointName] = useState("");
   const [editWaypointStopType, setEditWaypointStopType] = useState("");
   const [editWaypointStopColor, setEditWaypointStopColor] = useState("#3b82f6");
+  const [editWaypointAddress, setEditWaypointAddress] = useState("");
+  const [editWaypointPhoneNumbers, setEditWaypointPhoneNumbers] = useState<Array<{value: string, label?: string, type?: string}>>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -923,6 +925,13 @@ export default function RouteDetail() {
                             setEditWaypointName(waypoint.contactName || "");
                             setEditWaypointStopType(waypoint.stopType || "visit");
                             setEditWaypointStopColor(waypoint.stopColor || "#3b82f6");
+                            setEditWaypointAddress(waypoint.address || "");
+                            try {
+                              const phones = waypoint.phoneNumbers ? JSON.parse(waypoint.phoneNumbers) : [];
+                              setEditWaypointPhoneNumbers(phones);
+                            } catch {
+                              setEditWaypointPhoneNumbers([]);
+                            }
                             setShowEditWaypointDialog(true);
                           }}
                         />
@@ -1345,10 +1354,10 @@ export default function RouteDetail() {
           <DialogHeader>
             <DialogTitle>Edit Waypoint Details</DialogTitle>
             <DialogDescription>
-              Update stop type, contact name, and other details
+              Update stop type, contact name, address, and phone numbers
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
             <div className="space-y-2">
               <Label htmlFor="edit-contact-name">Contact Name</Label>
               <Input
@@ -1368,6 +1377,60 @@ export default function RouteDetail() {
                 }}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-address">Address</Label>
+              <AddressAutocomplete
+                value={editWaypointAddress}
+                onChange={setEditWaypointAddress}
+                placeholder="Enter address"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Phone Numbers</Label>
+              {editWaypointPhoneNumbers.map((phone, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <Input
+                    value={phone.value}
+                    onChange={(e) => {
+                      const newPhones = [...editWaypointPhoneNumbers];
+                      newPhones[idx] = { ...phone, value: e.target.value };
+                      setEditWaypointPhoneNumbers(newPhones);
+                    }}
+                    placeholder="Phone number"
+                    className="flex-1"
+                  />
+                  <Input
+                    value={phone.label || phone.type || ""}
+                    onChange={(e) => {
+                      const newPhones = [...editWaypointPhoneNumbers];
+                      newPhones[idx] = { ...phone, label: e.target.value, type: e.target.value };
+                      setEditWaypointPhoneNumbers(newPhones);
+                    }}
+                    placeholder="Label (e.g., Mobile)"
+                    className="w-32"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditWaypointPhoneNumbers(editWaypointPhoneNumbers.filter((_, i) => i !== idx));
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setEditWaypointPhoneNumbers([...editWaypointPhoneNumbers, { value: "", label: "" }]);
+                }}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Phone Number
+              </Button>
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -1384,6 +1447,8 @@ export default function RouteDetail() {
                   contactName: editWaypointName || undefined,
                   stopType: editWaypointStopType,
                   stopColor: editWaypointStopColor,
+                  address: editWaypointAddress || undefined,
+                  phoneNumbers: editWaypointPhoneNumbers.length > 0 ? JSON.stringify(editWaypointPhoneNumbers) : undefined,
                 });
               }}
               disabled={updateWaypointDetailsMutation.isPending}

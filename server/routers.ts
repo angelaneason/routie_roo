@@ -1370,6 +1370,8 @@ export const appRouter = router({
         contactName: z.string().optional(),
         stopType: z.string().optional(),
         stopColor: z.string().optional(),
+        address: z.string().optional(),
+        phoneNumbers: z.string().optional(), // JSON string
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -1391,6 +1393,8 @@ export const appRouter = router({
         if (input.contactName !== undefined) updateData.contactName = input.contactName;
         if (input.stopType !== undefined) updateData.stopType = input.stopType;
         if (input.stopColor !== undefined) updateData.stopColor = input.stopColor;
+        if (input.address !== undefined) updateData.address = input.address;
+        if (input.phoneNumbers !== undefined) updateData.phoneNumbers = input.phoneNumbers;
 
         await db.update(routeWaypoints)
           .set(updateData as any)
