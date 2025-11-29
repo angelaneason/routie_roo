@@ -1687,3 +1687,8 @@
 - [x] Fix "Cannot read properties of undefined (reading 'contactName')" error when planning routes with stop types
 - [x] Ensure stop types are properly saved when creating routes
 - [x] Test route creation with different stop type selections
+
+## Stop Type Selection and Display Issues
+- [x] Fix stop type dropdown - unable to change from "other" default
+- [x] Display stop types in Hop-By-Hop Navigation view
+- [x] Test stop type selection and persistence

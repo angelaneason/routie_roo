@@ -74,15 +74,13 @@ export function StopTypeSelector({ value, onChange, size = "default" }: StopType
   return (
     <Select value={value} onValueChange={(v) => onChange(v as StopType)}>
       <SelectTrigger className={size === "sm" ? "h-8 text-xs" : ""}>
-        <SelectValue>
-          <div className="flex items-center gap-2">
-            <div 
-              className="w-3 h-3 rounded-full" 
-              style={{ backgroundColor: displayColor }}
-            />
-            <span>{displayValue}</span>
-          </div>
-        </SelectValue>
+        <div className="flex items-center gap-2 w-full">
+          <div 
+            className="w-3 h-3 rounded-full flex-shrink-0" 
+            style={{ backgroundColor: displayColor }}
+          />
+          <span className="truncate">{displayValue}</span>
+        </div>
       </SelectTrigger>
       <SelectContent>
         {stopTypes.map((config) => (

@@ -89,6 +89,14 @@ export function SortableWaypointItem({
               }
             })()}
             <StopStatusBadge status={waypoint.status || "pending"} />
+            {waypoint.stopType && waypoint.stopType !== "visit" && (
+              <span 
+                className="text-xs px-2 py-0.5 rounded font-medium text-white"
+                style={{ backgroundColor: waypoint.stopColor || "#3b82f6" }}
+              >
+                {waypoint.stopType.charAt(0).toUpperCase() + waypoint.stopType.slice(1)}
+              </span>
+            )}
             {waypoint.needsReschedule === 1 && (
               <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
                 Needs Reschedule
