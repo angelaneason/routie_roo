@@ -1573,4 +1573,6 @@
 - [x] Investigate why existing Refresh button doesn't update contacts
 - [x] Fix refresh to properly update label names (*Abundant, etc.)
 - [x] Fix refresh to pull in missing contacts (ABUNDANT Offices, Oscar RN)
-- [ ] Test that refresh works correctly after publishing
+- [ ] Debug why refresh still doesn't work after publishing
+- [ ] Check server logs for errors
+- [ ] Verify OAuth callback is being triggered

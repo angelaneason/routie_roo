@@ -69,6 +69,8 @@ googleOAuthRouter.get("/api/oauth/google/callback", async (req, res) => {
       res.redirect("/settings?calendar_connected=true");
     } else {
       // Contacts sync flow (original behavior)
+      console.log('[OAuth] Starting contacts sync for userId:', userId);
+      
       // Create a tRPC caller
       const caller = appRouter.createCaller({
         req,
@@ -77,11 +79,13 @@ googleOAuthRouter.get("/api/oauth/google/callback", async (req, res) => {
       });
 
       // Handle the callback
-      await caller.contacts.handleGoogleCallback({
+      console.log('[OAuth] Calling handleGoogleCallback...');
+      const result = await caller.contacts.handleGoogleCallback({
         code,
         userId,
         redirectUri,
       });
+      console.log('[OAuth] Sync completed. Result:', result);
 
       // Redirect back to the app with success message
       res.redirect("/?sync=success");
