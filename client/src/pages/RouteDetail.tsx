@@ -765,7 +765,7 @@ export default function RouteDetail() {
                   </CardDescription>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <Button
                       size="sm"
                       variant="outline"
@@ -776,6 +776,7 @@ export default function RouteDetail() {
                         setEditStartingPoint(route?.startingPointAddress || "");
                         setShowEditDialog(true);
                       }}
+                      className="w-full sm:w-auto"
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Route
@@ -784,6 +785,7 @@ export default function RouteDetail() {
                       size="sm"
                       variant="outline"
                       onClick={() => setShowAddContactDialog(true)}
+                      className="w-full sm:w-auto"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Contact
@@ -800,7 +802,7 @@ export default function RouteDetail() {
                         }}
                       />
                     </div>
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex flex-col sm:flex-row gap-2 mt-3">
                       <Button
                         size="sm"
                         variant="outline"
@@ -819,7 +821,7 @@ export default function RouteDetail() {
                             });
                           }
                         }}
-                        className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+                        className="w-full sm:w-auto bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
                       >
                         <CheckCircle2 className="h-4 w-4 mr-1" />
                         Complete All Remaining
@@ -844,7 +846,7 @@ export default function RouteDetail() {
                             });
                           }
                         }}
-                        className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300"
+                        className="w-full sm:w-auto bg-red-50 hover:bg-red-100 text-red-700 border-red-300"
                       >
                         <XCircle className="h-4 w-4 mr-1" />
                         Mark All as Missed

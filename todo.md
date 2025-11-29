@@ -1725,3 +1725,9 @@
 - [x] Make RouteDetail hop-by-hop navigation mobile-friendly
 - [x] Ensure all forms and inputs work well on touch devices
 - [x] Test on mobile viewport sizes (320px, 375px, 768px)
+
+## Mobile Layout Fixes
+- [x] Fix "Mark All as Miss" button text getting cut off on mobile
+- [x] Stack bulk action buttons vertically on small screens
+- [x] Ensure all button text is visible and readable on mobile
+- [x] Test on actual mobile device viewport
