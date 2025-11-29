@@ -1713,3 +1713,8 @@
 - [x] Fix error when clicking "Plan My Route" with custom stop types selected
 - [x] Ensure custom stop type values are compatible with route creation API
 - [x] Test route creation with all custom stop types
+
+## tRPC Validation Schema Fix
+- [x] Update routes.create Zod schema to accept custom stop types (not just enum)
+- [x] Change stopType validation from z.enum to z.string
+- [x] Test route creation with custom stop types

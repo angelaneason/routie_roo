@@ -560,7 +560,7 @@ export const appRouter = router({
           contactLabels: z.string().optional(), // JSON string of contact labels
           importantDates: z.string().optional(), // JSON string of important dates
           comments: z.string().optional(), // JSON string of comments
-          stopType: z.enum(["pickup", "delivery", "meeting", "visit", "other"]).optional(),
+          stopType: z.string().optional(), // Supports custom stop types from database
           stopColor: z.string().optional(),
         })).min(2),
         isPublic: z.boolean().default(false),
@@ -1304,7 +1304,7 @@ export const appRouter = router({
         contactName: z.string().optional(),
         address: z.string(),
         phoneNumbers: z.string().optional(),
-        stopType: z.enum(["pickup", "delivery", "meeting", "visit", "other"]).optional(),
+        stopType: z.string().optional(), // Supports custom stop types from database
         stopColor: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
