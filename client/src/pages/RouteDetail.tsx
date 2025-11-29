@@ -349,6 +349,17 @@ export default function RouteDetail() {
             // Intermediate waypoint markers
             route.legs.forEach((leg, index) => {
               if (index < route.legs.length - 1) {
+                // Get waypoint data for this marker (skip starting point at index 0)
+                const waypoint = waypoints[index + 1];
+                const stopColor = waypoint?.stopColor || "#4F46E5";
+                const stopType = waypoint?.stopType || "visit";
+                
+                // Choose marker shape based on stop type
+                let markerPath = google.maps.SymbolPath.CIRCLE;
+                if (stopType === "pickup" || stopType === "delivery") {
+                  markerPath = google.maps.SymbolPath.FORWARD_CLOSED_ARROW;
+                }
+                
                 const marker = new google.maps.Marker({
                   position: leg.end_location,
                   map,
@@ -359,12 +370,13 @@ export default function RouteDetail() {
                     fontWeight: "bold",
                   },
                   icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
+                    path: markerPath,
                     scale: 20,
-                    fillColor: "#4F46E5",
+                    fillColor: stopColor,
                     fillOpacity: 1,
                     strokeColor: "white",
                     strokeWeight: 2,
+                    rotation: stopType === "delivery" ? 90 : 0,
                   },
                 });
                 newMarkers.push(marker);
@@ -373,6 +385,15 @@ export default function RouteDetail() {
             
             // Last marker at the end location
             const lastLeg = route.legs[route.legs.length - 1];
+            const lastWaypoint = waypoints[waypoints.length - 1];
+            const lastStopColor = lastWaypoint?.stopColor || "#4F46E5";
+            const lastStopType = lastWaypoint?.stopType || "visit";
+            
+            let lastMarkerPath = google.maps.SymbolPath.CIRCLE;
+            if (lastStopType === "pickup" || lastStopType === "delivery") {
+              lastMarkerPath = google.maps.SymbolPath.FORWARD_CLOSED_ARROW;
+            }
+            
             const endMarker = new google.maps.Marker({
               position: lastLeg.end_location,
               map,
@@ -383,12 +404,13 @@ export default function RouteDetail() {
                 fontWeight: "bold",
               },
               icon: {
-                path: google.maps.SymbolPath.CIRCLE,
+                path: lastMarkerPath,
                 scale: 20,
-                fillColor: "#4F46E5",
+                fillColor: lastStopColor,
                 fillOpacity: 1,
                 strokeColor: "white",
                 strokeWeight: 2,
+                rotation: lastStopType === "delivery" ? 90 : 0,
               },
             });
             newMarkers.push(endMarker);

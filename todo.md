@@ -1692,3 +1692,8 @@
 - [x] Fix stop type dropdown - unable to change from "other" default
 - [x] Display stop types in Hop-By-Hop Navigation view
 - [x] Test stop type selection and persistence
+
+## Stop Type Map Icons
+- [x] Create custom map marker icons for each stop type
+- [x] Update RouteDetail map to use stop type icons
+- [x] Test icon visibility and differentiation on map
