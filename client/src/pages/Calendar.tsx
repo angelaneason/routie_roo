@@ -15,7 +15,7 @@ type ViewMode = "day" | "week" | "month";
 export default function Calendar() {
   const { user, loading: authLoading, refresh: refreshAuth } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<ViewMode>("day");
+  const [viewMode, setViewMode] = useState<ViewMode>("month");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [selectedDayEvents, setSelectedDayEvents] = useState<any[]>([]);

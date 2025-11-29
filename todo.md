@@ -1670,3 +1670,7 @@
 - [ ] Document admin features for Angela
 - [ ] Create user onboarding guide
 - [ ] Document data isolation architecture
+
+
+## Calendar View Update
+- [x] Change default calendar view from Day to Month
