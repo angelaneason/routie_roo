@@ -1718,3 +1718,10 @@
 - [x] Update routes.create Zod schema to accept custom stop types (not just enum)
 - [x] Change stopType validation from z.enum to z.string
 - [x] Test route creation with custom stop types
+
+## Mobile Responsiveness
+- [x] Update DashboardLayout to be mobile-responsive with collapsible sidebar
+- [x] Optimize Home page contact selection and route planning for mobile screens
+- [x] Make RouteDetail hop-by-hop navigation mobile-friendly
+- [x] Ensure all forms and inputs work well on touch devices
+- [x] Test on mobile viewport sizes (320px, 375px, 768px)
