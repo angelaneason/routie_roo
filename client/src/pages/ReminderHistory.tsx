@@ -8,8 +8,8 @@ import { Link } from "wouter";
 export default function ReminderHistory() {
   const historyQuery = trpc.settings.getReminderHistory.useQuery({ limit: 100 });
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (dateInput: string | Date) => {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",

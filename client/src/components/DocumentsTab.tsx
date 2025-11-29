@@ -58,8 +58,8 @@ export function DocumentsTab({ contactId, contactName }: DocumentsTabProps) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (dateInput: string | Date) => {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",

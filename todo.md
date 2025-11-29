@@ -1576,3 +1576,97 @@
 - [x] Debug why refresh still doesn't work after publishing
 - [x] Found issue: getGoogleAuthUrl was using old state format
 - [x] Fixed getGoogleAuthUrl to use JSON state format
+
+
+## Multi-User Platform Transformation
+
+### Landing Page
+- [ ] Create public landing page component (LandingPage.tsx)
+- [ ] Add hero section with kangaroo branding and tagline
+- [ ] Add features section highlighting key capabilities
+- [ ] Add "Sign Up with Google" and "Login" buttons
+- [ ] Add footer with links and branding
+- [ ] Design friendly/casual style matching Routie Roo theme
+
+### Authentication & User Management
+- [ ] Update routing to show landing page for non-authenticated users
+- [ ] Keep existing Google OAuth flow for user registration
+- [ ] Ensure each user's data is isolated (contacts, routes, settings)
+- [ ] Verify admin role is preserved for owner
+- [ ] Test new user sign-up flow
+
+### Admin Dashboard
+- [ ] Create AdminUsers page (already exists, verify functionality)
+- [ ] Show list of all registered users
+- [ ] Display user stats (contact count, route count, last active)
+- [ ] Add ability to view user details
+- [ ] Add ability to disable/enable user accounts (optional)
+
+### Data Isolation & Testing
+- [ ] Verify contacts are user-specific
+- [ ] Verify routes are user-specific
+- [ ] Verify settings are user-specific
+- [ ] Test with multiple user accounts
+- [ ] Ensure admin can see all users but regular users only see their data
+
+### Deployment
+- [ ] Save checkpoint after landing page
+- [ ] Save checkpoint after auth updates
+- [ ] Save final checkpoint
+- [ ] Test on published site with new user registration
+
+
+## Multi-User SaaS Platform Transformation
+
+### Public Landing Page
+- [x] Create LandingPage.tsx component with kangaroo branding
+- [x] Add hero section with tagline "Hop Through Your Day with Smart Route Planning"
+- [x] Add features grid showcasing route planning, contacts, calendar, reminders
+- [x] Add benefits section highlighting time savings and free access
+- [x] Add CTA section with "Sign Up with Google" button
+- [x] Add footer with branding
+- [x] Update App.tsx routing to show landing page for non-authenticated users
+- [x] Update App.tsx to show dashboard only for authenticated users
+- [x] Add loading spinner while checking authentication
+- [x] Keep shared route execution accessible without login
+
+### User Registration & Authentication
+- [ ] Verify Google OAuth allows new user registration
+- [ ] Test new user sign-up flow
+- [ ] Confirm new users get default role of "user"
+- [ ] Verify Angela (angelaneason@gmail.com) retains admin role
+- [ ] Test that new users start with empty contact/route data
+
+### Data Isolation
+- [ ] Verify all contact queries filter by userId
+- [ ] Verify all route queries filter by userId
+- [ ] Verify all settings queries filter by userId
+- [ ] Test that User A cannot see User B's contacts
+- [ ] Test that User A cannot see User B's routes
+- [ ] Test that User A cannot access User B's route detail pages
+- [ ] Verify shared routes work across users (public access)
+
+### Admin Dashboard
+- [x] AdminUsers page already exists with user list
+- [x] Admin can see all users with stats (routes, contacts, last login)
+- [x] Admin can merge duplicate user accounts
+- [x] Admin can delete user accounts
+- [ ] Test admin dashboard shows all registered users
+- [ ] Verify only admin role can access /admin/users
+- [ ] Test user merge functionality
+- [ ] Test user delete functionality
+
+### Testing & Validation
+- [ ] Create test user account via Google OAuth
+- [ ] Verify test user sees landing page before login
+- [ ] Verify test user can sign up and access dashboard
+- [ ] Verify test user has isolated data workspace
+- [ ] Verify Angela can access admin dashboard
+- [ ] Verify non-admin users cannot access admin dashboard
+- [ ] Test multi-user scenarios (2+ users with separate data)
+
+### Documentation
+- [ ] Update README with multi-user platform description
+- [ ] Document admin features for Angela
+- [ ] Create user onboarding guide
+- [ ] Document data isolation architecture

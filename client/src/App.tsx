@@ -4,6 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import LandingPage from "./pages/LandingPage";
 import Home from "./pages/Home";
 import Settings from "./pages/Settings";
 import RouteDetail from "./pages/RouteDetail";
@@ -15,9 +16,33 @@ import ChangedAddresses from "./pages/ChangedAddresses";
 import ReminderHistory from "./pages/ReminderHistory";
 import RescheduleHistory from "./pages/RescheduleHistory";
 import AdminUsers from "./pages/AdminUsers";
+import { useAuth } from "./_core/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
+  const { user, loading } = useAuth();
+
+  // Show loading spinner while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  // If not authenticated, show landing page
+  if (!user) {
+    return (
+      <Switch>
+        <Route path="/share/:token" component={SharedRouteExecution} />
+        <Route path="/" component={LandingPage} />
+        <Route component={LandingPage} />
+      </Switch>
+    );
+  }
+
+  // Authenticated routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
