@@ -1,0 +1,19 @@
+{
+  "query": "SELECT DISTINCT labels FROM cached_contacts WHERE userId = 38 AND labels LIKE '%Abundant%' LIMIT 3;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT DISTINCT labels FROM cached_contacts WHERE userId = 38 AND labels LIKE '%Abundant%' LIMIT 3;",
+  "rows": [
+    {
+      "labels": "[\"Abundant\",\"contactGroups/295899130effff7d\",\"contactGroups/7bee4ed1884ac501\"]"
+    },
+    {
+      "labels": "[\"Abundant\",\"contactGroups/1d65aa3d8c2ffe42\",\"contactGroups/5db8c017898daefe\"]"
+    },
+    {
+      "labels": "[\"Abundant\",\"contactGroups/121f63938a18b66c\",\"contactGroups/5db8c017898daefe\",\"contactGroups/6bb9616b08caabb4\",\"contactGroups/ec2a670d514408\"]"
+    }
+  ],
+  "messages": [],
+  "stdout": "labels\n[\"Abundant\",\"contactGroups/295899130effff7d\",\"contactGroups/7bee4ed1884ac501\"]\n[\"Abundant\",\"contactGroups/1d65aa3d8c2ffe42\",\"contactGroups/5db8c017898daefe\"]\n[\"Abundant\",\"contactGroups/121f63938a18b66c\",\"contactGroups/5db8c017898daefe\",\"contactGroups/6bb9616b08caabb4\",\"contactGroups/ec2a670d514408\"]\n",
+  "stderr": "",
+  "execution_time_ms": 82
+}
