@@ -250,9 +250,10 @@ export default function Home() {
       newStopTypes.delete(contactId);
     } else {
       newSelected.add(contactId);
-      // Initialize with default stop type
-      const defaultConfig = getStopTypeConfig("visit");
-      newStopTypes.set(contactId, { type: defaultConfig.type, color: defaultConfig.color });
+      // Initialize with user's default stop type from settings, or "visit" as fallback
+      const userDefaultStopType = userQuery.data?.defaultStopType || "visit";
+      const userDefaultStopTypeColor = userQuery.data?.defaultStopTypeColor || "#3b82f6";
+      newStopTypes.set(contactId, { type: userDefaultStopType, color: userDefaultStopTypeColor });
     }
     
     setSelectedContacts(newSelected);

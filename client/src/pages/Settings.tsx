@@ -54,6 +54,7 @@ export default function Settings() {
   const userQuery = trpc.auth.me.useQuery();
   const startingPointsQuery = trpc.settings.listStartingPoints.useQuery();
   const dateTypesQuery = trpc.settings.listImportantDateTypes.useQuery();
+  const stopTypesQuery = trpc.stopTypes.list.useQuery();
   
   const createStartingPointMutation = trpc.settings.createStartingPoint.useMutation({
     onSuccess: () => {
@@ -633,6 +634,51 @@ export default function Settings() {
 
                 {/* Stop Types */}
                 <StopTypesSettings />
+
+                {/* Default Stop Type */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Default Stop Type</CardTitle>
+                    <CardDescription>Automatically assign this stop type when creating new routes</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="default-stop-type">Default Stop Type</Label>
+                      <Select
+                        value={currentUser?.defaultStopType || "none"}
+                        onValueChange={(value) => {
+                          const stopType = value === "none" ? undefined : value;
+                          const stopTypeData = stopType ? stopTypesQuery.data?.find(st => st.name === stopType) : undefined;
+                          updateSettingsMutation.mutate({
+                            defaultStopType: stopType,
+                            defaultStopTypeColor: stopTypeData?.color
+                          });
+                        }}
+                      >
+                        <SelectTrigger id="default-stop-type">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None (manual selection)</SelectItem>
+                          {stopTypesQuery.data?.map((stopType) => (
+                            <SelectItem key={stopType.id} value={stopType.name}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-3 h-3 rounded-full"
+                                  style={{ backgroundColor: stopType.color }}
+                                />
+                                {stopType.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-muted-foreground">
+                        When creating a route, all contacts will automatically be assigned this stop type. You can change individual stop types in the route details screen.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Stop Duration Preferences */}
                 <Card>

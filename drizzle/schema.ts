@@ -15,6 +15,8 @@ export const users = mysqlTable("users", {
   defaultStartingPoint: text("defaultStartingPoint"), // User's default starting address for routes
   defaultStopDuration: int("defaultStopDuration").default(30), // Default stop duration in minutes (15, 30, 45, 60)
   eventDurationMode: mysqlEnum("eventDurationMode", ["stop_only", "include_drive"]).default("stop_only"), // Calendar event duration mode
+  defaultStopType: varchar("defaultStopType", { length: 100 }), // Default stop type for new routes
+  defaultStopTypeColor: varchar("defaultStopTypeColor", { length: 7 }), // Default stop type color
   googleCalendarAccessToken: text("googleCalendarAccessToken"), // Google Calendar OAuth access token
   googleCalendarRefreshToken: text("googleCalendarRefreshToken"), // Google Calendar OAuth refresh token
   googleCalendarTokenExpiry: timestamp("googleCalendarTokenExpiry"), // When the access token expires
@@ -94,7 +96,7 @@ export const routeWaypoints = mysqlTable("route_waypoints", {
   contactLabels: text("contactLabels"), // JSON array of contact labels from Google
   importantDates: text("importantDates"), // JSON array of {type, date} from contact
   comments: text("comments"), // JSON array of {option, customText} from contact
-  stopType: varchar("stopType", { length: 100 }).default("other"), // Type of stop (supports custom types)
+  stopType: mysqlEnum("stopType", ["pickup", "delivery", "meeting", "visit", "other"]).default("other"), // Type of stop
   stopColor: varchar("stopColor", { length: 7 }).default("#3b82f6"), // Hex color for marker
   // Execution workflow fields
   status: mysqlEnum("status", ["pending", "in_progress", "complete", "missed"]).default("pending"), // Stop completion status

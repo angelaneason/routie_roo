@@ -1709,25 +1709,12 @@
 - [x] Update color matching logic to work with custom stop type names
 - [x] Fix stop type name not displaying in selector (only showing dot)
 
-## Route Creation Error with Custom Stop Types
-- [x] Fix error when clicking "Plan My Route" with custom stop types selected
-- [x] Ensure custom stop type values are compatible with route creation API
-- [x] Test route creation with all custom stop types
 
-## tRPC Validation Schema Fix
-- [x] Update routes.create Zod schema to accept custom stop types (not just enum)
-- [x] Change stopType validation from z.enum to z.string
-- [x] Test route creation with custom stop types
-
-## Mobile Responsiveness
-- [x] Update DashboardLayout to be mobile-responsive with collapsible sidebar
-- [x] Optimize Home page contact selection and route planning for mobile screens
-- [x] Make RouteDetail hop-by-hop navigation mobile-friendly
-- [x] Ensure all forms and inputs work well on touch devices
-- [x] Test on mobile viewport sizes (320px, 375px, 768px)
-
-## Mobile Layout Fixes
-- [x] Fix "Mark All as Miss" button text getting cut off on mobile
-- [x] Stack bulk action buttons vertically on small screens
-- [x] Ensure all button text is visible and readable on mobile
-- [x] Test on actual mobile device viewport
+## Default Stop Type Feature
+- [x] Add defaultStopType field to users table in database schema
+- [x] Add defaultStopTypeColor field to users table
+- [x] Create backend procedure to get/update default stop type preference
+- [x] Add default stop type dropdown to Settings page (Routes tab)
+- [x] Update route creation to automatically assign default stop type to all contacts
+- [x] Allow changing stop type for individual waypoints in route details screen (already exists)
+- [ ] Test end-to-end: Set default in Settings → Create route → Verify all stops use default → Change individual stop types in route details

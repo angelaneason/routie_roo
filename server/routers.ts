@@ -560,7 +560,7 @@ export const appRouter = router({
           contactLabels: z.string().optional(), // JSON string of contact labels
           importantDates: z.string().optional(), // JSON string of important dates
           comments: z.string().optional(), // JSON string of comments
-          stopType: z.string().optional(), // Supports custom stop types from database
+          stopType: z.enum(["pickup", "delivery", "meeting", "visit", "other"]).optional(),
           stopColor: z.string().optional(),
         })).min(2),
         isPublic: z.boolean().default(false),
@@ -1304,7 +1304,7 @@ export const appRouter = router({
         contactName: z.string().optional(),
         address: z.string(),
         phoneNumbers: z.string().optional(),
-        stopType: z.string().optional(), // Supports custom stop types from database
+        stopType: z.enum(["pickup", "delivery", "meeting", "visit", "other"]).optional(),
         stopColor: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -2026,6 +2026,8 @@ export const appRouter = router({
         enableDateReminders: z.boolean().optional(), // Enable/disable date reminders
         reminderIntervals: z.array(z.number()).optional(), // Days before dates to send reminders
         enabledReminderDateTypes: z.array(z.string()).optional(), // Date types that trigger reminders
+        defaultStopType: z.string().optional(), // Default stop type for new routes
+        defaultStopTypeColor: z.string().optional(), // Default stop type color
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -2042,6 +2044,8 @@ export const appRouter = router({
         if (input.enableDateReminders !== undefined) updateData.enableDateReminders = input.enableDateReminders ? 1 : 0;
         if (input.reminderIntervals !== undefined) updateData.reminderIntervals = JSON.stringify(input.reminderIntervals);
         if (input.enabledReminderDateTypes !== undefined) updateData.enabledReminderDateTypes = JSON.stringify(input.enabledReminderDateTypes);
+        if (input.defaultStopType !== undefined) updateData.defaultStopType = input.defaultStopType;
+        if (input.defaultStopTypeColor !== undefined) updateData.defaultStopTypeColor = input.defaultStopTypeColor;
 
         await db.update(users)
           .set(updateData)
