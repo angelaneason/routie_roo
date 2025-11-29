@@ -1682,3 +1682,8 @@
 - [x] Map Google Calendar color IDs to actual hex color values
 - [x] Update backend to include calendar backgroundColor in event data
 - [x] Display events with proper vibrant colors in popup dialog
+
+## Stop Types Bug Fix
+- [x] Fix "Cannot read properties of undefined (reading 'contactName')" error when planning routes with stop types
+- [x] Ensure stop types are properly saved when creating routes
+- [x] Test route creation with different stop type selections

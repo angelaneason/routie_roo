@@ -273,25 +273,25 @@ export default function Home() {
     const contacts = contactsQuery.data || [];
     const selectedContactsList = Array.from(selectedContacts)
       .map(id => contacts.find(c => c.id === id))
-      .filter(c => c);
+      .filter((c): c is NonNullable<typeof c> => c !== undefined && c !== null);
 
     // Check for contacts without addresses
-    const contactsWithoutAddress = selectedContactsList.filter(c => !c!.address || c!.address.trim() === "");
+    const contactsWithoutAddress = selectedContactsList.filter(c => !c.address || c.address.trim() === "");
     if (contactsWithoutAddress.length > 0) {
-      const names = contactsWithoutAddress.map(c => c!.name || "Unknown").join(", ");
+      const names = contactsWithoutAddress.map(c => c.name || "Unknown").join(", ");
       toast.error(`The following contact${contactsWithoutAddress.length > 1 ? 's have' : ' has'} no address: ${names}`);
       return;
     }
 
     let waypoints = selectedContactsList.map(c => {
-      const stopTypeInfo = contactStopTypes.get(c!.id) || { type: "visit", color: "#3b82f6" };
+      const stopTypeInfo = contactStopTypes.get(c.id) || { type: "visit", color: "#3b82f6" };
       return {
-        contactName: c!.name || undefined,
-        address: c!.address!,
-        phoneNumbers: c!.phoneNumbers || undefined,
-        contactLabels: c!.labels || undefined,
-        importantDates: c!.importantDates || undefined,
-        comments: c!.comments || undefined,
+        contactName: c.name || undefined,
+        address: c.address || "",
+        phoneNumbers: c.phoneNumbers || undefined,
+        contactLabels: c.labels || undefined,
+        importantDates: c.importantDates || undefined,
+        comments: c.comments || undefined,
         stopType: stopTypeInfo.type as "pickup" | "delivery" | "meeting" | "visit" | "other",
         stopColor: stopTypeInfo.color,
       };
