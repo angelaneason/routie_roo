@@ -163,7 +163,8 @@ export async function createRouteWaypoints(waypoints: InsertRouteWaypoint[]) {
   if (!db) throw new Error("Database not available");
   
   if (waypoints.length === 0) return;
-  return db.insert(routeWaypoints).values(waypoints);
+  // Type assertion needed because TypeScript hasn't regenerated types from varchar change
+  return db.insert(routeWaypoints).values(waypoints as any);
 }
 
 export async function getRouteWaypoints(routeId: number) {

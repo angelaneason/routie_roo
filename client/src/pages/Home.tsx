@@ -30,7 +30,7 @@ import { ContactImportDialog } from "@/components/ContactImportDialog";
 import { DocumentUploadDialog } from "@/components/DocumentUploadDialog";
 import { BulkDocumentUploadDialog } from "@/components/BulkDocumentUploadDialog";
 import { ContactDetailDialog } from "@/components/ContactDetailDialog";
-import { StopTypeSelector, getStopTypeConfig, type StopType } from "@/components/StopTypeSelector";
+// StopTypeSelector removed - stop types now set via default in Settings and editable in route details
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Link, useLocation } from "wouter";
@@ -293,7 +293,7 @@ export default function Home() {
         contactLabels: c.labels || undefined,
         importantDates: c.importantDates || undefined,
         comments: c.comments || undefined,
-        stopType: stopTypeInfo.type as "pickup" | "delivery" | "meeting" | "visit" | "other",
+        stopType: stopTypeInfo.type,
         stopColor: stopTypeInfo.color,
       };
     });
@@ -744,34 +744,7 @@ export default function Home() {
                     {selectedContacts.size} contact{selectedContacts.size !== 1 ? 's' : ''} selected
                   </div>
 
-                  {selectedContacts.size > 0 && (
-                    <div className="space-y-2">
-                      <Label>Stop Types</Label>
-                      <div className="space-y-2 max-h-60 overflow-y-auto">
-                        {Array.from(selectedContacts).map(contactId => {
-                          const contact = contacts.find(c => c.id === contactId);
-                          if (!contact) return null;
-                          const stopTypeInfo = contactStopTypes.get(contactId) || { type: "visit", color: "#3b82f6" };
-                          return (
-                            <div key={contactId} className="flex items-center gap-2 p-2 bg-muted rounded">
-                              <span className="text-sm flex-1 truncate">{contact.name}</span>
-                              <div className="w-32">
-                                <StopTypeSelector
-                                  value={stopTypeInfo.type as StopType}
-                                  onChange={(newType, newColor) => {
-                                    const newStopTypes = new Map(contactStopTypes);
-                                    newStopTypes.set(contactId, { type: newType, color: newColor || "#3b82f6" });
-                                    setContactStopTypes(newStopTypes);
-                                  }}
-                                  size="sm"
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
+
 
                   <Button
                     className="w-full"

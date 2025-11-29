@@ -560,7 +560,7 @@ export const appRouter = router({
           contactLabels: z.string().optional(), // JSON string of contact labels
           importantDates: z.string().optional(), // JSON string of important dates
           comments: z.string().optional(), // JSON string of comments
-          stopType: z.enum(["pickup", "delivery", "meeting", "visit", "other"]).optional(),
+          stopType: z.string().optional(), // Accept any custom stop type name
           stopColor: z.string().optional(),
         })).min(2),
         isPublic: z.boolean().default(false),
@@ -637,7 +637,7 @@ export const appRouter = router({
           };
         });
 
-        await createRouteWaypoints(waypointsToCreate);
+        await createRouteWaypoints(waypointsToCreate as any); // Type assertion for custom stop types
 
         return {
           routeId,
@@ -1304,7 +1304,7 @@ export const appRouter = router({
         contactName: z.string().optional(),
         address: z.string(),
         phoneNumbers: z.string().optional(),
-        stopType: z.enum(["pickup", "delivery", "meeting", "visit", "other"]).optional(),
+        stopType: z.string().optional(), // Accept any custom stop type name
         stopColor: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -1332,7 +1332,7 @@ export const appRouter = router({
           position: nextOrder,
           executionOrder: nextOrder,
           status: "pending",
-        });
+        } as any); // Type assertion for custom stop types
 
         return { success: true };
       }),
@@ -1489,7 +1489,7 @@ export const appRouter = router({
             position: wp.position,
             status: "pending", // Reset status
             stopType: wp.stopType,
-          });
+          } as any); // Type assertion for custom stop types
         }
 
         return { routeId: newRouteId };

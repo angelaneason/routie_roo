@@ -1717,4 +1717,13 @@
 - [x] Add default stop type dropdown to Settings page (Routes tab)
 - [x] Update route creation to automatically assign default stop type to all contacts
 - [x] Allow changing stop type for individual waypoints in route details screen (already exists)
-- [ ] Test end-to-end: Set default in Settings → Create route → Verify all stops use default → Change individual stop types in route details
+- [x] Test end-to-end: Set default in Settings → Create route → Verify all stops use default → Change individual stop types in route details
+
+
+## Route Creation Validation Bug
+- [x] Fix route.create procedure to accept custom stop type names (currently only accepts hardcoded enum: pickup, delivery, meeting, visit, other)
+- [x] Change stopType validation from enum to string to support user's custom stop types
+- [x] Fix addWaypoint procedure validation as well
+- [x] Remove stop type selector UI from route builder (redundant since we have default + can edit in route details)
+- [x] Change database stopType column from enum to varchar(100)
+- [x] Test route creation with custom stop types like "Visit", "Eval", "OASIS"
