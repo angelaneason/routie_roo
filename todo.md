@@ -1775,3 +1775,12 @@
 - [x] Update contacts.update procedure to call syncToGoogleContact
 - [x] Pass contactId, userId, address, and phoneNumbers to sync helper
 - [x] Test editing contact in Kangaroo Crew → verify Google Contact updates
+
+
+## Calendar Integration Improvements
+- [x] Remove starting point from calendar events (only add actual stops)
+- [x] Change event titles from "Stop 1: Name" to "Stop Type: Name" (e.g., "Eval: John Smith")
+- [ ] Add calendar event editing UI in Calendar page
+- [ ] Implement Google Calendar event update API integration
+- [ ] Sync edited event details back to Google Calendar
+- [ ] Test: Create route → Add to calendar → Edit event → Verify Google Calendar updates

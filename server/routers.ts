@@ -895,9 +895,16 @@ export const appRouter = router({
         
         const createdEvents = [];
 
-        // Create individual event for each waypoint
+        // Create individual event for each waypoint (skip starting point)
         for (let i = 0; i < waypoints.length; i++) {
           const wp = waypoints[i];
+          
+          // Skip starting point (waypoints with no contact name and no contactId)
+          const wpWithContactId = wp as any; // Type assertion for contactId field
+          if (!wp.contactName && !wpWithContactId.contactId) {
+            continue;
+          }
+          
           const isLast = i === waypoints.length - 1;
           
           let eventStart: Date;
@@ -917,11 +924,16 @@ export const appRouter = router({
             eventEnd = new Date(currentTime + stopDuration);
           }
           
+          // Format stop type for display (capitalize first letter)
+          const stopTypeDisplay = wp.stopType 
+            ? wp.stopType.charAt(0).toUpperCase() + wp.stopType.slice(1)
+            : 'Stop';
+          
           try {
             const { eventId, htmlLink } = await createCalendarEvent(
               input.accessToken,
               {
-                summary: `${route.name} - Stop ${i + 1}: ${wp.contactName || 'Waypoint'}`,
+                summary: `${stopTypeDisplay}: ${wp.contactName || 'Waypoint'}`,
                 description: `Address: ${wp.address}${wp.phoneNumbers ? `\nPhone: ${wp.phoneNumbers}` : ''}${wp.executionNotes ? `\nNotes: ${wp.executionNotes}` : ''}`,
                 start: eventStart.toISOString(),
                 end: eventEnd.toISOString(),
