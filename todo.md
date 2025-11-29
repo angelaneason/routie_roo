@@ -1697,3 +1697,8 @@
 - [x] Create custom map marker icons for each stop type
 - [x] Update RouteDetail map to use stop type icons
 - [x] Test icon visibility and differentiation on map
+
+## Stop Type Selection Bug
+- [x] Fix stop type selector reverting to "other" instead of saving selected type
+- [x] Verify stop type state is properly updated in contactStopTypes Map
+- [x] Test that selected stop types persist when creating routes
