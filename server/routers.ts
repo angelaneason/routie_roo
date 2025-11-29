@@ -312,6 +312,24 @@ export const appRouter = router({
           .set(updateData)
           .where(eq(cachedContacts.id, input.contactId));
 
+        // Sync to Google Contact if googleResourceName exists
+        if (currentContact[0].googleResourceName) {
+          const { syncToGoogleContact } = await import("./googleContactSync");
+          const syncResult = await syncToGoogleContact({
+            contactId: input.contactId,
+            userId: ctx.user.id,
+            address: input.address,
+            phoneNumbers: JSON.stringify(input.phoneNumbers),
+          });
+          
+          if (!syncResult.success) {
+            console.warn('[Kangaroo Crew] Failed to sync contact to Google:', syncResult.error);
+            // Don't fail the mutation - contact update succeeded
+          } else {
+            console.log('[Kangaroo Crew] Successfully synced contact to Google');
+          }
+        }
+
         return { success: true };
       }),
 

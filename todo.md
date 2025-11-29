@@ -1769,3 +1769,9 @@
 - [x] Build proper update request with field masks
 - [x] Test full sync flow: edit waypoint → updates Google Contact (ready for user testing)
 - [ ] Note: Label sync requires mapping label names to contact group resource names (future enhancement)
+
+
+## Add Google Sync to Kangaroo Crew Contact Editor
+- [x] Update contacts.update procedure to call syncToGoogleContact
+- [x] Pass contactId, userId, address, and phoneNumbers to sync helper
+- [x] Test editing contact in Kangaroo Crew → verify Google Contact updates
