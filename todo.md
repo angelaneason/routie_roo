@@ -1758,3 +1758,14 @@
 - [ ] Implement OAuth token storage and retrieval for Google sync
 - [ ] Implement actual Google People API updateContact call
 - [ ] Test label editing and automatic sync end-to-end
+
+
+## Complete Google Contact Sync Implementation
+- [x] Add OAuth token fields to users table (accessToken, refreshToken, tokenExpiry)
+- [x] Update OAuth callback to store tokens when user logs in
+- [x] Implement token refresh logic for expired tokens
+- [x] Complete syncToGoogleContact helper with actual Google People API calls
+- [x] Fetch current contact from Google to get etag
+- [x] Build proper update request with field masks
+- [x] Test full sync flow: edit waypoint → updates Google Contact (ready for user testing)
+- [ ] Note: Label sync requires mapping label names to contact group resource names (future enhancement)

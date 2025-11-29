@@ -22,6 +22,9 @@ export const users = mysqlTable("users", {
   googleCalendarTokenExpiry: timestamp("googleCalendarTokenExpiry"), // When the access token expires
   googleCalendarList: text("googleCalendarList"), // JSON: Array of { id, summary, backgroundColor } from Google Calendar API
   calendarPreferences: text("calendarPreferences"), // JSON: { visibleCalendars: string[], defaultCalendar: string }
+  googleContactsAccessToken: text("googleContactsAccessToken"), // Google Contacts OAuth access token
+  googleContactsRefreshToken: text("googleContactsRefreshToken"), // Google Contacts OAuth refresh token
+  googleContactsTokenExpiry: timestamp("googleContactsTokenExpiry"), // When the contacts access token expires
   autoArchiveDays: int("autoArchiveDays"), // Days after completion to auto-archive (null = never)
   schedulingEmail: varchar("schedulingEmail", { length: 320 }), // Email for scheduling team
   enableDateReminders: int("enableDateReminders").default(0).notNull(), // 0 = disabled, 1 = enabled

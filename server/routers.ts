@@ -195,6 +195,20 @@ export const appRouter = router({
             await upsertCachedContacts(contactsToCache);
           }
           
+          // Store OAuth tokens for Google Contacts sync
+          const db = await getDb();
+          if (db && tokenData.refresh_token) {
+            const expiryDate = new Date(Date.now() + tokenData.expires_in * 1000);
+            await db.update(users)
+              .set({
+                googleContactsAccessToken: tokenData.access_token,
+                googleContactsRefreshToken: tokenData.refresh_token,
+                googleContactsTokenExpiry: expiryDate,
+              } as any) // Type assertion for new fields
+              .where(eq(users.id, input.userId));
+            console.log('[Google Contacts] OAuth tokens stored for sync');
+          }
+          
           return { success: true, count: contactsToCache.length };
         } catch (error) {
           console.error("Error handling Google callback:", error);
