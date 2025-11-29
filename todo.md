@@ -1727,3 +1727,10 @@
 - [x] Remove stop type selector UI from route builder (redundant since we have default + can edit in route details)
 - [x] Change database stopType column from enum to varchar(100)
 - [x] Test route creation with custom stop types like "Visit", "Eval", "OASIS"
+
+
+## Stop Type Display and Editing Issues
+- [x] Add edit button to waypoint cards for comprehensive editing (stop type, contact name, etc.)
+- [x] Create edit dialog with stop type selector and other editable fields
+- [x] Move stop type display to be more prominent - show before patient name or on first line
+- [x] Add backend mutation for updating waypoint stop type

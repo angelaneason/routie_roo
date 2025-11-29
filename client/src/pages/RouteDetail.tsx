@@ -14,6 +14,7 @@ import { PhoneTextMenu } from "@/components/PhoneTextMenu";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { StopStatusBadge, type StopStatus } from "@/components/StopStatusBadge";
 import { SortableWaypointItem } from "@/components/SortableWaypointItem";
+import { StopTypeSelector } from "@/components/StopTypeSelector";
 import RouteNotes from "@/components/RouteNotes";
 import { useEffect, useState } from "react";
 import { Link, useParams, useLocation } from "wouter";
@@ -66,6 +67,11 @@ export default function RouteDetail() {
   const [editingContactId, setEditingContactId] = useState<number | null>(null);
   const [updateContactAddress, setUpdateContactAddress] = useState(false);
   const [validatingAddress, setValidatingAddress] = useState(false);
+  const [showEditWaypointDialog, setShowEditWaypointDialog] = useState(false);
+  const [editingWaypoint, setEditingWaypoint] = useState<any | null>(null);
+  const [editWaypointName, setEditWaypointName] = useState("");
+  const [editWaypointStopType, setEditWaypointStopType] = useState("");
+  const [editWaypointStopColor, setEditWaypointStopColor] = useState("#3b82f6");
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -113,6 +119,17 @@ export default function RouteDetail() {
     },
     onError: (error) => {
       toast.error(`Failed to reschedule: ${error.message}`);
+    },
+  });
+
+  const updateWaypointDetailsMutation = trpc.routes.updateWaypointDetails.useMutation({
+    onSuccess: () => {
+      toast.success("Waypoint updated");
+      routeQuery.refetch();
+      setShowEditWaypointDialog(false);
+    },
+    onError: (error) => {
+      toast.error(`Failed to update waypoint: ${error.message}`);
     },
   });
 
@@ -901,6 +918,13 @@ export default function RouteDetail() {
                             setEditingContactId(waypoint.contactId || null);
                             setUpdateContactAddress(false); // Reset to default (temporary)
                           }}
+                          onEdit={() => {
+                            setEditingWaypoint(waypoint);
+                            setEditWaypointName(waypoint.contactName || "");
+                            setEditWaypointStopType(waypoint.stopType || "visit");
+                            setEditWaypointStopColor(waypoint.stopColor || "#3b82f6");
+                            setShowEditWaypointDialog(true);
+                          }}
                         />
                       ))}
                     </div>
@@ -1312,6 +1336,61 @@ export default function RouteDetail() {
               }
             }}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Waypoint Details Dialog */}
+      <Dialog open={showEditWaypointDialog} onOpenChange={setShowEditWaypointDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Waypoint Details</DialogTitle>
+            <DialogDescription>
+              Update stop type, contact name, and other details
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-contact-name">Contact Name</Label>
+              <Input
+                id="edit-contact-name"
+                value={editWaypointName}
+                onChange={(e) => setEditWaypointName(e.target.value)}
+                placeholder="Enter contact name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-stop-type">Stop Type</Label>
+              <StopTypeSelector
+                value={editWaypointStopType}
+                onChange={(newType, newColor) => {
+                  setEditWaypointStopType(newType);
+                  if (newColor) setEditWaypointStopColor(newColor);
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowEditWaypointDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!editingWaypoint) return;
+                updateWaypointDetailsMutation.mutate({
+                  waypointId: editingWaypoint.id,
+                  contactName: editWaypointName || undefined,
+                  stopType: editWaypointStopType,
+                  stopColor: editWaypointStopColor,
+                });
+              }}
+              disabled={updateWaypointDetailsMutation.isPending}
+            >
+              {updateWaypointDetailsMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

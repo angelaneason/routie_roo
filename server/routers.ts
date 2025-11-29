@@ -1363,6 +1363,42 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Update waypoint details (stop type, contact name, etc.)
+    updateWaypointDetails: protectedProcedure
+      .input(z.object({
+        waypointId: z.number(),
+        contactName: z.string().optional(),
+        stopType: z.string().optional(),
+        stopColor: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify waypoint belongs to user's route
+        const waypoint = await db.select().from(routeWaypoints).where(eq(routeWaypoints.id, input.waypointId)).limit(1);
+        if (!waypoint.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Waypoint not found" });
+        }
+
+        const route = await getRouteById(waypoint[0].routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        // Build update object
+        const updateData: any = {};
+        if (input.contactName !== undefined) updateData.contactName = input.contactName;
+        if (input.stopType !== undefined) updateData.stopType = input.stopType;
+        if (input.stopColor !== undefined) updateData.stopColor = input.stopColor;
+
+        await db.update(routeWaypoints)
+          .set(updateData as any)
+          .where(eq(routeWaypoints.id, input.waypointId));
+
+        return { success: true };
+      }),
+
     // Update waypoint address
     updateWaypointAddress: protectedProcedure
       .input(z.object({

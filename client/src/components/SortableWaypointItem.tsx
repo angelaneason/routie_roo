@@ -16,6 +16,7 @@ interface SortableWaypointItemProps {
   isEditMode?: boolean;
   onRemove?: () => void;
   onEditAddress?: () => void;
+  onEdit?: () => void;
 }
 
 export function SortableWaypointItem({
@@ -28,6 +29,7 @@ export function SortableWaypointItem({
   isEditMode = false,
   onRemove,
   onEditAddress,
+  onEdit,
 }: SortableWaypointItemProps) {
   const {
     attributes,
@@ -69,6 +71,13 @@ export function SortableWaypointItem({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
+            {/* Stop type shown first and always visible */}
+            <span 
+              className="text-xs px-2 py-0.5 rounded font-medium text-white"
+              style={{ backgroundColor: waypoint.stopColor || "#3b82f6" }}
+            >
+              {waypoint.stopType ? (waypoint.stopType.charAt(0).toUpperCase() + waypoint.stopType.slice(1)) : "Visit"}
+            </span>
             {waypoint.contactName && (
               <p className="font-medium">{waypoint.contactName}</p>
             )}
@@ -89,14 +98,6 @@ export function SortableWaypointItem({
               }
             })()}
             <StopStatusBadge status={waypoint.status || "pending"} />
-            {waypoint.stopType && waypoint.stopType !== "visit" && (
-              <span 
-                className="text-xs px-2 py-0.5 rounded font-medium text-white"
-                style={{ backgroundColor: waypoint.stopColor || "#3b82f6" }}
-              >
-                {waypoint.stopType.charAt(0).toUpperCase() + waypoint.stopType.slice(1)}
-              </span>
-            )}
             {waypoint.needsReschedule === 1 && (
               <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
                 Needs Reschedule
@@ -216,10 +217,10 @@ export function SortableWaypointItem({
         <Button
           size="sm"
           variant="outline"
-          onClick={onEditAddress}
+          onClick={onEdit}
         >
           <Edit3 className="h-4 w-4 mr-1" />
-          Edit Address
+          Edit Details
         </Button>
         <Button
           size="sm"
