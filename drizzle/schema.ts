@@ -87,6 +87,7 @@ export type InsertRoute = typeof routes.$inferInsert;
 export const routeWaypoints = mysqlTable("route_waypoints", {
   id: int("id").autoincrement().primaryKey(),
   routeId: int("routeId").notNull(), // Foreign key to routes
+  contactId: int("contactId"), // Foreign key to cachedContacts (for Google sync)
   position: int("position").notNull(), // Order in the route (0 = origin, last = destination)
   contactName: varchar("contactName", { length: 255 }), // Name from contact (optional, for privacy)
   address: text("address").notNull(), // Full address string

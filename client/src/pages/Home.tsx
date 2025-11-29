@@ -284,9 +284,20 @@ export default function Home() {
       return;
     }
 
-    let waypoints = selectedContactsList.map(c => {
+    let waypoints: Array<{
+      contactId?: number;
+      contactName?: string;
+      address: string;
+      phoneNumbers?: string;
+      contactLabels?: string;
+      importantDates?: string;
+      comments?: string;
+      stopType: string;
+      stopColor: string;
+    }> = selectedContactsList.map(c => {
       const stopTypeInfo = contactStopTypes.get(c.id) || { type: "visit", color: "#3b82f6" };
       return {
+        contactId: c.id, // Store contact ID for Google sync
         contactName: c.name || undefined,
         address: c.address || "",
         phoneNumbers: c.phoneNumbers || undefined,
@@ -313,6 +324,7 @@ export default function Home() {
     if (finalStartingPoint) {
       waypoints = [
         {
+          contactId: undefined, // Starting point is not a contact
           contactName: "Starting Point",
           address: finalStartingPoint,
           phoneNumbers: undefined,

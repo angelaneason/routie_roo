@@ -1742,3 +1742,19 @@
 - [x] Update backend mutation to handle address and phone number updates
 - [ ] Remove redundant "Edit Address" button since it's now in Edit Details (keep for now - separate workflow)
 - [x] Test comprehensive waypoint editing (stop type, name, address, phone)
+
+
+## Automatic Google Contact Sync
+- [x] Research Google People API for updating contact details (addresses, phoneNumbers, memberships supported)
+- [x] Add labels/groups field to Edit Details dialog UI
+- [x] Fetch user's contact groups/labels for selection (user can type labels manually)
+- [x] Add labels to updateWaypointDetails backend mutation
+- [x] Add contactId field to routeWaypoints schema for tracking Google contacts
+- [x] Update route creation to store contactId when adding waypoints
+- [x] Implement Google People API sync helper function (stub created, needs OAuth token integration)
+- [x] Call sync helper from updateWaypointDetails mutation
+- [x] Handle cases where contact doesn't exist in Google (skip sync gracefully)
+- [x] Add error handling for Google API failures (don't block waypoint update)
+- [ ] Implement OAuth token storage and retrieval for Google sync
+- [ ] Implement actual Google People API updateContact call
+- [ ] Test label editing and automatic sync end-to-end

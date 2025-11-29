@@ -554,6 +554,7 @@ export const appRouter = router({
         name: z.string().min(1),
         notes: z.string().optional(),
         waypoints: z.array(z.object({
+          contactId: z.number().optional(), // cachedContacts ID for Google sync
           contactName: z.string().optional(),
           address: z.string(),
           phoneNumbers: z.string().optional(), // JSON string of phone numbers
@@ -623,6 +624,7 @@ export const appRouter = router({
           const leg = routeData.legs?.[index];
           return {
             routeId,
+            contactId: wp.contactId || null,
             position: index,
             contactName: wp.contactName || null,
             address: wp.address,
@@ -1372,6 +1374,7 @@ export const appRouter = router({
         stopColor: z.string().optional(),
         address: z.string().optional(),
         phoneNumbers: z.string().optional(), // JSON string
+        contactLabels: z.string().optional(), // JSON string
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -1388,17 +1391,37 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
         }
 
-        // Build update object
+        // Build update object for waypoint
         const updateData: any = {};
         if (input.contactName !== undefined) updateData.contactName = input.contactName;
         if (input.stopType !== undefined) updateData.stopType = input.stopType;
         if (input.stopColor !== undefined) updateData.stopColor = input.stopColor;
         if (input.address !== undefined) updateData.address = input.address;
         if (input.phoneNumbers !== undefined) updateData.phoneNumbers = input.phoneNumbers;
+        if (input.contactLabels !== undefined) updateData.contactLabels = input.contactLabels;
 
+        // Update waypoint in database
         await db.update(routeWaypoints)
           .set(updateData as any)
           .where(eq(routeWaypoints.id, input.waypointId));
+
+        // Sync to Google Contact if contactId exists and relevant fields changed
+        const updatedWaypoint = waypoint[0] as any; // Type assertion for contactId field
+        if (updatedWaypoint.contactId && (input.address || input.phoneNumbers || input.contactLabels)) {
+          const { syncToGoogleContact } = await import("./googleContactSync");
+          const syncResult = await syncToGoogleContact({
+            contactId: updatedWaypoint.contactId,
+            userId: ctx.user.id,
+            address: input.address,
+            phoneNumbers: input.phoneNumbers,
+            contactLabels: input.contactLabels,
+          });
+          
+          if (!syncResult.success) {
+            console.warn("[Google Sync] Failed to sync waypoint changes:", syncResult.error);
+            // Don't fail the mutation - waypoint update succeeded
+          }
+        }
 
         return { success: true };
       }),

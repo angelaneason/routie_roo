@@ -74,6 +74,7 @@ export default function RouteDetail() {
   const [editWaypointStopColor, setEditWaypointStopColor] = useState("#3b82f6");
   const [editWaypointAddress, setEditWaypointAddress] = useState("");
   const [editWaypointPhoneNumbers, setEditWaypointPhoneNumbers] = useState<Array<{value: string, label?: string, type?: string}>>([]);
+  const [editWaypointLabels, setEditWaypointLabels] = useState<string[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -932,6 +933,12 @@ export default function RouteDetail() {
                             } catch {
                               setEditWaypointPhoneNumbers([]);
                             }
+                            try {
+                              const labels = waypoint.contactLabels ? JSON.parse(waypoint.contactLabels) : [];
+                              setEditWaypointLabels(labels);
+                            } catch {
+                              setEditWaypointLabels([]);
+                            }
                             setShowEditWaypointDialog(true);
                           }}
                         />
@@ -1354,7 +1361,7 @@ export default function RouteDetail() {
           <DialogHeader>
             <DialogTitle>Edit Waypoint Details</DialogTitle>
             <DialogDescription>
-              Update stop type, contact name, address, and phone numbers
+              Update stop type, contact name, address, phone numbers, and labels
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
@@ -1431,6 +1438,38 @@ export default function RouteDetail() {
                 Add Phone Number
               </Button>
             </div>
+            <div className="space-y-2">
+              <Label>Contact Labels</Label>
+              <div className="flex flex-wrap gap-2">
+                {editWaypointLabels.map((label, idx) => (
+                  <div key={idx} className="flex items-center gap-1 bg-secondary px-2 py-1 rounded-md text-sm">
+                    <span>{label}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-4 w-4 p-0"
+                      onClick={() => {
+                        setEditWaypointLabels(editWaypointLabels.filter((_, i) => i !== idx));
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add label (e.g., Family, Work)"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                      setEditWaypointLabels([...editWaypointLabels, e.currentTarget.value.trim()]);
+                      e.currentTarget.value = "";
+                    }
+                  }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">Press Enter to add a label</p>
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -1449,6 +1488,7 @@ export default function RouteDetail() {
                   stopColor: editWaypointStopColor,
                   address: editWaypointAddress || undefined,
                   phoneNumbers: editWaypointPhoneNumbers.length > 0 ? JSON.stringify(editWaypointPhoneNumbers) : undefined,
+                  contactLabels: editWaypointLabels.length > 0 ? JSON.stringify(editWaypointLabels) : undefined,
                 });
               }}
               disabled={updateWaypointDetailsMutation.isPending}
