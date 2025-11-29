@@ -1567,3 +1567,10 @@
 - [x] Make template placeholders into actual editable default values
 - [x] Pre-fill templates with suggested text as default values
 - [x] Test template editing and saving
+
+## Contact Sync Issues - Fix Existing Refresh Button
+
+- [x] Investigate why existing Refresh button doesn't update contacts
+- [x] Fix refresh to properly update label names (*Abundant, etc.)
+- [x] Fix refresh to pull in missing contacts (ABUNDANT Offices, Oscar RN)
+- [ ] Test that refresh works correctly after publishing

@@ -1,0 +1,110 @@
+{
+  "query": "SELECT id, name, labels FROM cached_contacts WHERE userId = 38 AND labels LIKE '%Abundant%' LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, name, labels FROM cached_contacts WHERE userId = 38 AND labels LIKE '%Abundant%' LIMIT 20;",
+  "rows": [
+    {
+      "id": "270233",
+      "name": "TODD Elizabeth",
+      "labels": "[\"Abundant\",\"contactGroups/63c2ee10e427465\",\"contactGroups/6bb9616b08caabb4\"]"
+    },
+    {
+      "id": "270234",
+      "name": "WARD Billy",
+      "labels": "[\"Abundant\",\"contactGroups/295899130effff7d\",\"contactGroups/4289982b0c954d85\",\"contactGroups/ec2a670d514408\"]"
+    },
+    {
+      "id": "270236",
+      "name": "WILBUR Karen",
+      "labels": "[\"Abundant\",\"contactGroups/295899130effff7d\"]"
+    },
+    {
+      "id": "270238",
+      "name": "WILLIAMS Cynthia",
+      "labels": "[\"Abundant\",\"contactGroups/5db8c017898daefe\"]"
+    },
+    {
+      "id": "270241",
+      "name": "SOTO Maria",
+      "labels": "[\"Abundant\",\"contactGroups/5db8c017898daefe\",\"contactGroups/ab75c6f0b7d9a97\"]"
+    },
+    {
+      "id": "270245",
+      "name": "KEELER Judy",
+      "labels": "[\"Abundant\",\"contactGroups/5db8c017898daefe\"]"
+    },
+    {
+      "id": "270247",
+      "name": "FINK Jennifer",
+      "labels": "[\"Abundant\",\"contactGroups/121f63938a18b66c\",\"contactGroups/5db8c017898daefe\"]"
+    },
+    {
+      "id": "270248",
+      "name": "VERGENZ Mark",
+      "labels": "[\"Abundant\",\"contactGroups/5db8c017898daefe\"]"
+    },
+    {
+      "id": "270249",
+      "name": "GARCIA Rosie",
+      "labels": "[\"Abundant\",\"contactGroups/121f63938a18b66c\",\"contactGroups/5db8c017898daefe\",\"contactGroups/6bb9616b08caabb4\",\"contactGroups/ec2a670d514408\"]"
+    },
+    {
+      "id": "270250",
+      "name": "HALE Sandra",
+      "labels": "[\"Abundant\",\"contactGroups/5db8c017898daefe\",\"contactGroups/6bb9616b08caabb4\"]"
+    },
+    {
+      "id": "270251",
+      "name": "MANH Ly Kim",
+      "labels": "[\"Abundant\",\"contactGroups/121f63938a18b66c\",\"contactGroups/5db8c017898daefe\"]"
+    },
+    {
+      "id": "270252",
+      "name": "WOOTEN Cyndella",
+      "labels": "[\"Abundant\",\"contactGroups/3543b3968f2ed398\",\"contactGroups/5db8c017898daefe\"]"
+    },
+    {
+      "id": "270254",
+      "name": "RODRIGUEZ Miguel",
+      "labels": "[\"Abundant\",\"contactGroups/121f63938a18b66c\",\"contactGroups/5db8c017898daefe\"]"
+    },
+    {
+      "id": "270256",
+      "name": "MELTON Margaret",
+      "labels": "[\"Abundant\",\"contactGroups/3543b3968f2ed398\",\"contactGroups/5db8c017898daefe\"]"
+    },
+    {
+      "id": "270257",
+      "name": "PICKENS Amelia",
+      "labels": "[\"Abundant\",\"contactGroups/5db8c017898daefe\",\"contactGroups/6bb9616b08caabb4\"]"
+    },
+    {
+      "id": "270258",
+      "name": "FLORY Mary",
+      "labels": "[\"Abundant\",\"contactGroups/28e8b62e0bd180c3\",\"contactGroups/295899130effff7d\"]"
+    },
+    {
+      "id": "270259",
+      "name": "AUSBIE Dynishous",
+      "labels": "[\"Abundant\",\"contactGroups/387a34690b1de49c\",\"contactGroups/4c43e3590f776bcf\"]"
+    },
+    {
+      "id": "270260",
+      "name": "HERSHBERGER Margaret",
+      "labels": "[\"Abundant\",\"contactGroups/295899130effff7d\",\"contactGroups/710f9eb90df198a5\"]"
+    },
+    {
+      "id": "270261",
+      "name": "MENDOZA Henry",
+      "labels": "[\"Abundant\",\"contactGroups/295899130effff7d\",\"contactGroups/710f9eb90df198a5\"]"
+    },
+    {
+      "id": "270262",
+      "name": "JOHNSON James",
+      "labels": "[\"Abundant\",\"contactGroups/1d65aa3d8c2ffe42\",\"contactGroups/295899130effff7d\"]"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tlabels\n270233\tTODD Elizabeth\t[\"Abundant\",\"contactGroups/63c2ee10e427465\",\"contactGroups/6bb9616b08caabb4\"]\n270234\tWARD Billy\t[\"Abundant\",\"contactGroups/295899130effff7d\",\"contactGroups/4289982b0c954d85\",\"contactGroups/ec2a670d514408\"]\n270236\tWILBUR Karen\t[\"Abundant\",\"contactGroups/295899130effff7d\"]\n270238\tWILLIAMS Cynthia\t[\"Abundant\",\"contactGroups/5db8c017898daefe\"]\n270241\tSOTO Maria\t[\"Abundant\",\"contactGroups/5db8c017898daefe\",\"contactGroups/ab75c6f0b7d9a97\"]\n270245\tKEELER Judy\t[\"Abundant\",\"contactGroups/5db8c017898daefe\"]\n270247\tFINK Jennifer\t[\"Abundant\",\"contactGroups/121f63938a18b66c\",\"contactGroups/5db8c017898daefe\"]\n270248\tVERGENZ Mark\t[\"Abundant\",\"contactGroups/5db8c017898daefe\"]\n270249\tGARCIA Rosie\t[\"Abundant\",\"contactGroups/121f63938a18b66c\",\"contactGroups/5db8c017898daefe\",\"contactGroups/6bb9616b08caabb4\",\"contactGroups/ec2a670d514408\"]\n270250\tHALE Sandra\t[\"Abundant\",\"contactGroups/5db8c017898daefe\",\"contactGroups/6bb9616b08caabb4\"]\n270251\tMANH Ly Kim\t[\"Abundant\",\"contactGroups/121f63938a18b66c\",\"contactGroups/5db8c017898daefe\"]\n270252\tWOOTEN Cyndella\t[\"Abundant\",\"contactGroups/3543b3968f2ed398\",\"contactGroups/5db8c017898daefe\"]\n270254\tRODRIGUEZ Miguel\t[\"Abundant\",\"contactGroups/121f63938a18b66c\",\"contactGroups/5db8c017898daefe\"]\n270256\tMELTON Margaret\t[\"Abundant\",\"contactGroups/3543b3968f2ed398\",\"contactGroups/5db8c017898daefe\"]\n270257\tPICKENS Amelia\t[\"Abundant\",\"contactGroups/5db8c017898daefe\",\"contactGroups/6bb9616b08caabb4\"]\n270258\tFLORY Mary\t[\"Abundant\",\"contactGroups/28e8b62e0bd180c3\",\"contactGroups/295899130effff7d\"]\n270259\tAUSBIE Dynishous\t[\"Abundant\",\"contactGroups/387a34690b1de49c\",\"contactGroups/4c43e3590f776bcf\"]\n270260\tHERSHBERGER Margaret\t[\"Abundant\",\"contactGroups/295899130effff7d\",\"contactGroups/710f9eb90df198a5\"]\n270261\tMENDOZA Henry\t[\"Abundant\",\"contactGroups/295899130effff7d\",\"contactGroups/710f9eb90df198a5\"]\n270262\tJOHNSON James\t[\"Abundant\",\"contactGroups/1d65aa3d8c2ffe42\",\"contactGroups/295899130effff7d\"]\n",
+  "stderr": "",
+  "execution_time_ms": 62
+}

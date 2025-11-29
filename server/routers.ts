@@ -213,7 +213,10 @@ export const appRouter = router({
       // This will trigger a new OAuth flow
       // Use public URL from ENV to avoid internal Azure container address
       const redirectUri = `${ENV.publicUrl}/api/oauth/google/callback`;
-      const state = ctx.user.id.toString();
+      const state = JSON.stringify({
+        userId: ctx.user.id,
+        action: 'contacts',
+      });
       return { url: getGoogleAuthUrl(redirectUri, state) };
     }),
 
