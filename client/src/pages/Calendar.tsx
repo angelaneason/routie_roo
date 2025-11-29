@@ -619,27 +619,46 @@ export default function Calendar() {
             {selectedDayEvents.map(event => {
               const startDate = event.start ? new Date(event.start) : null;
               const endDate = event.end ? new Date(event.end) : null;
-              const bgColor = event.type === 'route' ? 'bg-blue-100 border-blue-300' : 'bg-gray-100 border-gray-300';
+              
+              // Use calendar color if available, otherwise fallback to type-based colors
+              let bgColor = 'bg-gray-100 border-gray-300';
+              let textColor = 'text-gray-900';
+              
+              if (event.color) {
+                // Google Calendar events have a color property
+                bgColor = `border-2`;
+                textColor = 'text-gray-900';
+              } else if (event.type === 'route') {
+                bgColor = 'bg-blue-500 border-blue-600';
+                textColor = 'text-white';
+              } else if (event.type === 'rescheduled') {
+                bgColor = 'bg-orange-500 border-orange-600';
+                textColor = 'text-white';
+              }
               
               return (
-                <div key={event.id} className={`p-4 rounded border ${bgColor}`}>
+                <div 
+                  key={event.id} 
+                  className={`p-4 rounded border ${bgColor} ${textColor}`}
+                  style={event.color ? { backgroundColor: event.color, borderColor: event.color } : {}}
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="font-medium text-lg">{event.summary}</h3>
+                      <h3 className={`font-medium text-lg ${textColor}`}>{event.summary}</h3>
                       {startDate && (
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className={`text-sm mt-1 ${event.color || event.type === 'route' || event.type === 'rescheduled' ? 'text-white/90' : 'text-gray-600'}`}>
                           {startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                           {endDate && ` - ${endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`}
                         </p>
                       )}
                       {event.location && (
-                        <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                        <p className={`text-sm mt-1 flex items-center gap-1 ${event.color || event.type === 'route' || event.type === 'rescheduled' ? 'text-white/90' : 'text-gray-600'}`}>
                           <MapPin className="h-3 w-3" />
                           {event.location}
                         </p>
                       )}
                       {event.description && (
-                        <p className="text-sm text-gray-700 mt-2">{event.description}</p>
+                        <p className={`text-sm mt-2 ${event.color || event.type === 'route' || event.type === 'rescheduled' ? 'text-white/90' : 'text-gray-700'}`}>{event.description}</p>
                       )}
                     </div>
                     {event.routeId && (

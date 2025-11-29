@@ -1674,3 +1674,6 @@
 
 ## Calendar View Update
 - [x] Change default calendar view from Day to Month
+
+## Calendar Event Dialog Colors
+- [x] Update event popup dialog to display events with their calendar colors
