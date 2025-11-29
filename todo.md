@@ -1677,3 +1677,8 @@
 
 ## Calendar Event Dialog Colors
 - [x] Update event popup dialog to display events with their calendar colors
+
+## Calendar Color Mapping Fix
+- [x] Map Google Calendar color IDs to actual hex color values
+- [x] Update backend to include calendar backgroundColor in event data
+- [x] Display events with proper vibrant colors in popup dialog

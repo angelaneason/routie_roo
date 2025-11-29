@@ -449,6 +449,7 @@ export async function getAllCalendarEvents(
   colorId?: string;
   calendarId?: string;
   calendarName?: string;
+  backgroundColor?: string;
 }>> {
   // First, get all calendars
   const calendars = await getCalendarList(accessToken);
@@ -467,6 +468,7 @@ export async function getAllCalendarEvents(
           ...event,
           calendarId: calendar.id,
           calendarName: calendar.summary,
+          backgroundColor: calendar.backgroundColor, // Include calendar color
         }));
       } catch (error) {
         console.error(`Failed to fetch events from calendar ${calendar.summary}:`, error);

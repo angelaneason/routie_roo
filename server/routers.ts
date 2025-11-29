@@ -2430,9 +2430,9 @@ export const appRouter = router({
                 end: event.end,
                 location: event.location,
                 type: 'google',
-                color: event.colorId || '#6b7280', // Use calendar color or gray
+                color: event.backgroundColor || '#6b7280', // Use calendar backgroundColor
                 htmlLink: event.htmlLink,
-                calendarId: event.calendarId, // Include calendar ID for color-coding
+                calendarId: event.calendarId,
                 calendarName: event.calendarName,
               });
             });
