@@ -1708,3 +1708,8 @@
 - [x] Ensure custom stop type colors from database are properly displayed
 - [x] Update color matching logic to work with custom stop type names
 - [x] Fix stop type name not displaying in selector (only showing dot)
+
+## Route Creation Error with Custom Stop Types
+- [x] Fix error when clicking "Plan My Route" with custom stop types selected
+- [x] Ensure custom stop type values are compatible with route creation API
+- [x] Test route creation with all custom stop types

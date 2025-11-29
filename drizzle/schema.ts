@@ -94,7 +94,7 @@ export const routeWaypoints = mysqlTable("route_waypoints", {
   contactLabels: text("contactLabels"), // JSON array of contact labels from Google
   importantDates: text("importantDates"), // JSON array of {type, date} from contact
   comments: text("comments"), // JSON array of {option, customText} from contact
-  stopType: mysqlEnum("stopType", ["pickup", "delivery", "meeting", "visit", "other"]).default("other"), // Type of stop
+  stopType: varchar("stopType", { length: 100 }).default("other"), // Type of stop (supports custom types)
   stopColor: varchar("stopColor", { length: 7 }).default("#3b82f6"), // Hex color for marker
   // Execution workflow fields
   status: mysqlEnum("status", ["pending", "in_progress", "complete", "missed"]).default("pending"), // Stop completion status
