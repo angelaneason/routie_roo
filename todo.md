@@ -1702,3 +1702,9 @@
 - [x] Fix stop type selector reverting to "other" instead of saving selected type
 - [x] Verify stop type state is properly updated in contactStopTypes Map
 - [x] Test that selected stop types persist when creating routes
+
+## Custom Stop Type Colors Bug
+- [x] Fix stop type selector showing blue dots for all custom stop types
+- [x] Ensure custom stop type colors from database are properly displayed
+- [x] Update color matching logic to work with custom stop type names
+- [x] Fix stop type name not displaying in selector (only showing dot)

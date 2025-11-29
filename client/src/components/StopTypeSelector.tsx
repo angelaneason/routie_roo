@@ -50,7 +50,7 @@ export function getStopTypeConfig(type: StopType): StopTypeConfig {
 
 interface StopTypeSelectorProps {
   value: StopType;
-  onChange: (value: StopType) => void;
+  onChange: (value: StopType, color: string) => void;
   size?: "sm" | "default";
 }
 
@@ -67,34 +67,43 @@ export function StopTypeSelector({ value, onChange, size = "default" }: StopType
       }))
     : stopTypeConfigs;
 
-  const currentType = stopTypes.find(st => st.type === value || st.label === value);
+  // Match by type, label, or normalized name
+  const currentType = stopTypes.find(st => 
+    st.type === value || 
+    st.label === value ||
+    st.label.toLowerCase().replace(/\s+/g, '-') === value ||
+    st.type === value.toLowerCase().replace(/\s+/g, '-')
+  );
   const displayValue = currentType?.label || value;
   const displayColor = currentType?.color || "#3b82f6";
 
   return (
-    <div className="relative">
-      <div 
-        className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full flex-shrink-0 pointer-events-none z-10" 
-        style={{ backgroundColor: displayColor }}
-      />
-      <Select value={value} onValueChange={(v) => onChange(v as StopType)}>
-        <SelectTrigger className={`${size === "sm" ? "h-8 text-xs" : ""} pl-8`}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {stopTypes.map((config) => (
-            <SelectItem key={config.type} value={config.type}>
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-3 h-3 rounded-full" 
-                  style={{ backgroundColor: config.color }}
-                />
-                <span>{config.label}</span>
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <Select value={value} onValueChange={(v) => {
+      const selected = stopTypes.find(st => st.type === v);
+      onChange(v as StopType, selected?.color || "#3b82f6");
+    }}>
+      <SelectTrigger className={size === "sm" ? "h-8 text-xs" : ""}>
+        <div className="flex items-center gap-2 w-full">
+          <div 
+            className="w-3 h-3 rounded-full flex-shrink-0" 
+            style={{ backgroundColor: displayColor }}
+          />
+          <span className="truncate">{displayValue}</span>
+        </div>
+      </SelectTrigger>
+      <SelectContent>
+        {stopTypes.map((config) => (
+          <SelectItem key={config.type} value={config.type}>
+            <div className="flex items-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: config.color }}
+              />
+              <span>{config.label}</span>
+            </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

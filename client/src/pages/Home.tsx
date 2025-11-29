@@ -757,10 +757,9 @@ export default function Home() {
                               <div className="w-32">
                                 <StopTypeSelector
                                   value={stopTypeInfo.type as StopType}
-                                  onChange={(newType) => {
-                                    const config = getStopTypeConfig(newType);
+                                  onChange={(newType, newColor) => {
                                     const newStopTypes = new Map(contactStopTypes);
-                                    newStopTypes.set(contactId, { type: config.type, color: config.color });
+                                    newStopTypes.set(contactId, { type: newType, color: newColor || "#3b82f6" });
                                     setContactStopTypes(newStopTypes);
                                   }}
                                   size="sm"
