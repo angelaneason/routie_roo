@@ -1780,7 +1780,9 @@
 ## Calendar Integration Improvements
 - [x] Remove starting point from calendar events (only add actual stops)
 - [x] Change event titles from "Stop 1: Name" to "Stop Type: Name" (e.g., "Eval: John Smith")
-- [ ] Add calendar event editing UI in Calendar page
-- [ ] Implement Google Calendar event update API integration
-- [ ] Sync edited event details back to Google Calendar
-- [ ] Test: Create route → Add to calendar → Edit event → Verify Google Calendar updates
+- [x] Add updateCalendarEvent function to googleAuth.ts for Google Calendar API
+- [x] Create backend calendar.updateEvent mutation with access token handling
+- [x] Add Edit button to event detail dialog in Calendar page
+- [x] Create EditEventDialog component with fields for title, start/end time, location, description
+- [x] Wire up mutation to EditEventDialog and refresh events after update
+- [x] Test: Create route → Add to calendar → Edit event → Verify Google Calendar updates

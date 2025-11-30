@@ -381,6 +381,63 @@ export async function createCalendarEvent(
 }
 
 /**
+ * Update an existing calendar event
+ */
+export async function updateCalendarEvent(
+  accessToken: string,
+  eventId: string,
+  event: {
+    summary?: string;
+    description?: string;
+    start?: string; // ISO 8601 datetime
+    end?: string; // ISO 8601 datetime
+    location?: string;
+  },
+  calendarId: string = 'primary'
+): Promise<{ eventId: string; htmlLink: string }> {
+  const updateData: any = {};
+  
+  if (event.summary !== undefined) updateData.summary = event.summary;
+  if (event.description !== undefined) updateData.description = event.description;
+  if (event.start) {
+    updateData.start = {
+      dateTime: event.start,
+      timeZone: "UTC",
+    };
+  }
+  if (event.end) {
+    updateData.end = {
+      dateTime: event.end,
+      timeZone: "UTC",
+    };
+  }
+  if (event.location !== undefined) updateData.location = event.location;
+  
+  const response = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updateData),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to update calendar event: ${error}`);
+  }
+
+  const data = await response.json();
+  return {
+    eventId: data.id,
+    htmlLink: data.htmlLink,
+  };
+}
+
+/**
  * Fetch Google Calendar events for a specific date range
  */
 export async function getCalendarEvents(

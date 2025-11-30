@@ -2675,6 +2675,90 @@ export const appRouter = router({
           });
         }
       }),
+    
+    // Update an existing calendar event
+    updateEvent: protectedProcedure
+      .input(z.object({
+        eventId: z.string(),
+        calendarId: z.string(),
+        summary: z.string().optional(),
+        description: z.string().optional(),
+        start: z.string().optional(), // ISO 8601 datetime
+        end: z.string().optional(), // ISO 8601 datetime
+        location: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        
+        // Get user's calendar tokens
+        const userResult = await db.select()
+          .from(users)
+          .where(eq(users.id, ctx.user.id))
+          .limit(1);
+        
+        const user = userResult.length > 0 ? userResult[0] : null;
+        
+        if (!user?.googleCalendarAccessToken) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Google Calendar not connected" });
+        }
+        
+        let accessToken = user.googleCalendarAccessToken;
+        
+        // Check if token is expired and refresh if needed
+        if (user.googleCalendarTokenExpiry && user.googleCalendarRefreshToken) {
+          const isExpired = new Date(user.googleCalendarTokenExpiry) < new Date();
+          
+          if (isExpired) {
+            console.log('[Calendar] Access token expired, refreshing...');
+            const { refreshAccessToken } = await import('./googleAuth');
+            const newToken = await refreshAccessToken(user.googleCalendarRefreshToken);
+            
+            // Update token in database
+            const expiryDate = new Date(Date.now() + newToken.expires_in * 1000);
+            await db.update(users)
+              .set({
+                googleCalendarAccessToken: newToken.access_token,
+                googleCalendarTokenExpiry: expiryDate,
+              })
+              .where(eq(users.id, ctx.user.id));
+            
+            accessToken = newToken.access_token;
+            console.log('[Calendar] Token refreshed successfully');
+          }
+        }
+        
+        // Call Google Calendar API update function
+        try {
+          const { updateCalendarEvent } = await import('./googleAuth');
+          const result = await updateCalendarEvent(
+            accessToken,
+            input.eventId,
+            {
+              summary: input.summary,
+              description: input.description,
+              start: input.start,
+              end: input.end,
+              location: input.location,
+            },
+            input.calendarId
+          );
+          
+          console.log('[Calendar] Event updated successfully:', result.eventId);
+          
+          return { 
+            success: true, 
+            eventId: result.eventId,
+            htmlLink: result.htmlLink 
+          };
+        } catch (error: any) {
+          console.error('[Calendar] Error updating event:', error);
+          throw new TRPCError({ 
+            code: "INTERNAL_SERVER_ERROR", 
+            message: error.message || 'Failed to update calendar event' 
+          });
+        }
+      }),
   }),
 
   stopTypes: router({

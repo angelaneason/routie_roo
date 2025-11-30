@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { formatDistance } from "@shared/distance";
 import { AddEventDialog } from "@/components/AddEventDialog";
+import { EditEventDialog } from "@/components/EditEventDialog";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -22,6 +23,8 @@ export default function Calendar() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [visibleCalendars, setVisibleCalendars] = useState<string[]>([]);
   const [showAddEventDialog, setShowAddEventDialog] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   
   // Fetch calendar list with refetch on mount
   const utils = trpc.useUtils();
@@ -661,11 +664,25 @@ export default function Calendar() {
                         <p className={`text-sm mt-2 ${event.color || event.type === 'route' || event.type === 'rescheduled' ? 'text-white/90' : 'text-gray-700'}`}>{event.description}</p>
                       )}
                     </div>
-                    {event.routeId && (
-                      <Link href={`/route/${event.routeId}`}>
-                        <Button size="sm">View Route</Button>
-                      </Link>
-                    )}
+                    <div className="flex gap-2">
+                      {event.routeId && (
+                        <Link href={`/route/${event.routeId}`}>
+                          <Button size="sm">View Route</Button>
+                        </Link>
+                      )}
+                      {event.type === 'google' && event.googleEventId && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            setEditingEvent(event);
+                            setShowEditDialog(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -680,6 +697,17 @@ export default function Calendar() {
         onOpenChange={setShowAddEventDialog}
         onEventCreated={() => {
           eventsQuery.refetch();
+        }}
+      />
+      
+      {/* Edit Event Dialog */}
+      <EditEventDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        event={editingEvent}
+        onEventUpdated={() => {
+          eventsQuery.refetch();
+          setShowEventDialog(false);
         }}
       />
     </div>
