@@ -2700,6 +2700,7 @@ export const appRouter = router({
             googleEvents.forEach(event => {
               allEvents.push({
                 id: `google-${event.id}`,
+                googleEventId: event.id, // Add original Google event ID for editing
                 summary: event.summary,
                 description: event.description,
                 start: event.start,
@@ -2708,7 +2709,7 @@ export const appRouter = router({
                 type: 'google',
                 color: event.backgroundColor || '#6b7280', // Use calendar backgroundColor
                 htmlLink: event.htmlLink,
-                calendarId: event.calendarId,
+                calendarId: event.calendarId, // Already present, needed for editing
                 calendarName: event.calendarName,
               });
             });

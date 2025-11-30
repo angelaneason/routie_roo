@@ -1829,3 +1829,11 @@
 - [x] Add: Edit button in event detail dialog for Google Calendar events (already exists)
 - [x] Ensure: Edit functionality works for non-route calendar events
 - [x] Test: Click individual event → Opens detail dialog → Edit button appears → Can edit and save
+
+
+## Calendar Event Editing Bug
+
+- [x] Fix: "Missing Event Information" error when clicking calendar events to edit
+- [x] Investigate: Event data structure mismatch between Calendar.tsx and EditEventDialog
+- [x] Ensure: Event object has all required fields (id, googleEventId, calendarId, etc.)
+- [x] Test: Click event → Edit dialog opens with pre-filled data → Can save changes
