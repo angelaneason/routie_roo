@@ -320,6 +320,10 @@ export default function Calendar() {
                         onClick={() => {
                           if (event.routeId) {
                             window.location.href = `/route/${event.routeId}`;
+                          } else {
+                            // Open edit dialog for non-route events
+                            setEditingEvent(event);
+                            setShowEditDialog(true);
                           }
                         }}
                         title={`${event.summary}\n${startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`}
@@ -410,6 +414,10 @@ export default function Calendar() {
                         onClick={() => {
                           if (event.routeId) {
                             window.location.href = `/route/${event.routeId}`;
+                          } else {
+                            // Open edit dialog for non-route events
+                            setEditingEvent(event);
+                            setShowEditDialog(true);
                           }
                         }}
                         title={event.summary}

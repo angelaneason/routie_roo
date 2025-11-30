@@ -1820,3 +1820,12 @@
 - [ ] Manual test: Remove waypoint from route with calendar → Verify event deleted
 - [ ] Manual test: Edit waypoint address → Verify calendar event location updates
 - [ ] Manual test: Edit waypoint stop type → Verify calendar event title updates
+
+
+## Calendar Event Editing Issues
+
+- [x] Fix: Individual calendar events cannot be clicked (only "more" button shows events)
+- [x] Add: Individual event click handler to open event detail dialog
+- [x] Add: Edit button in event detail dialog for Google Calendar events (already exists)
+- [x] Ensure: Edit functionality works for non-route calendar events
+- [x] Test: Click individual event → Opens detail dialog → Edit button appears → Can edit and save
