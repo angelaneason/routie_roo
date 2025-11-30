@@ -67,9 +67,10 @@ export function EditEventDialog({ open, onOpenChange, event, onEventUpdated }: E
       return;
     }
 
-    // Build ISO datetime strings
-    const startISO = startDate && startTime ? `${startDate}T${startTime}:00` : undefined;
-    const endISO = endDate && endTime ? `${endDate}T${endTime}:00` : undefined;
+    // Build ISO datetime strings with timezone offset
+    // Google Calendar API requires RFC3339 format with timezone
+    const startISO = startDate && startTime ? `${startDate}T${startTime}:00.000Z` : undefined;
+    const endISO = endDate && endTime ? `${endDate}T${endTime}:00.000Z` : undefined;
 
     updateMutation.mutate({
       eventId: event.googleEventId,

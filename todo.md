@@ -1837,3 +1837,11 @@
 - [x] Investigate: Event data structure mismatch between Calendar.tsx and EditEventDialog
 - [x] Ensure: Event object has all required fields (id, googleEventId, calendarId, etc.)
 - [x] Test: Click event → Edit dialog opens with pre-filled data → Can save changes
+
+
+## Calendar Event Update DateTime Bug
+
+- [x] Fix: "timeRangeEmpty" error when updating calendar events
+- [x] Investigate: Datetime formatting in EditEventDialog and updateCalendarEvent
+- [x] Ensure: Datetime strings are properly formatted for Google Calendar API (RFC3339 with Z suffix)
+- [x] Test: Edit event times → Save → Verify update succeeds
