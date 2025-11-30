@@ -653,6 +653,11 @@ export default function RouteDetail() {
                   Completed
                 </div>
               )}
+              {route.calendarId && (
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-sm font-medium">
+                  📅 On Calendar
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {isEditMode ? (

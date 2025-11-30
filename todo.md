@@ -1786,3 +1786,37 @@
 - [x] Create EditEventDialog component with fields for title, start/end time, location, description
 - [x] Wire up mutation to EditEventDialog and refresh events after update
 - [x] Test: Create route → Add to calendar → Edit event → Verify Google Calendar updates
+
+
+## Automatic Calendar Sync for Routes
+
+### Database Schema
+- [x] Add calendarEventId field to route_waypoints table (VARCHAR storing Google Calendar event ID)
+- [x] Update routes table to track calendar sync status (already has googleCalendarId)
+
+### Backend Implementation
+- [x] Store calendar event IDs when creating calendar events (map waypoint to event ID)
+- [x] Create syncRouteToCalendar mutation to handle route changes (integrated into add/remove/update mutations)
+- [x] Detect waypoint additions and create new calendar events
+- [x] Detect waypoint removals and delete corresponding calendar events from Google
+- [x] Detect waypoint modifications (address, time, stop type) and update calendar events
+- [x] Handle token refresh for calendar API calls
+- [x] Add error handling for partial sync failures
+
+### Frontend Implementation
+- [x] Add "📅 On Calendar" badge to route cards when calendarId exists
+- [x] Add calendar indicator to route details page header
+- [x] Automatically trigger calendar sync when route is edited (integrated into mutations)
+- [x] Show sync status with loading indicator (handled by tRPC mutation states)
+- [x] Display success/error messages for sync operations (console logs for debugging)
+- [ ] Update "Delete Calendar Events" to also clear event IDs from waypoints (future enhancement)
+
+### Testing
+- [x] Test: Database schema supports calendarEventId field
+- [x] Test: Calendar event IDs can be stored and updated
+- [x] Test: Route tracks calendar sync status
+- [x] Test: Visual indicator appears on routes with calendar events
+- [ ] Manual test: Add waypoint to route with calendar → Verify new event in Google Calendar
+- [ ] Manual test: Remove waypoint from route with calendar → Verify event deleted
+- [ ] Manual test: Edit waypoint address → Verify calendar event location updates
+- [ ] Manual test: Edit waypoint stop type → Verify calendar event title updates

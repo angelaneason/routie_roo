@@ -438,6 +438,33 @@ export async function updateCalendarEvent(
 }
 
 /**
+ * Delete a calendar event
+ */
+export async function deleteCalendarEvent(
+  accessToken: string,
+  eventId: string,
+  calendarId: string = 'primary'
+): Promise<{ success: boolean }> {
+  const response = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (!response.ok && response.status !== 404) {
+    // 404 means event already deleted, which is fine
+    const error = await response.text();
+    throw new Error(`Failed to delete calendar event: ${error}`);
+  }
+
+  return { success: true };
+}
+
+/**
  * Fetch Google Calendar events for a specific date range
  */
 export async function getCalendarEvents(

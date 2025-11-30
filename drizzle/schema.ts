@@ -110,6 +110,7 @@ export const routeWaypoints = mysqlTable("route_waypoints", {
   executionNotes: text("executionNotes"), // Notes added during execution
   rescheduledDate: timestamp("rescheduledDate"), // When missed stop is rescheduled for
   needsReschedule: int("needsReschedule").default(0), // 1 if missed and needs rescheduling
+  calendarEventId: varchar("calendarEventId", { length: 255 }), // Google Calendar event ID for this waypoint
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

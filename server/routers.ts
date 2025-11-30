@@ -38,6 +38,8 @@ import {
   fetchContactGroupNames,
   parseGoogleContacts,
   createCalendarEvent,
+  updateCalendarEvent,
+  deleteCalendarEvent,
   getCalendarList
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
@@ -894,6 +896,7 @@ export const appRouter = router({
         const travelTimePerSegment = (route.totalDuration! * 1000) / waypoints.length;
         
         const createdEvents = [];
+        const db = await getDb();
 
         // Create individual event for each waypoint (skip starting point)
         for (let i = 0; i < waypoints.length; i++) {
@@ -943,6 +946,13 @@ export const appRouter = router({
             );
             
             createdEvents.push({ waypointId: wp.id, eventId, htmlLink });
+            
+            // Store event ID in waypoint for future updates
+            if (db) {
+              await db.update(routeWaypoints)
+                .set({ calendarEventId: eventId } as any)
+                .where(eq(routeWaypoints.id, wp.id));
+            }
           } catch (error) {
             console.error(`Failed to create event for waypoint ${wp.id}:`, error);
           }
@@ -960,7 +970,6 @@ export const appRouter = router({
         }
 
         // Update route with scheduled info
-        const db = await getDb();
         if (db) {
           await db.update(routes)
             .set({
@@ -1368,7 +1377,7 @@ export const appRouter = router({
         const nextOrder = existingWaypoints.length;
 
         // Insert new waypoint
-        await db.insert(routeWaypoints).values({
+        const insertResult = await db.insert(routeWaypoints).values({
           routeId: input.routeId,
           contactName: input.contactName || null,
           address: input.address,
@@ -1379,6 +1388,71 @@ export const appRouter = router({
           executionOrder: nextOrder,
           status: "pending",
         } as any); // Type assertion for custom stop types
+        
+        const newWaypointId = Number(insertResult[0].insertId);
+        
+        // If route has calendar events, create calendar event for new waypoint
+        if (route.googleCalendarId && route.scheduledDate) {
+          try {
+            // Get user's calendar access token
+            const user = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+            if (user.length && user[0].googleCalendarAccessToken) {
+              let accessToken = user[0].googleCalendarAccessToken;
+              
+              // Check if token expired and refresh if needed
+              if (user[0].googleCalendarTokenExpiry && new Date(user[0].googleCalendarTokenExpiry) < new Date()) {
+                if (user[0].googleCalendarRefreshToken) {
+                  const { refreshAccessToken } = await import("./googleAuth");
+                  const refreshed = await refreshAccessToken(user[0].googleCalendarRefreshToken);
+                  accessToken = refreshed.access_token;
+                  
+                  // Update stored token
+                  await db.update(users)
+                    .set({
+                      googleCalendarAccessToken: accessToken,
+                      googleCalendarTokenExpiry: new Date(Date.now() + refreshed.expires_in * 1000),
+                    })
+                    .where(eq(users.id, ctx.user.id));
+                }
+              }
+              
+              // Create calendar event for new waypoint
+              const stopTypeDisplay = input.stopType 
+                ? input.stopType.charAt(0).toUpperCase() + input.stopType.slice(1)
+                : 'Visit';
+              
+              // Calculate event time based on position (rough estimate)
+              const userStopDurationMinutes = user[0].defaultStopDuration || 30;
+              const stopDuration = userStopDurationMinutes * 60 * 1000;
+              const travelTimePerSegment = (route.totalDuration! * 1000) / (existingWaypoints.length + 1);
+              
+              const startTime = new Date(route.scheduledDate).getTime() + (nextOrder * (stopDuration + travelTimePerSegment));
+              const endTime = startTime + stopDuration;
+              
+              const { eventId } = await createCalendarEvent(
+                accessToken,
+                {
+                  summary: `${stopTypeDisplay}: ${input.contactName || 'Waypoint'}`,
+                  description: `Address: ${input.address}${input.phoneNumbers ? `\nPhone: ${input.phoneNumbers}` : ''}`,
+                  start: new Date(startTime).toISOString(),
+                  end: new Date(endTime).toISOString(),
+                  location: input.address,
+                },
+                route.googleCalendarId
+              );
+              
+              // Store event ID in waypoint
+              await db.update(routeWaypoints)
+                .set({ calendarEventId: eventId } as any)
+                .where(eq(routeWaypoints.id, newWaypointId));
+              
+              console.log(`[Calendar Sync] Created event ${eventId} for new waypoint`);
+            }
+          } catch (error) {
+            console.warn("[Calendar Sync] Failed to create calendar event for new waypoint:", error);
+            // Don't fail the mutation - waypoint was created successfully
+          }
+        }
 
         return { success: true };
       }),
@@ -1401,6 +1475,47 @@ export const appRouter = router({
         const route = await getRouteById(waypoint[0].routeId);
         if (!route || route.userId !== ctx.user.id) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+        
+        // Delete calendar event if it exists
+        const waypointWithEventId = waypoint[0] as any;
+        if (route.googleCalendarId && waypointWithEventId.calendarEventId) {
+          try {
+            // Get user's calendar access token
+            const user = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+            if (user.length && user[0].googleCalendarAccessToken) {
+              let accessToken = user[0].googleCalendarAccessToken;
+              
+              // Check if token expired and refresh if needed
+              if (user[0].googleCalendarTokenExpiry && new Date(user[0].googleCalendarTokenExpiry) < new Date()) {
+                if (user[0].googleCalendarRefreshToken) {
+                  const { refreshAccessToken } = await import("./googleAuth");
+                  const refreshed = await refreshAccessToken(user[0].googleCalendarRefreshToken);
+                  accessToken = refreshed.access_token;
+                  
+                  // Update stored token
+                  await db.update(users)
+                    .set({
+                      googleCalendarAccessToken: accessToken,
+                      googleCalendarTokenExpiry: new Date(Date.now() + refreshed.expires_in * 1000),
+                    })
+                    .where(eq(users.id, ctx.user.id));
+                }
+              }
+              
+              // Delete calendar event
+              await deleteCalendarEvent(
+                accessToken,
+                waypointWithEventId.calendarEventId,
+                route.googleCalendarId
+              );
+              
+              console.log(`[Calendar Sync] Deleted event ${waypointWithEventId.calendarEventId}`);
+            }
+          } catch (error) {
+            console.warn("[Calendar Sync] Failed to delete calendar event:", error);
+            // Don't fail the mutation - we'll still delete the waypoint
+          }
         }
 
         // Delete waypoint
@@ -1463,6 +1578,56 @@ export const appRouter = router({
           
           if (!syncResult.success) {
             console.warn("[Google Sync] Failed to sync waypoint changes:", syncResult.error);
+            // Don't fail the mutation - waypoint update succeeded
+          }
+        }
+        
+        // Sync to Google Calendar if route has calendar events and relevant fields changed
+        if (route.googleCalendarId && updatedWaypoint.calendarEventId && (input.contactName || input.stopType || input.address)) {
+          try {
+            // Get fresh access token
+            const user = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+            if (user.length && user[0].googleCalendarAccessToken) {
+              let accessToken = user[0].googleCalendarAccessToken;
+              
+              // Check if token expired and refresh if needed
+              if (user[0].googleCalendarTokenExpiry && new Date(user[0].googleCalendarTokenExpiry) < new Date()) {
+                if (user[0].googleCalendarRefreshToken) {
+                  const { refreshAccessToken } = await import("./googleAuth");
+                  const refreshed = await refreshAccessToken(user[0].googleCalendarRefreshToken);
+                  accessToken = refreshed.access_token;
+                  
+                  // Update stored token
+                  await db.update(users)
+                    .set({
+                      googleCalendarAccessToken: accessToken,
+                      googleCalendarTokenExpiry: new Date(Date.now() + refreshed.expires_in * 1000),
+                    })
+                    .where(eq(users.id, ctx.user.id));
+                }
+              }
+              
+              // Update calendar event
+              const stopTypeDisplay = input.stopType 
+                ? input.stopType.charAt(0).toUpperCase() + input.stopType.slice(1)
+                : updatedWaypoint.stopType
+                ? updatedWaypoint.stopType.charAt(0).toUpperCase() + updatedWaypoint.stopType.slice(1)
+                : 'Stop';
+              
+              await updateCalendarEvent(
+                accessToken,
+                updatedWaypoint.calendarEventId,
+                {
+                  summary: `${stopTypeDisplay}: ${input.contactName || updatedWaypoint.contactName || 'Waypoint'}`,
+                  location: input.address || updatedWaypoint.address,
+                },
+                route.googleCalendarId
+              );
+              
+              console.log(`[Calendar Sync] Updated event ${updatedWaypoint.calendarEventId}`);
+            }
+          } catch (error) {
+            console.warn("[Calendar Sync] Failed to update calendar event:", error);
             // Don't fail the mutation - waypoint update succeeded
           }
         }
