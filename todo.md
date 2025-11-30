@@ -1845,3 +1845,21 @@
 - [x] Investigate: Datetime formatting in EditEventDialog and updateCalendarEvent
 - [x] Ensure: Datetime strings are properly formatted for Google Calendar API (RFC3339 with Z suffix)
 - [x] Test: Edit event times → Save → Verify update succeeds
+
+
+## Calendar Event Title Format
+
+- [ ] Change calendar event titles from "Route - Stop 1: Name" to "Route - StopType: Name"
+- [ ] Update createWaypointEvents function to use stopType instead of stop number
+- [ ] Capitalize stop type for display (eval → Eval, visit → Visit, etc.)
+- [ ] Test: Add route to calendar → Verify event titles show stop types
+
+
+## Remove from Calendar Button Bug
+
+- [x] Fix: "Remove from Calendar" button does nothing when clicked
+- [x] Investigate: Check if deleteCalendarEvents mutation exists and is wired correctly
+- [x] Ensure: Button triggers mutation and shows loading/success states
+- [x] Update: clearCalendarEvents now deletes events from Google Calendar API
+- [x] Update: Clear calendarEventId from all waypoints when removing from calendar
+- [x] Test: Click remove button → Events deleted from Google Calendar → UI updates

@@ -840,7 +840,7 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    // Clear calendar event tracking from route
+    // Clear calendar event tracking from route and delete events from Google Calendar
     clearCalendarEvents: protectedProcedure
       .input(z.object({
         routeId: z.number(),
@@ -855,9 +855,75 @@ export const appRouter = router({
           });
         }
 
-        // Clear the calendar tracking fields
+        const db = await getDb();
+        if (!db) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        }
+
+        // Get waypoints with calendar event IDs
+        const waypoints = await getRouteWaypoints(input.routeId);
+        const waypointsWithEvents = waypoints.filter(wp => (wp as any).calendarEventId);
+
+        // Delete events from Google Calendar if user has calendar connected
+        if (route.googleCalendarId && waypointsWithEvents.length > 0) {
+          // Get user's calendar access token
+          const userResult = await db.select()
+            .from(users)
+            .where(eq(users.id, ctx.user.id))
+            .limit(1);
+
+          const user = userResult[0];
+          if (user?.googleCalendarAccessToken) {
+            let accessToken = user.googleCalendarAccessToken;
+
+            // Check if token is expired and refresh if needed
+            if (user.googleCalendarTokenExpiry && user.googleCalendarRefreshToken) {
+              const isExpired = new Date(user.googleCalendarTokenExpiry) < new Date();
+              if (isExpired) {
+                const { refreshAccessToken } = await import('./googleAuth');
+                const newToken = await refreshAccessToken(user.googleCalendarRefreshToken);
+                accessToken = newToken.access_token;
+
+                // Update token in database
+                const expiryDate = new Date(Date.now() + newToken.expires_in * 1000);
+                await db.update(users)
+                  .set({
+                    googleCalendarAccessToken: newToken.access_token,
+                    googleCalendarTokenExpiry: expiryDate,
+                  })
+                  .where(eq(users.id, ctx.user.id));
+              }
+            }
+
+            // Delete each event from Google Calendar
+            let deletedCount = 0;
+            for (const wp of waypointsWithEvents) {
+              const eventId = (wp as any).calendarEventId;
+              try {
+                await deleteCalendarEvent(accessToken, eventId, route.googleCalendarId);
+                deletedCount++;
+                console.log(`[Calendar] Deleted event ${eventId} for waypoint ${wp.id}`);
+              } catch (error) {
+                console.warn(`[Calendar] Failed to delete event ${eventId}:`, error);
+                // Continue deleting other events even if one fails
+              }
+            }
+
+            console.log(`[Calendar] Deleted ${deletedCount}/${waypointsWithEvents.length} events from Google Calendar`);
+          }
+        }
+
+        // Clear calendar event IDs from all waypoints
+        for (const wp of waypoints) {
+          await db.update(routeWaypoints)
+            .set({ calendarEventId: null } as any)
+            .where(eq(routeWaypoints.id, wp.id));
+        }
+
+        // Clear the calendar tracking fields from route
         await updateRoute(input.routeId, {
           googleCalendarId: null,
+          scheduledDate: null,
         });
         
         return { success: true };
