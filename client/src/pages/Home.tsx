@@ -30,6 +30,8 @@ import { ContactImportDialog } from "@/components/ContactImportDialog";
 import { DocumentUploadDialog } from "@/components/DocumentUploadDialog";
 import { BulkDocumentUploadDialog } from "@/components/BulkDocumentUploadDialog";
 import { ContactDetailDialog } from "@/components/ContactDetailDialog";
+import { MobileNav } from "@/components/MobileNav";
+import { MobileMenu } from "@/components/MobileMenu";
 // StopTypeSelector removed - stop types now set via default in Settings and editable in route details
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -69,6 +71,7 @@ export default function Home() {
   const [uploadContactName, setUploadContactName] = useState<string>("");
   const [showBulkDocumentUpload, setShowBulkDocumentUpload] = useState(false);
   const [viewingContact, setViewingContact] = useState<any | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Check for OAuth callback status and route creation from waypoints
   useEffect(() => {
@@ -539,12 +542,12 @@ export default function Home() {
         }}
       />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <header className="bg-white border-b">
-        <div className="container py-4 flex items-center justify-between">
+      <header className="bg-white border-b sticky top-0 z-30">
+        <div className="container py-4 md:py-4 mobile-header-compact flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={APP_LOGO} alt="RoutieRoo" className="h-24" />
+            <img src={APP_LOGO} alt="RoutieRoo" className="h-16 md:h-24" />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3 desktop-nav">
             <span className="text-sm text-muted-foreground">
               {user?.name || user?.email}
             </span>
@@ -604,7 +607,11 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="container py-8">
+      {/* Mobile Navigation */}
+      <MobileNav onMenuClick={() => setIsMobileMenuOpen(true)} />
+      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+
+      <main className="container py-8 mobile-content-padding">
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Contacts Section */}
           <div className="space-y-6">
