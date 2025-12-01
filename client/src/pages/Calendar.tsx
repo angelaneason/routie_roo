@@ -448,28 +448,28 @@ export default function Calendar() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-3 md:p-6 mobile-content-padding">
       <div className="container max-w-7xl">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-6 gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Routie Roo Calendar - Let's hop to it!</h1>
-            <p className="text-muted-foreground">View and manage your scheduled routes</p>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Routie Roo Calendar - Let's hop to it!</h1>
+            <p className="text-sm md:text-base text-muted-foreground">View and manage your scheduled routes</p>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => setShowAddEventDialog(true)}>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button onClick={() => setShowAddEventDialog(true)} className="flex-1 sm:flex-none touch-target">
               <Plus className="h-4 w-4 mr-2" />
               Add Event
             </Button>
-            <Link href="/">
-              <Button variant="outline">Back to Home</Button>
+            <Link href="/" className="flex-1 sm:flex-none">
+              <Button variant="outline" className="w-full touch-target">Back to Home</Button>
             </Link>
           </div>
         </div>
 
-        <div className="flex gap-4">
-          {/* Calendar sidebar */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Calendar sidebar - hidden on mobile */}
           {!sidebarCollapsed && (
-            <Card className="w-64 flex-shrink-0 p-4 h-fit">
+            <Card className="w-full lg:w-64 flex-shrink-0 p-4 h-fit hidden lg:block">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-sm">My Calendars</h3>
                 <div className="flex items-center gap-1">
@@ -543,28 +543,29 @@ export default function Calendar() {
             </Button>
           )}
 
-          <Card className="p-6 flex-1">
+          <Card className="p-3 md:p-6 flex-1">
             {/* Calendar Header */}
-            <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-6 gap-3">
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={navigatePrevious}>
+                <Button variant="outline" size="sm" onClick={navigatePrevious} className="touch-target">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="sm" onClick={goToToday}>
+                <Button variant="outline" size="sm" onClick={goToToday} className="touch-target">
                   Today
                 </Button>
-                <Button variant="outline" size="sm" onClick={navigateNext}>
+                <Button variant="outline" size="sm" onClick={navigateNext} className="touch-target">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
-                <h2 className="text-xl font-semibold ml-4">{getDisplayTitle()}</h2>
+                <h2 className="text-base md:text-xl font-semibold ml-4">{getDisplayTitle()}</h2>
               </div>
 
               {/* View switcher */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full sm:w-auto">
                 <Button
                   variant={viewMode === "day" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setViewMode("day")}
+                  className="flex-1 sm:flex-none touch-target"
                 >
                   Day
                 </Button>
@@ -572,6 +573,7 @@ export default function Calendar() {
                   variant={viewMode === "week" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setViewMode("week")}
+                  className="flex-1 sm:flex-none touch-target"
                 >
                   Week
                 </Button>
@@ -579,6 +581,7 @@ export default function Calendar() {
                   variant={viewMode === "month" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setViewMode("month")}
+                  className="flex-1 sm:flex-none touch-target"
                 >
                   Month
                 </Button>
