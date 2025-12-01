@@ -144,7 +144,7 @@ export default function SharedRouteExecution() {
               icon: {
                 path: google.maps.SymbolPath.CIRCLE,
                 scale: 20,
-                fillColor: "#4F46E5",
+                fillColor: waypoint.stopColor || "#4F46E5",
                 fillOpacity: 1,
                 strokeColor: "white",
                 strokeWeight: 2,
@@ -404,9 +404,22 @@ export default function SharedRouteExecution() {
                   <GripVertical className="h-6 w-6 text-muted-foreground" />
                 </div>
                 <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-semibold">
-                    {index + 1}
-                  </div>
+                  {waypoint.photoUrl ? (
+                    <div className="relative w-8 h-8">
+                      <img 
+                        src={waypoint.photoUrl} 
+                        alt={waypoint.contactName || 'Contact'}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                      <div className="absolute -bottom-1 -right-1 flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground font-semibold text-xs">
+                        {index + 1}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-semibold">
+                      {index + 1}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex-1 space-y-2">

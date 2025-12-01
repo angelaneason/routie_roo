@@ -2171,3 +2171,10 @@
 - [x] Removed gap stop markers from map (they're time blocks, not physical locations)
 - [x] Gap stops now only appear in stop list with cute emoji
 - [x] Map shows only physical stops for cleaner visualization
+
+## Bug Fixes - Complete
+
+- [x] Add validation message when attempting to add contact without address (already implemented)
+- [x] Fix stop type colors in shared route view (now using waypoint.stopColor)
+- [x] Fix missing Google profile photos in shared route view (now displaying with stop number badge)
+- [x] Test all fixes
