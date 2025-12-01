@@ -171,15 +171,18 @@ export function SchedulerNotes() {
   const pendingNotes = notes.filter(n => !n.isCompleted);
   const completedNotes = notes.filter(n => n.isCompleted);
 
+  // Collapsed height is minimal
+  const displayHeight = isExpanded ? size.height : 50;
+
   return (
     <div
       ref={cardRef}
-      className="fixed z-50 max-w-[calc(100vw-2rem)] select-none shadow-2xl rounded-lg"
+      className="fixed z-50 max-w-[calc(100vw-2rem)] select-none shadow-2xl rounded-lg transition-all duration-300"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
         width: `${size.width}px`,
-        height: `${size.height}px`,
+        height: `${displayHeight}px`,
         backgroundColor: '#e9d5ff', // Light purple
         touchAction: 'none',
       }}
@@ -316,15 +319,17 @@ export function SchedulerNotes() {
           </div>
         )}
 
-        {/* Resize handle */}
-        <div
-          className="absolute bottom-1 right-1 cursor-nwse-resize p-2 hover:bg-purple-300/50 rounded"
-          onMouseDown={handleResizeStart}
-          onTouchStart={handleResizeStart}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <GripVertical className="h-4 w-4 text-purple-700" />
-        </div>
+        {/* Resize handle - only show when expanded */}
+        {isExpanded && (
+          <div
+            className="absolute bottom-1 right-1 cursor-nwse-resize p-2 hover:bg-purple-300/50 rounded"
+            onMouseDown={handleResizeStart}
+            onTouchStart={handleResizeStart}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical className="h-4 w-4 text-purple-700" />
+          </div>
+        )}
       </div>
     </div>
   );
