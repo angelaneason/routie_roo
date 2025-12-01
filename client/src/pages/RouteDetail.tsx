@@ -485,7 +485,7 @@ export default function RouteDetail() {
   const copyRouteMutation = trpc.routes.copyRoute.useMutation({
     onSuccess: (data) => {
       toast.success("Route copied successfully!");
-      window.location.href = `/routes/${data.routeId}`;
+      navigate(`/routes/${data.routeId}`);
     },
     onError: (error) => {
       toast.error(error.message || "Failed to copy route");

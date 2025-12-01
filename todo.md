@@ -2183,3 +2183,7 @@
 ## Logo Size Fix
 
 - [x] Adjust logo sizing to be properly visible on desktop while preventing stretching
+
+## Bug Fixes
+
+- [x] Fix 404 error when clicking duplicate route (route is created but navigation fails)
