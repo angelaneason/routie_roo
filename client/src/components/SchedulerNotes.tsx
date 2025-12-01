@@ -23,9 +23,9 @@ export function SchedulerNotes() {
       if (cardRef.current) {
         const windowWidth = window.innerWidth;
         if (windowWidth < 640) {
-          setPosition({ x: (windowWidth - size.width) / 2, y: 20 });
+          setPosition({ x: (windowWidth - size.width) / 2, y: 60 });
         } else {
-          setPosition({ x: windowWidth - size.width - 20, y: 20 });
+          setPosition({ x: windowWidth - size.width - 20, y: 60 });
         }
       }
     };
@@ -186,16 +186,23 @@ export function SchedulerNotes() {
     >
       {/* Pushpin at top - draggable */}
       <div 
-        className="absolute -top-8 left-1/2 -translate-x-1/2 cursor-grab active:cursor-grabbing z-10"
+        className="absolute -top-12 left-1/2 -translate-x-1/2 cursor-grab active:cursor-grabbing z-10"
         onMouseDown={handleDragStart}
         onTouchStart={handleDragStart}
       >
         <img 
           src="/yellow-pushpin.png" 
           alt="Pushpin" 
-          className="w-16 h-16 drop-shadow-lg pointer-events-none"
+          className="w-20 h-20 drop-shadow-lg pointer-events-none"
         />
       </div>
+
+      {/* Invisible drag area for easier dragging */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-8 cursor-grab active:cursor-grabbing"
+        onMouseDown={handleDragStart}
+        onTouchStart={handleDragStart}
+      />
 
       {/* Content area */}
       <div className="h-full flex flex-col pt-6 px-4 pb-4">
