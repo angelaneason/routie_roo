@@ -3,14 +3,13 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, Plus, Trash2, GripVertical } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function SchedulerNotes() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [newNoteText, setNewNoteText] = useState("");
-  const [position, setPosition] = useState({ x: 0, y: 20 }); // Start at top right
+  const [position, setPosition] = useState({ x: 0, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
@@ -21,7 +20,6 @@ export function SchedulerNotes() {
       if (cardRef.current) {
         const cardWidth = cardRef.current.offsetWidth;
         const windowWidth = window.innerWidth;
-        // On mobile, center it instead of top right
         if (windowWidth < 640) {
           setPosition({ x: (windowWidth - cardWidth) / 2, y: 20 });
         } else {
@@ -30,10 +28,7 @@ export function SchedulerNotes() {
       }
     };
     
-    // Set initial position
     updatePosition();
-    
-    // Update on window resize
     window.addEventListener('resize', updatePosition);
     return () => window.removeEventListener('resize', updatePosition);
   }, []);
@@ -112,7 +107,7 @@ export function SchedulerNotes() {
         x: touch.clientX - dragOffset.x,
         y: touch.clientY - dragOffset.y,
       });
-      e.preventDefault(); // Prevent scrolling while dragging
+      e.preventDefault();
     }
   };
 
@@ -122,11 +117,8 @@ export function SchedulerNotes() {
 
   useEffect(() => {
     if (isDragging) {
-      // Mouse events
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      
-      // Touch events
       document.addEventListener('touchmove', handleTouchMove, { passive: false });
       document.addEventListener('touchend', handleTouchEnd);
       
@@ -165,54 +157,53 @@ export function SchedulerNotes() {
         left: `${position.x}px`,
         top: `${position.y}px`,
         cursor: isDragging ? 'grabbing' : 'auto',
-        touchAction: 'none', // Prevent default touch behaviors
+        touchAction: 'none',
       }}
     >
-      <Card className="relative overflow-hidden bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 border-red-200 dark:border-red-800 shadow-xl">
-        {/* Pushpin graphic - draggable */}
-        <div 
-          className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 cursor-grab active:cursor-grabbing drag-handle touch-none"
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-        >
-          <img 
-            src="/sticky-note-pushpin.png" 
-            alt="Pushpin" 
-            className="w-16 h-16 drop-shadow-lg pointer-events-none select-none"
-          />
-        </div>
+      {/* Pushpin - draggable handle */}
+      <div 
+        className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 cursor-grab active:cursor-grabbing drag-handle touch-none"
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+      >
+        <img 
+          src="/sticky-note-pushpin.png" 
+          alt="Pushpin" 
+          className="w-16 h-16 drop-shadow-lg pointer-events-none select-none"
+        />
+      </div>
 
-        {/* Header with toggle - also draggable */}
-        <div 
-          className="pt-12 pb-3 px-4 flex items-center justify-between drag-handle cursor-grab active:cursor-grabbing touch-none"
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
+      {/* Sticky note paper */}
+      <div className="pt-14 pb-6 px-6 bg-gradient-to-br from-[#ffd89b] to-[#ffb347] shadow-2xl rounded-sm relative"
+        style={{
+          boxShadow: '0 10px 30px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.5)',
+        }}
+      >
+        {/* Toggle button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-black/10"
+          onClick={() => setIsExpanded(!isExpanded)}
         >
-          <h3 className="text-lg font-bold text-red-900 dark:text-red-100 flex items-center gap-2 select-none">
-            <GripVertical className="h-4 w-4 text-red-400" />
-            Scheduler Reminders
-          </h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+          {isExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </Button>
 
-        {/* Content */}
+        {/* Title - handwritten style */}
+        <h3 className="text-xl font-bold text-gray-800 mb-4 text-center" style={{ fontFamily: 'cursive' }}>
+          Reminders
+        </h3>
+
         {isExpanded && (
-          <div className="px-4 pb-4 space-y-4">
+          <div className="space-y-3">
             {/* Add new note */}
             <div className="flex gap-2">
               <Input
-                placeholder="Add a reminder..."
+                placeholder="Add reminder..."
                 value={newNoteText}
                 onChange={(e) => setNewNoteText(e.target.value)}
                 onKeyDown={(e) => {
@@ -220,36 +211,39 @@ export function SchedulerNotes() {
                     handleAddNote();
                   }
                 }}
-                className="bg-white dark:bg-gray-900"
+                className="bg-white/40 border-gray-400/50 text-gray-900 placeholder:text-gray-600"
+                style={{ fontFamily: 'cursive' }}
               />
               <Button
                 onClick={handleAddNote}
                 disabled={!newNoteText.trim() || createMutation.isPending}
                 size="sm"
+                className="bg-orange-600 hover:bg-orange-700"
               >
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
 
-            {/* Pending notes */}
+            {/* Pending notes - written on sticky note */}
             {pendingNotes.length > 0 && (
               <div className="space-y-2">
                 {pendingNotes.map((note) => (
                   <div
                     key={note.id}
-                    className="flex items-start gap-2 p-2 rounded bg-white/50 dark:bg-gray-900/50"
+                    className="flex items-start gap-2 text-gray-900"
+                    style={{ fontFamily: 'cursive' }}
                   >
                     <Checkbox
                       checked={false}
                       onCheckedChange={() => handleToggleComplete(note.id)}
-                      className="mt-0.5"
+                      className="mt-1 border-gray-700"
                     />
-                    <span className="flex-1 text-sm">{note.noteText}</span>
+                    <span className="flex-1 text-base leading-relaxed">{note.noteText}</span>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(note.id)}
-                      className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                      className="h-5 w-5 p-0 text-red-700 hover:text-red-900 hover:bg-black/10"
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -260,26 +254,27 @@ export function SchedulerNotes() {
 
             {/* Completed notes */}
             {completedNotes.length > 0 && (
-              <div className="space-y-2 pt-2 border-t border-red-200 dark:border-red-800">
-                <p className="text-xs text-muted-foreground">Completed</p>
+              <div className="space-y-2 pt-3 border-t border-gray-400/30">
+                <p className="text-xs text-gray-700 font-semibold">Done</p>
                 {completedNotes.map((note) => (
                   <div
                     key={note.id}
-                    className="flex items-start gap-2 p-2 rounded bg-white/30 dark:bg-gray-900/30"
+                    className="flex items-start gap-2 text-gray-700"
+                    style={{ fontFamily: 'cursive' }}
                   >
                     <Checkbox
                       checked={true}
                       onCheckedChange={() => handleToggleComplete(note.id)}
-                      className="mt-0.5"
+                      className="mt-1 border-gray-700"
                     />
-                    <span className="flex-1 text-sm line-through text-muted-foreground">
+                    <span className="flex-1 text-base line-through opacity-60">
                       {note.noteText}
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(note.id)}
-                      className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                      className="h-5 w-5 p-0 text-red-700 hover:text-red-900 hover:bg-black/10"
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -290,13 +285,13 @@ export function SchedulerNotes() {
 
             {/* Empty state */}
             {notes.length === 0 && (
-              <p className="text-sm text-center text-muted-foreground py-4">
-                No reminders yet. Add one above!
+              <p className="text-sm text-center text-gray-700 py-4" style={{ fontFamily: 'cursive' }}>
+                No reminders yet!
               </p>
             )}
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 }
