@@ -2,12 +2,13 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapView } from "@/components/Map";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon, Download, Sparkles, Archive } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon, Download, Sparkles, Archive, MoreVertical } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
@@ -482,10 +483,17 @@ export default function RouteDetail() {
     },
   });
 
+  const utils = trpc.useUtils();
+  
   const copyRouteMutation = trpc.routes.copyRoute.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast.success("Route copied successfully!");
-      navigate(`/routes/${data.routeId}`);
+      // Invalidate routes list to include the new route
+      await utils.routes.list.invalidate();
+      // Small delay to ensure data is available
+      setTimeout(() => {
+        navigate(`/routes/${data.routeId}`);
+      }, 100);
     },
     onError: (error) => {
       toast.error(error.message || "Failed to copy route");
@@ -690,18 +698,16 @@ export default function RouteDetail() {
                     Open in Maps
                   </Button>
                   
-                  {/* Sharing Actions */}
+                  {/* Desktop: Show all buttons */}
                   <Button variant="outline" size="sm" onClick={handleCopyShareLink} className="hidden md:flex">
                     <Copy className="h-4 w-4 mr-2" />
                     Copy Link
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)} className="hidden sm:flex">
+                  <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)} className="hidden md:flex">
                     <Share2 className="h-4 w-4 mr-2" />
                     Share
                   </Button>
-                  
-                  {/* Secondary Actions */}
-                  <Button variant="outline" size="sm" onClick={handleCopyRoute} className="hidden lg:flex">
+                  <Button variant="outline" size="sm" onClick={handleCopyRoute} className="hidden md:flex">
                     <CopyIcon className="h-4 w-4 mr-2" />
                     Duplicate Route
                   </Button>
@@ -709,14 +715,56 @@ export default function RouteDetail() {
                     <Calendar className="h-4 w-4 mr-2" />
                     Add to Calendar
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleExportToCSV} className="hidden lg:flex">
+                  <Button variant="outline" size="sm" onClick={handleExportToCSV} className="hidden md:flex">
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleArchiveRoute} disabled={archiveRouteMutation.isPending} className="hidden lg:flex">
+                  <Button variant="outline" size="sm" onClick={handleArchiveRoute} disabled={archiveRouteMutation.isPending} className="hidden md:flex">
                     <Archive className="h-4 w-4 mr-2" />
                     Archive
                   </Button>
+                  
+                  {/* Mobile: Dropdown menu with all actions */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="md:hidden">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={handleCopyRoute}>
+                        <CopyIcon className="h-4 w-4 mr-2" />
+                        Duplicate Route
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleAddToCalendar}>
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Add to Calendar
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleCopyShareLink}>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy Link
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setShowShareDialog(true)}>
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Share
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleExportToCSV}>
+                        <Download className="h-4 w-4 mr-2" />
+                        Export CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleReoptimizeRoute}>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Re-optimize
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleArchiveRoute} disabled={archiveRouteMutation.isPending}>
+                        <Archive className="h-4 w-4 mr-2" />
+                        Archive
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               )}
             </div>

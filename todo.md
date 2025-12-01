@@ -2186,4 +2186,5 @@
 
 ## Bug Fixes
 
-- [x] Fix 404 error when clicking duplicate route (route is created but navigation fails)
+- [x] Fix 404 error when clicking duplicate route (added cache invalidation and delay)
+- [x] Make ALL action buttons visible and accessible on mobile screens (added dropdown menu)
