@@ -1938,6 +1938,9 @@ export const appRouter = router({
             position: wp.position,
             status: "pending", // Reset status
             stopType: wp.stopType,
+            stopColor: wp.stopColor, // Preserve custom color
+            photoUrl: wp.photoUrl, // Preserve contact photo
+            contactId: wp.contactId, // Preserve contact ID for sync
           } as any); // Type assertion for custom stop types
         }
 

@@ -2203,3 +2203,12 @@
 - [x] Created update script to map stop types to user's custom colors
 - [x] Updated 81 waypoints with correct custom colors
 - [x] Verified route 390001 now displays yellow for "Visit" stop type
+
+
+## Route Copy Color Fix - Complete
+
+- [x] Investigated route copy logic (routes.copyRoute procedure)
+- [x] Found copyRoute was missing stopColor, photoUrl, and contactId fields
+- [x] Fixed route copy to preserve stopColor, photoUrl, and contactId from original
+- [x] Verified addWaypoint already includes stopColor for new stops
+- [ ] Test that newly copied routes maintain custom colors
