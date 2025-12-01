@@ -3,14 +3,14 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, ChevronUp, Plus, Trash2, Maximize2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Trash2, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 
 export function SchedulerNotes() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [newNoteText, setNewNoteText] = useState("");
   const [position, setPosition] = useState({ x: 0, y: 20 });
-  const [size, setSize] = useState({ width: 320, height: 320 });
+  const [size, setSize] = useState({ width: 280, height: 400 });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -67,11 +67,14 @@ export function SchedulerNotes() {
   });
 
   // Drag handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
     setIsDragging(true);
     setDragOffset({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y,
+      x: clientX - position.x,
+      y: clientY - position.y,
     });
   };
 
@@ -84,8 +87,8 @@ export function SchedulerNotes() {
     } else if (isResizing) {
       const deltaX = e.clientX - resizeStart.x;
       const deltaY = e.clientY - resizeStart.y;
-      const newWidth = Math.max(250, resizeStart.width + deltaX);
-      const newHeight = Math.max(250, resizeStart.height + deltaY);
+      const newWidth = Math.max(250, Math.min(500, resizeStart.width + deltaX));
+      const newHeight = Math.max(300, Math.min(700, resizeStart.height + deltaY));
       setSize({ width: newWidth, height: newHeight });
     }
   };
@@ -93,15 +96,6 @@ export function SchedulerNotes() {
   const handleMouseUp = () => {
     setIsDragging(false);
     setIsResizing(false);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    setIsDragging(true);
-    setDragOffset({
-      x: touch.clientX - position.x,
-      y: touch.clientY - position.y,
-    });
   };
 
   const handleTouchMove = (e: TouchEvent) => {
@@ -116,8 +110,8 @@ export function SchedulerNotes() {
       const touch = e.touches[0];
       const deltaX = touch.clientX - resizeStart.x;
       const deltaY = touch.clientY - resizeStart.y;
-      const newWidth = Math.max(250, resizeStart.width + deltaX);
-      const newHeight = Math.max(250, resizeStart.height + deltaY);
+      const newWidth = Math.max(250, Math.min(500, resizeStart.width + deltaX));
+      const newHeight = Math.max(300, Math.min(700, resizeStart.height + deltaY));
       setSize({ width: newWidth, height: newHeight });
       e.preventDefault();
     }
@@ -129,24 +123,15 @@ export function SchedulerNotes() {
   };
 
   // Resize handlers
-  const handleResizeStart = (e: React.MouseEvent) => {
+  const handleResizeStart = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
     setIsResizing(true);
     setResizeStart({
-      x: e.clientX,
-      y: e.clientY,
-      width: size.width,
-      height: size.height,
-    });
-  };
-
-  const handleResizeTouchStart = (e: React.TouchEvent) => {
-    e.stopPropagation();
-    const touch = e.touches[0];
-    setIsResizing(true);
-    setResizeStart({
-      x: touch.clientX,
-      y: touch.clientY,
+      x: clientX,
+      y: clientY,
       width: size.width,
       height: size.height,
     });
@@ -189,28 +174,36 @@ export function SchedulerNotes() {
   return (
     <div
       ref={cardRef}
-      className="fixed z-50 max-w-[calc(100vw-2rem)] cursor-grab active:cursor-grabbing select-none"
+      className="fixed z-50 max-w-[calc(100vw-2rem)] select-none shadow-2xl rounded-lg"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
         width: `${size.width}px`,
         height: `${size.height}px`,
-        backgroundImage: 'url(/sticky-note-pushpin.png)',
-        backgroundSize: 'contain',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
+        backgroundColor: '#e9d5ff', // Light purple
         touchAction: 'none',
       }}
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
     >
-      {/* Content overlay on the sticky note */}
-      <div className="absolute inset-0 pt-[110px] px-6 pb-8 flex flex-col">
+      {/* Pushpin at top - draggable */}
+      <div 
+        className="absolute -top-8 left-1/2 -translate-x-1/2 cursor-grab active:cursor-grabbing z-10"
+        onMouseDown={handleDragStart}
+        onTouchStart={handleDragStart}
+      >
+        <img 
+          src="/yellow-pushpin.png" 
+          alt="Pushpin" 
+          className="w-16 h-16 drop-shadow-lg pointer-events-none"
+        />
+      </div>
+
+      {/* Content area */}
+      <div className="h-full flex flex-col pt-6 px-4 pb-4">
         {/* Toggle button */}
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-[100px] right-3 h-6 w-6 p-0 hover:bg-black/10"
+          className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-purple-300/50"
           onClick={(e) => {
             e.stopPropagation();
             setIsExpanded(!isExpanded);
@@ -223,22 +216,12 @@ export function SchedulerNotes() {
           )}
         </Button>
 
-        {/* Resize handle */}
-        <div
-          className="absolute bottom-1 right-1 cursor-nwse-resize p-1 hover:bg-black/10 rounded"
-          onMouseDown={handleResizeStart}
-          onTouchStart={handleResizeTouchStart}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Maximize2 className="h-3 w-3 text-gray-600" />
-        </div>
-
         {isExpanded && (
-          <div className="space-y-2 overflow-y-auto flex-1" onClick={(e) => e.stopPropagation()}>
+          <div className="flex-1 flex flex-col gap-3 overflow-hidden" onClick={(e) => e.stopPropagation()}>
             {/* Add new note */}
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               <Input
-                placeholder="Add..."
+                placeholder="Add reminder..."
                 value={newNoteText}
                 onChange={(e) => setNewNoteText(e.target.value)}
                 onKeyDown={(e) => {
@@ -246,82 +229,95 @@ export function SchedulerNotes() {
                     handleAddNote();
                   }
                 }}
-                className="bg-transparent border-gray-600/30 text-gray-900 placeholder:text-gray-600 text-xs h-6 px-2 font-bold"
+                className="bg-white/50 border-purple-400/50 text-gray-900 placeholder:text-gray-600 text-sm font-bold"
                 style={{ fontFamily: 'cursive' }}
               />
               <Button
                 onClick={handleAddNote}
                 disabled={!newNoteText.trim() || createMutation.isPending}
                 size="sm"
-                className="bg-orange-600 hover:bg-orange-700 h-6 w-6 p-0 flex-shrink-0"
+                className="bg-purple-600 hover:bg-purple-700 flex-shrink-0"
               >
-                <Plus className="h-3 w-3" />
+                <Plus className="h-4 w-4" />
               </Button>
             </div>
 
-            {/* Pending notes */}
-            {pendingNotes.map((note) => (
-              <div
-                key={note.id}
-                className="flex items-start gap-1 text-gray-900"
-                style={{ fontFamily: 'cursive' }}
-              >
-                <Checkbox
-                  checked={false}
-                  onCheckedChange={() => handleToggleComplete(note.id)}
-                  className="mt-0.5 h-4 w-4 border-gray-700"
-                />
-                <span className="flex-1 text-sm leading-tight font-bold">{note.noteText}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDelete(note.id)}
-                  className="h-4 w-4 p-0 text-red-700 hover:text-red-900 hover:bg-black/10"
+            {/* Notes list - scrollable */}
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+              {/* Pending notes */}
+              {pendingNotes.map((note) => (
+                <div
+                  key={note.id}
+                  className="flex items-start gap-2 text-gray-900 bg-white/30 p-2 rounded"
+                  style={{ fontFamily: 'cursive' }}
                 >
-                  <Trash2 className="h-2.5 w-2.5" />
-                </Button>
-              </div>
-            ))}
-
-            {/* Completed notes */}
-            {completedNotes.length > 0 && (
-              <div className="space-y-1 pt-2 border-t border-gray-600/20">
-                <p className="text-[10px] text-gray-700 font-bold">Done</p>
-                {completedNotes.map((note) => (
-                  <div
-                    key={note.id}
-                    className="flex items-start gap-1 text-gray-700"
-                    style={{ fontFamily: 'cursive' }}
+                  <Checkbox
+                    checked={false}
+                    onCheckedChange={() => handleToggleComplete(note.id)}
+                    className="mt-0.5 h-4 w-4 border-gray-700"
+                  />
+                  <span className="flex-1 text-sm leading-tight font-bold break-words">{note.noteText}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(note.id)}
+                    className="h-5 w-5 p-0 text-red-700 hover:text-red-900 hover:bg-black/10 flex-shrink-0"
                   >
-                    <Checkbox
-                      checked={true}
-                      onCheckedChange={() => handleToggleComplete(note.id)}
-                      className="mt-0.5 h-4 w-4 border-gray-700"
-                    />
-                    <span className="flex-1 text-sm line-through opacity-60 leading-tight font-bold">
-                      {note.noteText}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(note.id)}
-                      className="h-4 w-4 p-0 text-red-700 hover:text-red-900 hover:bg-black/10"
-                    >
-                      <Trash2 className="h-2.5 w-2.5" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
 
-            {/* Empty state */}
-            {notes.length === 0 && (
-              <p className="text-xs text-center text-gray-700 py-2 font-bold" style={{ fontFamily: 'cursive' }}>
-                No reminders yet!
-              </p>
-            )}
+              {/* Completed notes */}
+              {completedNotes.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-purple-400/30">
+                  <p className="text-xs text-gray-700 font-bold">Done</p>
+                  {completedNotes.map((note) => (
+                    <div
+                      key={note.id}
+                      className="flex items-start gap-2 text-gray-700 bg-white/20 p-2 rounded"
+                      style={{ fontFamily: 'cursive' }}
+                    >
+                      <Checkbox
+                        checked={true}
+                        onCheckedChange={() => handleToggleComplete(note.id)}
+                        className="mt-0.5 h-4 w-4 border-gray-700"
+                      />
+                      <span className="flex-1 text-sm line-through opacity-60 leading-tight font-bold break-words">
+                        {note.noteText}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(note.id)}
+                        className="h-5 w-5 p-0 text-red-700 hover:text-red-900 hover:bg-black/10 flex-shrink-0"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Empty state */}
+              {notes.length === 0 && (
+                <p className="text-sm text-center text-gray-700 py-8 font-bold" style={{ fontFamily: 'cursive' }}>
+                  No reminders yet!
+                </p>
+              )}
+            </div>
           </div>
         )}
+
+        {/* Resize handle */}
+        <div
+          className="absolute bottom-1 right-1 cursor-nwse-resize p-2 hover:bg-purple-300/50 rounded"
+          onMouseDown={handleResizeStart}
+          onTouchStart={handleResizeStart}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical className="h-4 w-4 text-purple-700" />
+        </div>
       </div>
     </div>
   );
