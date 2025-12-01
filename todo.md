@@ -2194,3 +2194,12 @@
 - [x] Backfilled 96 waypoints with photoUrl and contactId
 - [x] Verified Home page already saves contactId for new routes
 - [x] Confirmed route 390001 now has photos
+
+
+## Stop Type Color Fix - Complete
+
+- [x] Investigated why waypoints show default blue color instead of custom stop type colors
+- [x] Found old routes were created before custom stop types were set up
+- [x] Created update script to map stop types to user's custom colors
+- [x] Updated 81 waypoints with correct custom colors
+- [x] Verified route 390001 now displays yellow for "Visit" stop type
