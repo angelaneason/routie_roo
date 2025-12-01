@@ -46,9 +46,11 @@ export function SortableWaypointItem({
         {waypoint.position !== 0 && (
           <div className="flex-shrink-0">
             {isGapStop ? (
-              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-gray-600" />
-              </div>
+              <img
+                src="/gap-stop-marker.png"
+                alt="Gap Stop"
+                className="h-10 w-10 object-contain"
+              />
             ) : waypoint.photoUrl ? (
               <img
                 src={waypoint.photoUrl}
@@ -273,45 +275,49 @@ export function SortableWaypointItem({
           Remove
         </Button>
         
-        {/* Execution controls */}
-        {waypoint.status === "pending" && (
+        {/* Execution controls - only for regular stops, not gap stops */}
+        {!isGapStop && (
           <>
+            {waypoint.status === "pending" && (
+              <>
+                <Button
+                  size="sm"
+                  onClick={onComplete}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                  Complete
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={onMiss}
+                >
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Miss
+                </Button>
+              </>
+            )}
+            {waypoint.status === "missed" && waypoint.needsReschedule === 1 && (
+              <Button
+                size="sm"
+                onClick={onReschedule}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <Calendar className="h-4 w-4 mr-1" />
+                Reschedule
+              </Button>
+            )}
             <Button
               size="sm"
-              onClick={onComplete}
-              className="bg-green-600 hover:bg-green-700"
+              variant="outline"
+              onClick={onNote}
             >
-              <CheckCircle2 className="h-4 w-4 mr-1" />
-              Complete
-            </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={onMiss}
-            >
-              <XCircle className="h-4 w-4 mr-1" />
-              Miss
+              <MessageSquare className="h-4 w-4 mr-1" />
+              {waypoint.executionNotes ? "Edit Note" : "Add Note"}
             </Button>
           </>
         )}
-        {waypoint.status === "missed" && waypoint.needsReschedule === 1 && (
-          <Button
-            size="sm"
-            onClick={onReschedule}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            <Calendar className="h-4 w-4 mr-1" />
-            Reschedule
-          </Button>
-        )}
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onNote}
-        >
-          <MessageSquare className="h-4 w-4 mr-1" />
-          {waypoint.executionNotes ? "Edit Note" : "Add Note"}
-        </Button>
       </div>
     </div>
   );

@@ -2147,3 +2147,14 @@
 - [x] Calendar logic: Skip gap stops as events but add their duration to timing calculations
 - [x] Allow reordering gap stops with regular stops (drag-and-drop works)
 - [x] Test gap stop creation, display, and calendar timing
+
+## Gap Stop UI Refinement - Complete
+
+- [x] Hide Complete/Miss/Add Note buttons for gap stops (they're time blocks, not contact stops)
+- [x] Keep only Edit Details and Remove buttons for gap stops
+- [x] Test gap stop action buttons display correctly
+
+## Gap Stop Visual Update - Complete
+
+- [x] Replace clock icon with cute emoji image in stop list
+- [x] Test gap stop display with new image
