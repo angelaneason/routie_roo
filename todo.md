@@ -2277,3 +2277,11 @@
 - [x] Kept resize functionality (250-500px width, 300-700px height)
 - [x] Each note has white/transparent background for readability
 - [x] Resize handle with grip icon in bottom-right
+
+
+## Sticky Note Collapse Fix - Complete
+
+- [x] Make collapsed state shrink to minimal height (50px)
+- [x] Add smooth transition animation when collapsing/expanding
+- [x] Hide resize handle when collapsed
+- [x] Ensure add reminder input works when expanded
