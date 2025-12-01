@@ -614,7 +614,7 @@ export default function Home() {
       <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
 
       <main className="container py-8 mobile-content-padding">
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6">
           {/* Contacts Section */}
           <div className="space-y-6">
             {/* Create Route Section */}
@@ -1170,7 +1170,7 @@ export default function Home() {
           </div>
 
           {/* Routes Section */}
-          <div>
+          <div id="routes-section">
             <Card>
               <CardHeader>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

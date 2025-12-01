@@ -10,10 +10,10 @@ export function MobileNav({ onMenuClick }: MobileNavProps) {
   const [location] = useLocation();
 
   const navItems = [
-    { href: "/", label: "Home", icon: Home },
-    { href: "/routes", label: "Routes", icon: Route },
-    { href: "/calendar", label: "Calendar", icon: Calendar },
-    { href: "/settings", label: "Settings", icon: Settings },
+    { href: "/", label: "Home", icon: Home, scroll: false },
+    { href: "/#routes", label: "Routes", icon: Route, scroll: true },
+    { href: "/calendar", label: "Calendar", icon: Calendar, scroll: false },
+    { href: "/settings", label: "Settings", icon: Settings, scroll: false },
   ];
 
   return (
@@ -21,7 +21,37 @@ export function MobileNav({ onMenuClick }: MobileNavProps) {
       <div className="flex items-center justify-around h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location === item.href;
+          const isActive = item.scroll 
+            ? location === "/" 
+            : location === item.href;
+          
+          if (item.scroll) {
+            // For Routes tab, scroll to section on home page
+            return (
+              <button
+                key={item.href}
+                onClick={() => {
+                  if (location !== "/") {
+                    window.location.href = "/";
+                    setTimeout(() => {
+                      document.getElementById('routes-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  } else {
+                    document.getElementById('routes-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className={cn(
+                  "flex flex-col items-center justify-center w-16 h-full gap-1 transition-colors",
+                  isActive 
+                    ? "text-blue-600" 
+                    : "text-gray-600 hover:text-gray-900"
+                )}
+              >
+                <Icon className="h-6 w-6" />
+                <span className="text-xs font-medium">{item.label}</span>
+              </button>
+            );
+          }
           
           return (
             <Link key={item.href} href={item.href}>
