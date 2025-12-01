@@ -2172,3 +2172,10 @@
 - [ ] Verify no layout breaking on any screen size
 - [ ] Verify all features accessible with one hand
 
+
+## Housekeeping & UI Polish
+
+- [x] Fix stretched logo in header
+- [x] Update Calendar button label to "Add to Calendar" on route details
+- [x] Change Copy button label to "Duplicate Route" on route details
+- [x] Add creation date display to route details screen

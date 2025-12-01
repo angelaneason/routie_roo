@@ -703,11 +703,11 @@ export default function RouteDetail() {
                   {/* Secondary Actions */}
                   <Button variant="outline" size="sm" onClick={handleCopyRoute} className="hidden lg:flex">
                     <CopyIcon className="h-4 w-4 mr-2" />
-                    Copy
+                    Duplicate Route
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleAddToCalendar} className="hidden md:flex">
                     <Calendar className="h-4 w-4 mr-2" />
-                    Calendar
+                    Add to Calendar
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleExportToCSV} className="hidden lg:flex">
                     <Download className="h-4 w-4 mr-2" />
@@ -763,6 +763,12 @@ export default function RouteDetail() {
                 <div>
                   <p className="text-sm text-muted-foreground">Stops</p>
                   <p className="text-2xl font-bold">{waypoints.length}</p>
+                </div>
+                <div className="pt-4 border-t">
+                  <p className="text-sm text-muted-foreground mb-1">Created</p>
+                  <p className="text-sm font-medium">
+                    {new Date(route.createdAt).toLocaleString()}
+                  </p>
                 </div>
                 {route.completedAt && (
                   <div className="pt-4 border-t">
