@@ -2185,3 +2185,12 @@
 - [x] Run backfill script on all existing routes (updated 9 waypoints, 24 total with photos)
 - [x] Verify photoUrls are populated in route waypoints
 - [x] Ensure addWaypoint mutation saves photoUrl for new waypoints
+
+## PhotoUrl Fix - Complete
+
+- [x] Verified stop types display correctly (Visit in blue)
+- [x] Identified root cause: waypoints missing contactId field
+- [x] Created improved backfill script that matches by contact name
+- [x] Backfilled 96 waypoints with photoUrl and contactId
+- [x] Verified Home page already saves contactId for new routes
+- [x] Confirmed route 390001 now has photos
