@@ -32,6 +32,8 @@ import { BulkDocumentUploadDialog } from "@/components/BulkDocumentUploadDialog"
 import { ContactDetailDialog } from "@/components/ContactDetailDialog";
 import { MobileNav } from "@/components/MobileNav";
 import { MobileMenu } from "@/components/MobileMenu";
+import { MobileContactCard } from "@/components/MobileContactCard";
+import { SwipeableContactCard } from "@/components/SwipeableContactCard";
 // StopTypeSelector removed - stop types now set via default in Settings and editable in route details
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -798,13 +800,13 @@ export default function Home() {
                     </CardDescription>
                   </div>
                   <div className="flex items-start gap-4">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={handleSyncContacts}
                         disabled={googleAuthQuery.isFetching}
-                        className="whitespace-nowrap"
+                        className="whitespace-nowrap w-full sm:w-auto touch-target"
                       >
                         {googleAuthQuery.isFetching ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -817,7 +819,7 @@ export default function Home() {
                         variant="outline"
                         size="sm"
                         onClick={() => setShowImportDialog(true)}
-                        className="whitespace-nowrap"
+                        className="whitespace-nowrap w-full sm:w-auto touch-target"
                       >
                         <Upload className="h-4 w-4" />
                         <span className="ml-2">Import CSV</span>
@@ -826,7 +828,7 @@ export default function Home() {
                         variant="outline"
                         size="sm"
                         onClick={() => setShowBulkDocumentUpload(true)}
-                        className="whitespace-nowrap"
+                        className="whitespace-nowrap w-full sm:w-auto touch-target"
                       >
                         <Paperclip className="h-4 w-4" />
                         <span className="ml-2">Bulk Upload Doc</span>
@@ -918,9 +920,56 @@ export default function Home() {
                 ) : (
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {filteredContacts.map((contact) => (
+                      /* Mobile: Use MobileContactCard with swipe, Desktop: Use original layout */
+                      <div key={contact.id} className="md:hidden">
+                        <SwipeableContactCard
+                          contact={contact}
+                          onCall={() => {
+                            const phones = contact.phoneNumbers ? JSON.parse(contact.phoneNumbers) : [];
+                            if (phones[0]) {
+                              const cleanNumber = phones[0].value.replace(/\D/g, '');
+                              window.open(`tel:+1${cleanNumber}`, '_blank');
+                            }
+                          }}
+                          onText={() => {
+                            const phones = contact.phoneNumbers ? JSON.parse(contact.phoneNumbers) : [];
+                            if (phones[0]) {
+                              const cleanNumber = phones[0].value.replace(/\D/g, '');
+                              window.open(`sms:+1${cleanNumber}`, '_blank');
+                            }
+                          }}
+                          onNavigate={() => {
+                            if (contact.address) {
+                              window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(contact.address)}`, '_blank');
+                            }
+                          }}
+                        >
+                          <MobileContactCard
+                            contact={contact}
+                            isSelected={selectedContacts.has(contact.id)}
+                            onToggle={() => handleContactToggle(contact.id)}
+                            onEdit={() => setEditingContact(contact)}
+                            onViewDetails={() => setViewingContact(contact)}
+                            onUploadDocument={() => {
+                              setUploadContactId(contact.id);
+                              setUploadContactName(contact.name || "Contact");
+                              setShowDocumentUpload(true);
+                            }}
+                            onToggleActive={() => {
+                              toggleContactActiveMutation.mutate({
+                                contactId: contact.id,
+                                isActive: contact.isActive !== 1,
+                              });
+                            }}
+                            preferredCallingService={user?.preferredCallingService || "phone"}
+                          />
+                        </SwipeableContactCard>
+                      </div>
+                    ))}
+                    {filteredContacts.map((contact) => (
                       <div
                         key={contact.id}
-                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer"
+                        className="hidden md:flex items-start gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer"
                         onClick={() => handleContactToggle(contact.id)}
                       >
                         <Checkbox
@@ -1365,6 +1414,15 @@ export default function Home() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Floating Action Button (FAB) for Mobile - Add Contact */}
+      <button
+        className="md:hidden fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center touch-target active:scale-95 transition-transform"
+        onClick={() => setEditingContact({})}
+        aria-label="Add Contact"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
     </div>
     </>
   );
