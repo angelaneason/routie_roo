@@ -52,7 +52,7 @@ export function SortableWaypointItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="border rounded-lg p-4 space-y-3 bg-white"
+      className="border rounded-lg p-3 md:p-4 space-y-3 bg-white"
     >
       <div className="flex gap-3">
         <div
@@ -218,14 +218,16 @@ export function SortableWaypointItem({
           size="sm"
           variant="outline"
           onClick={onEdit}
+          className="touch-target"
         >
           <Edit3 className="h-4 w-4 mr-1" />
-          Edit Details
+          <span className="hidden sm:inline">Edit Details</span>
+          <span className="sm:hidden">Edit</span>
         </Button>
         <Button
           size="sm"
           variant="outline"
-          className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+          className="text-destructive hover:bg-destructive hover:text-destructive-foreground touch-target"
           onClick={onRemove}
         >
           <Trash2 className="h-4 w-4 mr-1" />
@@ -238,7 +240,7 @@ export function SortableWaypointItem({
             <Button
               size="sm"
               onClick={onComplete}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 touch-target"
             >
               <CheckCircle2 className="h-4 w-4 mr-1" />
               Complete

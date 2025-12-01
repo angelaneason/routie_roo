@@ -635,18 +635,18 @@ export default function RouteDetail() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <header className="bg-white border-b">
-        <div className="container py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+      <header className="bg-white border-b sticky top-0 z-30">
+        <div className="container py-3 md:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
               <Link href="/">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
+                <Button variant="ghost" size="sm" className="touch-target">
+                  <ArrowLeft className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Back</span>
                 </Button>
               </Link>
-              <div className="h-6 w-px bg-border" />
-              <h1 className="text-xl font-bold">{route.name}</h1>
+              <div className="h-6 w-px bg-border hidden sm:block" />
+              <h1 className="text-base md:text-xl font-bold truncate">{route.name}</h1>
               {route.completedAt && (
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium">
                   <CheckCircle2 className="h-4 w-4" />
@@ -659,7 +659,7 @@ export default function RouteDetail() {
                 </div>
               )}
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1 md:gap-2">
               {isEditMode ? (
                 <>
                   <Button variant="outline" size="sm" onClick={() => setIsEditMode(false)}>
@@ -677,7 +677,7 @@ export default function RouteDetail() {
                 </>
               ) : (
                  <>                  {/* Primary Actions */}
-                  <Button variant="outline" size="sm" onClick={handleReoptimizeRoute} disabled={reoptimizeRouteMutation.isPending}>
+                  <Button variant="outline" size="sm" onClick={handleReoptimizeRoute} disabled={reoptimizeRouteMutation.isPending} className="hidden sm:flex">
                     {reoptimizeRouteMutation.isPending ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
@@ -691,29 +691,29 @@ export default function RouteDetail() {
                   </Button>
                   
                   {/* Sharing Actions */}
-                  <Button variant="outline" size="sm" onClick={handleCopyShareLink}>
+                  <Button variant="outline" size="sm" onClick={handleCopyShareLink} className="hidden md:flex">
                     <Copy className="h-4 w-4 mr-2" />
                     Copy Link
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)}>
+                  <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)} className="hidden sm:flex">
                     <Share2 className="h-4 w-4 mr-2" />
                     Share
                   </Button>
                   
                   {/* Secondary Actions */}
-                  <Button variant="outline" size="sm" onClick={handleCopyRoute}>
+                  <Button variant="outline" size="sm" onClick={handleCopyRoute} className="hidden lg:flex">
                     <CopyIcon className="h-4 w-4 mr-2" />
                     Copy
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleAddToCalendar}>
+                  <Button variant="outline" size="sm" onClick={handleAddToCalendar} className="hidden md:flex">
                     <Calendar className="h-4 w-4 mr-2" />
                     Calendar
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleExportToCSV}>
+                  <Button variant="outline" size="sm" onClick={handleExportToCSV} className="hidden lg:flex">
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleArchiveRoute} disabled={archiveRouteMutation.isPending}>
+                  <Button variant="outline" size="sm" onClick={handleArchiveRoute} disabled={archiveRouteMutation.isPending} className="hidden lg:flex">
                     <Archive className="h-4 w-4 mr-2" />
                     Archive
                   </Button>
@@ -724,12 +724,12 @@ export default function RouteDetail() {
         </div>
       </header>
 
-      <main className="container py-6">
-        <div className="grid lg:grid-cols-5 gap-6">
+      <main className="container py-6 mobile-content-padding">
+        <div className="flex flex-col lg:grid lg:grid-cols-5 gap-6">
           {/* Map */}
           <div className="lg:col-span-2 lg:sticky lg:top-6 lg:self-start">
             <Card className="overflow-hidden">
-              <div className="h-[600px]">
+              <div className="h-[400px] md:h-[500px] lg:h-[600px]">
                 <MapView
                   onMapReady={(loadedMap) => {
                     setMap(loadedMap);
@@ -789,8 +789,8 @@ export default function RouteDetail() {
                     Every hop in order — smooth, simple, efficient.
                   </CardDescription>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <Button
                       size="sm"
                       variant="outline"
@@ -801,6 +801,7 @@ export default function RouteDetail() {
                         setEditStartingPoint(route?.startingPointAddress || "");
                         setShowEditDialog(true);
                       }}
+                      className="w-full sm:w-auto touch-target"
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Route
@@ -809,6 +810,7 @@ export default function RouteDetail() {
                       size="sm"
                       variant="outline"
                       onClick={() => setShowAddContactDialog(true)}
+                      className="w-full sm:w-auto touch-target"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Contact
@@ -825,7 +827,7 @@ export default function RouteDetail() {
                         }}
                       />
                     </div>
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex flex-col sm:flex-row gap-2 mt-3">
                       <Button
                         size="sm"
                         variant="outline"
@@ -844,7 +846,7 @@ export default function RouteDetail() {
                             });
                           }
                         }}
-                        className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+                        className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300 w-full sm:w-auto touch-target"
                       >
                         <CheckCircle2 className="h-4 w-4 mr-1" />
                         Complete All Remaining
@@ -869,7 +871,7 @@ export default function RouteDetail() {
                             });
                           }
                         }}
-                        className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300"
+                        className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300 w-full sm:w-auto touch-target"
                       >
                         <XCircle className="h-4 w-4 mr-1" />
                         Mark All as Missed
