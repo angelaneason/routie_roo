@@ -161,12 +161,12 @@ export function SchedulerNotes() {
       onTouchStart={handleTouchStart}
     >
       {/* Content overlay on the sticky note */}
-      <div className="absolute inset-0 pt-[100px] px-6 pb-8 flex flex-col">
+      <div className="absolute inset-0 pt-[85px] px-6 pb-8 flex flex-col">
         {/* Toggle button */}
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-[90px] right-3 h-6 w-6 p-0 hover:bg-black/10"
+          className="absolute top-[75px] right-3 h-6 w-6 p-0 hover:bg-black/10"
           onClick={(e) => {
             e.stopPropagation();
             setIsExpanded(!isExpanded);
@@ -178,11 +178,6 @@ export function SchedulerNotes() {
             <ChevronDown className="h-4 w-4" />
           )}
         </Button>
-
-        {/* Title */}
-        <h3 className="text-base font-bold text-gray-800 mb-2 text-center pointer-events-none" style={{ fontFamily: 'cursive' }}>
-          Reminders
-        </h3>
 
         {isExpanded && (
           <div className="space-y-2 overflow-y-auto flex-1" onClick={(e) => e.stopPropagation()}>
