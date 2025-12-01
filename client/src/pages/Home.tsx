@@ -626,7 +626,7 @@ export default function Home() {
                   Set up the route Roo will guide you through.
                 </CardDescription>
               </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 md:space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="routeName" className="text-sm !font-bold">Route Name</Label>
                     <Input
@@ -634,6 +634,7 @@ export default function Home() {
                       placeholder="e.g., Client Visits - Monday"
                       value={routeName}
                       onChange={(e) => setRouteName(e.target.value)}
+                      className="touch-target text-base"
                     />
                   </div>
 
@@ -646,7 +647,7 @@ export default function Home() {
                         value={routeNotes}
                         onChange={(e) => setRouteNotes(e.target.value)}
                         rows={3}
-                        className="pr-10"
+                        className="pr-10 touch-target text-base"
                       />
                       <div className="absolute bottom-2 right-2">
                         <EmojiPickerButton
@@ -663,6 +664,7 @@ export default function Home() {
                       type="date"
                       value={scheduledDate}
                       onChange={(e) => setScheduledDate(e.target.value)}
+                      className="touch-target text-base"
                     />
                     <p className="text-xs text-muted-foreground">
                       Schedule this route for a specific date
@@ -693,7 +695,7 @@ export default function Home() {
                         placeholder="Enter custom starting address"
                         value={customStartingPoint}
                         onChange={(e) => setCustomStartingPoint(e.target.value)}
-                        className="mt-2"
+                        className="mt-2 touch-target text-base"
                       />
                     )}
                     <p className="text-xs text-muted-foreground">
@@ -736,6 +738,7 @@ export default function Home() {
                         placeholder="New folder name"
                         value={newFolderName}
                         onChange={(e) => setNewFolderName(e.target.value)}
+                        className="touch-target text-base"
                       />
                       <Button onClick={handleCreateFolder} disabled={createFolderMutation.isPending}>
                         {createFolderMutation.isPending ? (
@@ -768,7 +771,8 @@ export default function Home() {
 
 
                   <Button
-                    className="w-full"
+                    className="w-full touch-target"
+                    size="lg"
                     onClick={handleCreateRoute}
                     disabled={selectedContacts.size < 2 || !routeName.trim() || isCreatingRoute}
                   >
@@ -1169,14 +1173,14 @@ export default function Home() {
           <div>
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <CardTitle className="font-bold">Your Hop Library</CardTitle>
                     <CardDescription className="italic">
                       A clear, hop-by-hop look at your route.
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                     {folders.length > 0 && (
                       <Select value={selectedFolderFilter} onValueChange={setSelectedFolderFilter}>
                         <SelectTrigger className="w-[180px]">
@@ -1223,7 +1227,7 @@ export default function Home() {
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {filteredRoutes.map((route) => (
-                      <div key={route.id} className="p-4 rounded-lg border hover:bg-accent transition-colors group">
+                      <div key={route.id} className="p-3 md:p-4 rounded-lg border hover:bg-accent transition-colors group touch-target">
                         <div className="flex items-start justify-between">
                           <Link href={`/route/${route.id}`} className="flex-1 min-w-0">
                             <div className="cursor-pointer">
@@ -1253,26 +1257,28 @@ export default function Home() {
                               </div>
                             </div>
                           </Link>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 md:gap-2">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-target"
                               onClick={(e) => {
                                 e.preventDefault();
                                 handleArchiveRoute(route.id);
                               }}
+                              title="Archive Route"
                             >
                               <Archive className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-target"
                               onClick={(e) => {
                                 e.preventDefault();
                                 handleDeleteRoute(route.id);
                               }}
+                              title="Delete Route"
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
