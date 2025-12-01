@@ -64,15 +64,13 @@ export function SchedulerNotes() {
     },
   });
 
-  // Mouse events
+  // Mouse and touch event handlers
   const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.drag-handle')) {
-      setIsDragging(true);
-      setDragOffset({
-        x: e.clientX - position.x,
-        y: e.clientY - position.y,
-      });
-    }
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    });
   };
 
   const handleMouseMove = (e: MouseEvent) => {
@@ -88,16 +86,13 @@ export function SchedulerNotes() {
     setIsDragging(false);
   };
 
-  // Touch events for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
-    if ((e.target as HTMLElement).closest('.drag-handle')) {
-      const touch = e.touches[0];
-      setIsDragging(true);
-      setDragOffset({
-        x: touch.clientX - position.x,
-        y: touch.clientY - position.y,
-      });
-    }
+    const touch = e.touches[0];
+    setIsDragging(true);
+    setDragOffset({
+      x: touch.clientX - position.x,
+      y: touch.clientY - position.y,
+    });
   };
 
   const handleTouchMove = (e: TouchEvent) => {
@@ -152,39 +147,30 @@ export function SchedulerNotes() {
   return (
     <div
       ref={cardRef}
-      className="fixed z-50 w-80 max-w-[calc(100vw-2rem)]"
+      className="fixed z-50 w-[320px] h-[320px] max-w-[calc(100vw-2rem)] cursor-grab active:cursor-grabbing select-none"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        cursor: isDragging ? 'grabbing' : 'auto',
+        backgroundImage: 'url(/sticky-note-pushpin.png)',
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
         touchAction: 'none',
       }}
+      onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
     >
-      {/* Pushpin - draggable handle */}
-      <div 
-        className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 cursor-grab active:cursor-grabbing drag-handle touch-none"
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
-      >
-        <img 
-          src="/sticky-note-pushpin.png" 
-          alt="Pushpin" 
-          className="w-16 h-16 drop-shadow-lg pointer-events-none select-none"
-        />
-      </div>
-
-      {/* Sticky note paper */}
-      <div className="pt-14 pb-6 px-6 bg-gradient-to-br from-[#ffd89b] to-[#ffb347] shadow-2xl rounded-sm relative"
-        style={{
-          boxShadow: '0 10px 30px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.5)',
-        }}
-      >
+      {/* Content overlay on the sticky note */}
+      <div className="absolute inset-0 pt-[80px] px-8 pb-8 flex flex-col">
         {/* Toggle button */}
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-black/10"
-          onClick={() => setIsExpanded(!isExpanded)}
+          className="absolute top-[70px] right-4 h-6 w-6 p-0 hover:bg-black/10"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
         >
           {isExpanded ? (
             <ChevronUp className="h-4 w-4" />
@@ -193,17 +179,17 @@ export function SchedulerNotes() {
           )}
         </Button>
 
-        {/* Title - handwritten style */}
-        <h3 className="text-xl font-bold text-gray-800 mb-4 text-center" style={{ fontFamily: 'cursive' }}>
+        {/* Title */}
+        <h3 className="text-lg font-bold text-gray-800 mb-3 text-center pointer-events-none" style={{ fontFamily: 'cursive' }}>
           Reminders
         </h3>
 
         {isExpanded && (
-          <div className="space-y-3">
+          <div className="space-y-2 overflow-y-auto flex-1" onClick={(e) => e.stopPropagation()}>
             {/* Add new note */}
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               <Input
-                placeholder="Add reminder..."
+                placeholder="Add..."
                 value={newNoteText}
                 onChange={(e) => setNewNoteText(e.target.value)}
                 onKeyDown={(e) => {
@@ -211,72 +197,68 @@ export function SchedulerNotes() {
                     handleAddNote();
                   }
                 }}
-                className="bg-white/40 border-gray-400/50 text-gray-900 placeholder:text-gray-600"
+                className="bg-transparent border-gray-600/30 text-gray-900 placeholder:text-gray-600 text-sm h-7"
                 style={{ fontFamily: 'cursive' }}
               />
               <Button
                 onClick={handleAddNote}
                 disabled={!newNoteText.trim() || createMutation.isPending}
                 size="sm"
-                className="bg-orange-600 hover:bg-orange-700"
+                className="bg-orange-600 hover:bg-orange-700 h-7 w-7 p-0"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3 w-3" />
               </Button>
             </div>
 
-            {/* Pending notes - written on sticky note */}
-            {pendingNotes.length > 0 && (
-              <div className="space-y-2">
-                {pendingNotes.map((note) => (
-                  <div
-                    key={note.id}
-                    className="flex items-start gap-2 text-gray-900"
-                    style={{ fontFamily: 'cursive' }}
-                  >
-                    <Checkbox
-                      checked={false}
-                      onCheckedChange={() => handleToggleComplete(note.id)}
-                      className="mt-1 border-gray-700"
-                    />
-                    <span className="flex-1 text-base leading-relaxed">{note.noteText}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(note.id)}
-                      className="h-5 w-5 p-0 text-red-700 hover:text-red-900 hover:bg-black/10"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
+            {/* Pending notes */}
+            {pendingNotes.map((note) => (
+              <div
+                key={note.id}
+                className="flex items-start gap-1 text-gray-900"
+                style={{ fontFamily: 'cursive' }}
+              >
+                <Checkbox
+                  checked={false}
+                  onCheckedChange={() => handleToggleComplete(note.id)}
+                  className="mt-0.5 h-4 w-4 border-gray-700"
+                />
+                <span className="flex-1 text-sm leading-tight">{note.noteText}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDelete(note.id)}
+                  className="h-4 w-4 p-0 text-red-700 hover:text-red-900 hover:bg-black/10"
+                >
+                  <Trash2 className="h-2.5 w-2.5" />
+                </Button>
               </div>
-            )}
+            ))}
 
             {/* Completed notes */}
             {completedNotes.length > 0 && (
-              <div className="space-y-2 pt-3 border-t border-gray-400/30">
-                <p className="text-xs text-gray-700 font-semibold">Done</p>
+              <div className="space-y-1 pt-2 border-t border-gray-600/20">
+                <p className="text-[10px] text-gray-700 font-semibold">Done</p>
                 {completedNotes.map((note) => (
                   <div
                     key={note.id}
-                    className="flex items-start gap-2 text-gray-700"
+                    className="flex items-start gap-1 text-gray-700"
                     style={{ fontFamily: 'cursive' }}
                   >
                     <Checkbox
                       checked={true}
                       onCheckedChange={() => handleToggleComplete(note.id)}
-                      className="mt-1 border-gray-700"
+                      className="mt-0.5 h-4 w-4 border-gray-700"
                     />
-                    <span className="flex-1 text-base line-through opacity-60">
+                    <span className="flex-1 text-sm line-through opacity-60 leading-tight">
                       {note.noteText}
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(note.id)}
-                      className="h-5 w-5 p-0 text-red-700 hover:text-red-900 hover:bg-black/10"
+                      className="h-4 w-4 p-0 text-red-700 hover:text-red-900 hover:bg-black/10"
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="h-2.5 w-2.5" />
                     </Button>
                   </div>
                 ))}
@@ -285,7 +267,7 @@ export function SchedulerNotes() {
 
             {/* Empty state */}
             {notes.length === 0 && (
-              <p className="text-sm text-center text-gray-700 py-4" style={{ fontFamily: 'cursive' }}>
+              <p className="text-xs text-center text-gray-700 py-2" style={{ fontFamily: 'cursive' }}>
                 No reminders yet!
               </p>
             )}
