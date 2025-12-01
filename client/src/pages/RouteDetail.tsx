@@ -809,6 +809,37 @@ export default function RouteDetail() {
                     <p className="text-sm whitespace-pre-wrap">{route.notes}</p>
                   </div>
                 )}
+                
+                {/* Color Legend */}
+                {(() => {
+                  // Extract unique stop types from waypoints (excluding starting point and gap stops)
+                  const uniqueStopTypes = new Map<string, string>();
+                  waypoints.forEach(wp => {
+                    if (!wp.isGapStop && wp.position !== 0 && wp.stopType && wp.stopColor) {
+                      uniqueStopTypes.set(wp.stopType, wp.stopColor);
+                    }
+                  });
+                  
+                  if (uniqueStopTypes.size > 0) {
+                    return (
+                      <div className="pt-4 border-t">
+                        <p className="text-sm text-muted-foreground mb-3">Stop Type Legend</p>
+                        <div className="flex flex-wrap gap-3">
+                          {Array.from(uniqueStopTypes.entries()).map(([stopType, color]) => (
+                            <div key={stopType} className="flex items-center gap-2">
+                              <div 
+                                className="w-4 h-4 rounded-full border border-gray-300"
+                                style={{ backgroundColor: color }}
+                              />
+                              <span className="text-sm font-medium capitalize">{stopType}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </CardContent>
             </Card>
 
