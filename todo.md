@@ -2221,3 +2221,26 @@
 - [x] Display legend with stop type names and color circles
 - [x] Positioned legend in Route Details card after notes section
 - [x] Legend only shows if route has actual stop types
+
+
+## Scheduler Sticky Notes - Complete
+
+- [x] Created scheduler_notes table in database schema
+- [x] Added userId, noteText, isCompleted, createdAt, completedAt fields
+- [x] Pushed database schema changes via SQL
+- [x] Created backend procedures (list, create, toggleComplete, delete)
+- [x] Copied pushpin graphic to client/public directory
+- [x] Designed sticky note UI component with pushpin graphic
+- [x] Added toggle to expand/collapse notes
+- [x] Added note input with Enter key support
+- [x] Implemented checklist with checkboxes
+- [x] Added delete button for each note
+- [x] Separated pending and completed notes sections
+- [x] Added sticky note component to home page (centered at top)
+- [x] Made sticky note draggable with mouse and touch
+- [x] Positioned sticky note at top right on desktop, centered on mobile
+- [x] Added drag handle with grip icon
+- [x] Added mobile touch support (touchstart, touchmove, touchend)
+- [x] Prevents scrolling while dragging on mobile
+- [x] Responsive width for mobile screens
+- [x] Notes are private (stored per user, not shared with routes)

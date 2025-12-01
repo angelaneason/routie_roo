@@ -312,3 +312,19 @@ export const rescheduleHistory = mysqlTable("reschedule_history", {
 
 export type RescheduleHistory = typeof rescheduleHistory.$inferSelect;
 export type InsertRescheduleHistory = typeof rescheduleHistory.$inferInsert;
+
+/**
+ * Scheduler Notes table - global sticky notes for scheduler reminders
+ * These are private notes for the scheduler and not shared with routes
+ */
+export const schedulerNotes = mysqlTable("scheduler_notes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  noteText: text("noteText").notNull(),
+  isCompleted: int("isCompleted").default(0).notNull(), // 0 = pending, 1 = completed
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"), // When the note was marked complete
+});
+
+export type SchedulerNote = typeof schedulerNotes.$inferSelect;
+export type InsertSchedulerNote = typeof schedulerNotes.$inferInsert;

@@ -30,6 +30,7 @@ import { ContactImportDialog } from "@/components/ContactImportDialog";
 import { DocumentUploadDialog } from "@/components/DocumentUploadDialog";
 import { BulkDocumentUploadDialog } from "@/components/BulkDocumentUploadDialog";
 import { ContactDetailDialog } from "@/components/ContactDetailDialog";
+import { SchedulerNotes } from "@/components/SchedulerNotes";
 // StopTypeSelector removed - stop types now set via default in Settings and editable in route details
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -608,6 +609,9 @@ export default function Home() {
       </header>
 
       <main className="container py-8">
+        {/* Scheduler Sticky Notes - Fixed position, draggable */}
+        <SchedulerNotes />
+
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Contacts Section */}
           <div className="space-y-6">

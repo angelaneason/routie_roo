@@ -44,7 +44,7 @@ import {
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
 import { validateAddress } from "./addressValidation";
-import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes, InsertRoute, cachedContacts, rescheduleHistory } from "../drizzle/schema";
+import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes, InsertRoute, cachedContacts, rescheduleHistory, schedulerNotes } from "../drizzle/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -3170,6 +3170,90 @@ export const appRouter = router({
         await db
           .delete(stopTypes)
           .where(eq(stopTypes.id, input.id));
+        
+        return { success: true };
+      }),
+  }),
+
+  schedulerNotes: router({
+    // Get user's scheduler notes
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      
+      const notes = await db
+        .select()
+        .from(schedulerNotes)
+        .where(eq(schedulerNotes.userId, ctx.user.id))
+        .orderBy(desc(schedulerNotes.createdAt));
+      
+      return notes;
+    }),
+
+    // Create new note
+    create: protectedProcedure
+      .input(z.object({
+        noteText: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        
+        await db.insert(schedulerNotes).values({
+          userId: ctx.user.id,
+          noteText: input.noteText,
+          isCompleted: 0,
+        });
+        
+        return { success: true };
+      }),
+
+    // Toggle note completion
+    toggleComplete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        
+        // Get current note
+        const [note] = await db
+          .select()
+          .from(schedulerNotes)
+          .where(and(
+            eq(schedulerNotes.id, input.id),
+            eq(schedulerNotes.userId, ctx.user.id)
+          ));
+        
+        if (!note) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Note not found" });
+        }
+        
+        // Toggle completion
+        const newCompleted = note.isCompleted ? 0 : 1;
+        await db
+          .update(schedulerNotes)
+          .set({ 
+            isCompleted: newCompleted,
+            completedAt: newCompleted ? new Date() : null,
+          })
+          .where(eq(schedulerNotes.id, input.id));
+        
+        return { success: true };
+      }),
+
+    // Delete note
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        
+        await db
+          .delete(schedulerNotes)
+          .where(and(
+            eq(schedulerNotes.id, input.id),
+            eq(schedulerNotes.userId, ctx.user.id)
+          ));
         
         return { success: true };
       }),
