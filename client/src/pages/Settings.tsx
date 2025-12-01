@@ -466,28 +466,35 @@ export default function Settings() {
                       </Accordion>
                     </div>
                     
-                    <div className="flex items-center justify-between pt-4 border-t">
+                    <div className="pt-4 border-t">
                       <Button
                         variant="outline"
+                        className="w-full touch-target"
                         onClick={() => setShowEmailPreview(true)}
                       >
                         Preview Email Templates
                       </Button>
-                      <div>
-                        <Label>Enable Date Reminders</Label>
-                        <p className="text-sm text-muted-foreground">Turn on/off automatic email reminders</p>
+                    </div>
+                    
+                    <div className="pt-4 border-t">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <Label className="text-sm font-bold">Enable Date Reminders</Label>
+                          <p className="text-sm text-muted-foreground mt-1">Turn on/off automatic email reminders</p>
+                        </div>
+                        <Button
+                          variant={currentUser?.enableDateReminders ? "default" : "outline"}
+                          size="sm"
+                          className="min-h-[44px] shrink-0"
+                          onClick={() => {
+                            updateSettingsMutation.mutate({
+                              enableDateReminders: !currentUser?.enableDateReminders
+                            });
+                          }}
+                        >
+                          {currentUser?.enableDateReminders ? "Enabled" : "Disabled"}
+                        </Button>
                       </div>
-                      <Button
-                        variant={currentUser?.enableDateReminders ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => {
-                          updateSettingsMutation.mutate({
-                            enableDateReminders: !currentUser?.enableDateReminders
-                          });
-                        }}
-                      >
-                        {currentUser?.enableDateReminders ? "Enabled" : "Disabled"}
-                      </Button>
                     </div>
                     
                     <div className="pt-4 border-t">

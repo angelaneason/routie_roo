@@ -2200,3 +2200,11 @@
 ## Critical Bug
 
 - [x] Fix persistent 404 error when duplicating routes (added prefetching before navigation)
+
+
+## Settings Contacts Tab Layout Fix
+
+- [x] Make "Preview Email Templates" button full-width for consistency
+- [x] Improve spacing and alignment around "Enable Date Reminders" toggle
+- [x] Add visual separation with proper dividers
+- [x] Ensure consistent button styling throughout the section
