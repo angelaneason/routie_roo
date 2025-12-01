@@ -2255,3 +2255,13 @@
 - [x] Entire sticky note (including pushpin) is draggable
 - [x] Maintained all functionality (add, complete, delete, toggle)
 - [x] Compact design to fit on sticky note dimensions
+
+
+## Sticky Note Improvements - Complete
+
+- [x] Moved input field down to avoid pushpin overlap (pt-[110px])
+- [x] Made all note text bold for better readability
+- [x] Added resize functionality (drag corner resize handle)
+- [x] Minimum size constraint (250x250px)
+- [x] Resize works on both desktop and mobile
+- [x] Resize handle with maximize icon in bottom-right corner
