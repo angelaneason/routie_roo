@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { MapView } from "@/components/Map";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon, Download, Sparkles, Archive } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon, Download, Sparkles, Archive, Clock } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
@@ -59,6 +59,10 @@ export default function RouteDetail() {
   const [editWaypointPhoneNumbers, setEditWaypointPhoneNumbers] = useState<Array<{value: string, label?: string, type?: string}>>([]);
   const [editWaypointLabels, setEditWaypointLabels] = useState<string[]>([]);
   const [hasUnsavedOrder, setHasUnsavedOrder] = useState(false);
+  const [showAddGapStopDialog, setShowAddGapStopDialog] = useState(false);
+  const [gapStopName, setGapStopName] = useState("");
+  const [gapStopDuration, setGapStopDuration] = useState("30");
+  const [gapStopDescription, setGapStopDescription] = useState("");
 
   const routeQuery = trpc.routes.get.useQuery(
     { routeId: parseInt(routeId!) },
@@ -154,6 +158,20 @@ export default function RouteDetail() {
     },
     onError: (error) => {
       toast.error(`Failed to remove waypoint: ${error.message}`);
+    },
+  });
+
+  const addGapStopMutation = trpc.routes.addGapStop.useMutation({
+    onSuccess: () => {
+      toast.success("Gap stop added");
+      setShowAddGapStopDialog(false);
+      setGapStopName("");
+      setGapStopDuration("30");
+      setGapStopDescription("");
+      routeQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Failed to add gap stop: ${error.message}`);
     },
   });
 
@@ -337,9 +355,17 @@ export default function RouteDetail() {
 
     setDirectionsRenderer(renderer);
 
-    const origin = localWaypoints[0];
-    const destination = localWaypoints[localWaypoints.length - 1];
-    const waypointsForApi = localWaypoints.slice(1, -1).map(wp => ({
+    // Filter out gap stops for routing (they don't have real addresses)
+    const routingWaypoints = localWaypoints.filter(wp => !wp.isGapStop && wp.isGapStop !== 1);
+    
+    if (routingWaypoints.length < 2) {
+      // Not enough real waypoints to create a route
+      return;
+    }
+
+    const origin = routingWaypoints[0];
+    const destination = routingWaypoints[routingWaypoints.length - 1];
+    const waypointsForApi = routingWaypoints.slice(1, -1).map(wp => ({
       location: wp.address,
       stopover: true,
     }));
@@ -444,6 +470,24 @@ export default function RouteDetail() {
               },
             });
             newMarkers.push(endMarker);
+            
+            // Add gap stop markers (not part of route, just visual indicators)
+            localWaypoints.forEach((waypoint, idx) => {
+              const isGapStop = waypoint.isGapStop === true || waypoint.isGapStop === 1;
+              if (isGapStop && waypoint.latitude && waypoint.longitude) {
+                const gapMarker = new google.maps.Marker({
+                  position: { lat: waypoint.latitude, lng: waypoint.longitude },
+                  map,
+                  icon: {
+                    url: '/gap-stop-marker.png',
+                    scaledSize: new google.maps.Size(40, 40),
+                    anchor: new google.maps.Point(20, 40),
+                  },
+                  title: `${waypoint.contactName} (${waypoint.gapDuration} min)`,
+                });
+                newMarkers.push(gapMarker);
+              }
+            });
           }
           
           setMarkers(newMarkers);
@@ -816,6 +860,15 @@ export default function RouteDetail() {
                       <Plus className="h-4 w-4 mr-2" />
                       Add Contact
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowAddGapStopDialog(true)}
+                      className="bg-gray-50"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Gap Stop
+                    </Button>
                   </div>
                 </div>
                 {!isEditMode && waypoints.length > 0 && (
@@ -901,6 +954,7 @@ export default function RouteDetail() {
                           key={waypoint.id}
                           waypoint={waypoint}
                           index={index}
+                          totalStops={localWaypoints.length}
                           onComplete={() => {
                             setSelectedWaypoint(waypoint);
                             setActionType("complete");
@@ -954,7 +1008,6 @@ export default function RouteDetail() {
                             setShowEditWaypointDialog(true);
                           }}
                           onPositionChange={handlePositionChange}
-                          totalStops={localWaypoints.length - 1}
                         />
                       ))}
                     </div>
@@ -1506,6 +1559,78 @@ export default function RouteDetail() {
               disabled={updateWaypointDetailsMutation.isPending}
             >
               {updateWaypointDetailsMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Gap Stop Dialog */}
+      <Dialog open={showAddGapStopDialog} onOpenChange={setShowAddGapStopDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Gap Stop</DialogTitle>
+            <DialogDescription>
+              Add a time block for lunch, meetings, or travel time between stops
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="gap-name" className="!font-bold">Name *</Label>
+              <Input
+                id="gap-name"
+                value={gapStopName}
+                onChange={(e) => setGapStopName(e.target.value)}
+                placeholder="e.g., Lunch Break, Team Meeting"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gap-duration" className="!font-bold">Duration (minutes) *</Label>
+              <Input
+                id="gap-duration"
+                type="number"
+                min="1"
+                value={gapStopDuration}
+                onChange={(e) => setGapStopDuration(e.target.value)}
+                placeholder="30"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gap-description" className="!font-bold">Description (Optional)</Label>
+              <textarea
+                id="gap-description"
+                value={gapStopDescription}
+                onChange={(e) => setGapStopDescription(e.target.value)}
+                placeholder="Add any notes about this time block..."
+                rows={3}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddGapStopDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!gapStopName.trim()) {
+                  toast.error("Please enter a name for the gap stop");
+                  return;
+                }
+                const duration = parseInt(gapStopDuration);
+                if (isNaN(duration) || duration < 1) {
+                  toast.error("Please enter a valid duration");
+                  return;
+                }
+                addGapStopMutation.mutate({
+                  routeId: parseInt(routeId!),
+                  gapName: gapStopName,
+                  gapDuration: duration,
+                  gapDescription: gapStopDescription || undefined,
+                });
+              }}
+              disabled={addGapStopMutation.isPending}
+            >
+              {addGapStopMutation.isPending ? "Adding..." : "Add Gap Stop"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { StopStatusBadge } from "@/components/StopStatusBadge";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
-import { CheckCircle2, XCircle, MessageSquare, Calendar, Trash2, Edit3, MapPin, Flag } from "lucide-react";
+import { CheckCircle2, XCircle, MessageSquare, Calendar, Trash2, Edit3, MapPin, Flag, Clock } from "lucide-react";
 
 interface SortableWaypointItemProps {
   waypoint: any;
@@ -17,7 +17,7 @@ interface SortableWaypointItemProps {
   onEditAddress?: () => void;
   onEdit?: () => void;
   onPositionChange?: (waypointId: number, newPosition: number) => void;
-  totalStops: number;
+  totalStops?: number;
 }
 
 // Contact photo display added
@@ -37,14 +37,19 @@ export function SortableWaypointItem({
 }: SortableWaypointItemProps) {
 
   const phoneNumbers = waypoint.phoneNumbers ? JSON.parse(waypoint.phoneNumbers) : [];
+  const isGapStop = waypoint.isGapStop === true || waypoint.isGapStop === 1;
 
   return (
-    <div className="border rounded-lg p-4 space-y-3 bg-white">
+    <div className={`border rounded-lg p-4 space-y-3 ${isGapStop ? 'bg-gray-50 border-gray-300' : 'bg-white'}`}>
       <div className="flex gap-3">
-        {/* Contact photo */}
+        {/* Contact photo or gap stop icon */}
         {waypoint.position !== 0 && (
           <div className="flex-shrink-0">
-            {waypoint.photoUrl ? (
+            {isGapStop ? (
+              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-gray-600" />
+              </div>
+            ) : waypoint.photoUrl ? (
               <img
                 src={waypoint.photoUrl}
                 alt={waypoint.contactName || "Contact"}
@@ -74,7 +79,7 @@ export function SortableWaypointItem({
                 value={index}
                 onChange={(e) => {
                   const newPos = parseInt(e.target.value);
-                  if (newPos >= 1 && newPos <= totalStops && onPositionChange) {
+                  if (totalStops && newPos >= 1 && newPos <= totalStops && onPositionChange) {
                     onPositionChange(waypoint.id, newPos);
                   }
                 }}
@@ -140,9 +145,22 @@ export function SortableWaypointItem({
               Maps
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {waypoint.address}
-          </p>
+          {isGapStop ? (
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-700">
+                Duration: {waypoint.gapDuration} minutes
+              </p>
+              {waypoint.gapDescription && (
+                <p className="text-sm text-muted-foreground">
+                  {waypoint.gapDescription}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {waypoint.address}
+            </p>
+          )}
           
           {/* Important Dates */}
           {waypoint.importantDates && (() => {
@@ -204,7 +222,7 @@ export function SortableWaypointItem({
               </p>
             </div>
           )}
-          {phoneNumbers.length > 0 && (
+          {!isGapStop && phoneNumbers.length > 0 && (
             <div className="mt-2 space-y-2">
               {phoneNumbers.map((phone: any, idx: number) => (
                 <div key={idx} className="space-y-1">

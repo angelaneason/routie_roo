@@ -966,12 +966,22 @@ export const appRouter = router({
         const createdEvents = [];
         const db = await getDb();
 
-        // Create individual event for each waypoint (skip starting point)
+        // Create individual event for each waypoint (skip starting point and gap stops)
         for (let i = 0; i < waypoints.length; i++) {
           const wp = waypoints[i];
           
           // Skip starting point (position 0 is always the anchor/starting point)
           if (wp.position === 0) {
+            continue;
+          }
+          
+          // Check if this is a gap stop
+          const isGapStop = wp.isGapStop === true || wp.isGapStop === 1 || wp.isGapStop === '1';
+          
+          if (isGapStop) {
+            // Gap stops don't get calendar events, but their duration affects timing
+            const gapDurationMs = (wp.gapDuration || 0) * 60 * 1000;
+            currentTime += gapDurationMs;
             continue;
           }
           
@@ -1522,6 +1532,60 @@ export const appRouter = router({
         }
 
         return { success: true };
+      }),
+
+    // Add gap stop (non-contact time block) to existing route
+    addGapStop: protectedProcedure
+      .input(z.object({
+        routeId: z.number(),
+        gapName: z.string(),
+        gapDuration: z.number(), // Duration in minutes
+        gapDescription: z.string().optional(),
+        position: z.number().optional(), // Where to insert (defaults to end)
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify route ownership
+        const route = await getRouteById(input.routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        // Get current waypoints to determine order
+        const existingWaypoints = await getRouteWaypoints(input.routeId);
+        const insertPosition = input.position !== undefined ? input.position : existingWaypoints.length;
+
+        // Insert gap stop waypoint
+        const insertResult = await db.insert(routeWaypoints).values({
+          routeId: input.routeId,
+          contactName: input.gapName,
+          address: "Gap Stop", // Placeholder address (won't be used for routing)
+          isGapStop: true,
+          gapDuration: input.gapDuration,
+          gapDescription: input.gapDescription || null,
+          position: insertPosition,
+          executionOrder: insertPosition,
+          status: "pending",
+          stopType: "other",
+          stopColor: "#9CA3AF", // Gray color for gap stops
+        } as any);
+        
+        const newWaypointId = Number(insertResult[0].insertId);
+
+        // Update positions of waypoints after insertion point
+        if (input.position !== undefined) {
+          await db.execute(sql`
+            UPDATE route_waypoints 
+            SET position = position + 1, executionOrder = executionOrder + 1
+            WHERE routeId = ${input.routeId} 
+            AND position >= ${insertPosition}
+            AND id != ${newWaypointId}
+          `);
+        }
+
+        return { success: true, waypointId: newWaypointId };
       }),
 
     // Remove waypoint from route

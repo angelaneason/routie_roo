@@ -2135,3 +2135,15 @@
 - [x] Move route name from screen header into route details card
 - [x] Move contact labels to display under contact name
 - [x] Change "Calendar" button text to "Add To Calendar"
+
+
+## Gap Stop Feature - In Progress
+
+- [x] Create "Add Gap Stop" button in route detail page
+- [x] Build gap stop creation dialog (name, duration, description)
+- [x] Add backend mutation to create gap stops (waypoints with isGapStop=true)
+- [x] Display gap stops in waypoint list with distinct styling (clock icon, no contact info)
+- [x] Add gap stop icon/marker on map (happy emoji with clock)
+- [x] Calendar logic: Skip gap stops as events but add their duration to timing calculations
+- [x] Allow reordering gap stops with regular stops (drag-and-drop works)
+- [x] Test gap stop creation, display, and calendar timing
