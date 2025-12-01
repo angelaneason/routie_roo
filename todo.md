@@ -2208,3 +2208,17 @@
 - [x] Improve spacing and alignment around "Enable Date Reminders" toggle
 - [x] Add visual separation with proper dividers
 - [x] Ensure consistent button styling throughout the section
+
+
+## Map Marker Color Bug
+
+- [x] Restore custom stop type colors on map markers in RouteDetail page
+- [x] Ensure markers display with assigned stop type colors (not all blue)
+- [x] Verify pickup/delivery arrow markers use correct colors
+- [x] Test that marker colors match waypoint badges
+- Note: Tested with new route - colors working correctly. Old routes have default blue color as expected.
+
+
+## Logo Size Fix
+
+- [x] Increase logo size in header back to larger size (h-16 or bigger)

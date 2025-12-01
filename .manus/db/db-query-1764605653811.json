@@ -1,0 +1,28 @@
+{
+  "query": "SELECT id, routeId, position, stopType, stopColor, contactName, address FROM route_waypoints WHERE routeId = 1 ORDER BY position;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, routeId, position, stopType, stopColor, contactName, address FROM route_waypoints WHERE routeId = 1 ORDER BY position;",
+  "rows": [
+    {
+      "id": "1",
+      "routeId": "1",
+      "position": "0",
+      "stopType": "other",
+      "stopColor": "#3b82f6",
+      "contactName": "Start Point",
+      "address": "999 Missing Contact St, City, State 12345"
+    },
+    {
+      "id": "2",
+      "routeId": "1",
+      "position": "1",
+      "stopType": "other",
+      "stopColor": "#3b82f6",
+      "contactName": "End Point",
+      "address": "456 End Ave, City, State"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\trouteId\tposition\tstopType\tstopColor\tcontactName\taddress\n1\t1\t0\tother\t#3b82f6\tStart Point\t999 Missing Contact St, City, State 12345\n2\t1\t1\tother\t#3b82f6\tEnd Point\t456 End Ave, City, State\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

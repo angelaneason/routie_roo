@@ -548,7 +548,7 @@ export default function Home() {
       <header className="bg-white border-b sticky top-0 z-30">
         <div className="container py-4 md:py-4 mobile-header-compact flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={APP_LOGO} alt="RoutieRoo" className="h-12 w-12 md:h-16 md:w-16 object-contain" />
+            <img src={APP_LOGO} alt="RoutieRoo" className="h-16 w-16 md:h-20 md:w-20 object-contain" />
           </div>
           <div className="hidden md:flex items-center gap-3 desktop-nav">
             <span className="text-sm text-muted-foreground">

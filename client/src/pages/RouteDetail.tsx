@@ -370,7 +370,8 @@ export default function RouteDetail() {
             // Intermediate waypoint markers
             route.legs.forEach((leg, index) => {
               if (index < route.legs.length - 1) {
-                // Get waypoint data for this marker (skip starting point at index 0)
+                // Get waypoint data for this marker
+                // leg[0].end_location is first stop = waypoints[1] (waypoints[0] is starting point)
                 const waypoint = waypoints[index + 1];
                 const stopColor = waypoint?.stopColor || "#4F46E5";
                 const stopType = waypoint?.stopType || "visit";
