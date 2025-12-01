@@ -1541,7 +1541,7 @@ export const appRouter = router({
         gapName: z.string(),
         gapDuration: z.number(), // Duration in minutes
         gapDescription: z.string().optional(),
-        position: z.number().optional(), // Where to insert (defaults to end)
+        insertAfterPosition: z.number().optional(), // Stop number to insert after (defaults to end)
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -1555,7 +1555,8 @@ export const appRouter = router({
 
         // Get current waypoints to determine order
         const existingWaypoints = await getRouteWaypoints(input.routeId);
-        const insertPosition = input.position !== undefined ? input.position : existingWaypoints.length;
+        // insertAfterPosition is the stop number (position), so the new gap stop goes at position + 1
+        const insertPosition = input.insertAfterPosition !== undefined ? input.insertAfterPosition + 1 : existingWaypoints.length;
 
         // Insert gap stop waypoint
         const insertResult = await db.insert(routeWaypoints).values({
@@ -1575,7 +1576,7 @@ export const appRouter = router({
         const newWaypointId = Number(insertResult[0].insertId);
 
         // Update positions of waypoints after insertion point
-        if (input.position !== undefined) {
+        if (input.insertAfterPosition !== undefined) {
           await db.execute(sql`
             UPDATE route_waypoints 
             SET position = position + 1, executionOrder = executionOrder + 1

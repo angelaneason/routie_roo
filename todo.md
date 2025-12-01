@@ -2158,3 +2158,16 @@
 
 - [x] Replace clock icon with cute emoji image in stop list
 - [x] Test gap stop display with new image
+
+## Gap Stop Position Control - Complete
+
+- [x] Add "Insert After Stop #" field to gap stop dialog
+- [x] Update addGapStop mutation to accept insertAfterPosition parameter
+- [x] Update backend logic to insert gap stop at specified position
+- [x] Test gap stop insertion at various positions
+
+## Gap Stop Map Display - Complete
+
+- [x] Removed gap stop markers from map (they're time blocks, not physical locations)
+- [x] Gap stops now only appear in stop list with cute emoji
+- [x] Map shows only physical stops for cleaner visualization

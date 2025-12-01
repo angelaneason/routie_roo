@@ -63,6 +63,7 @@ export default function RouteDetail() {
   const [gapStopName, setGapStopName] = useState("");
   const [gapStopDuration, setGapStopDuration] = useState("30");
   const [gapStopDescription, setGapStopDescription] = useState("");
+  const [gapStopInsertAfter, setGapStopInsertAfter] = useState("");
 
   const routeQuery = trpc.routes.get.useQuery(
     { routeId: parseInt(routeId!) },
@@ -168,6 +169,7 @@ export default function RouteDetail() {
       setGapStopName("");
       setGapStopDuration("30");
       setGapStopDescription("");
+      setGapStopInsertAfter("");
       routeQuery.refetch();
     },
     onError: (error) => {
@@ -470,24 +472,6 @@ export default function RouteDetail() {
               },
             });
             newMarkers.push(endMarker);
-            
-            // Add gap stop markers (not part of route, just visual indicators)
-            localWaypoints.forEach((waypoint, idx) => {
-              const isGapStop = waypoint.isGapStop === true || waypoint.isGapStop === 1;
-              if (isGapStop && waypoint.latitude && waypoint.longitude) {
-                const gapMarker = new google.maps.Marker({
-                  position: { lat: waypoint.latitude, lng: waypoint.longitude },
-                  map,
-                  icon: {
-                    url: '/gap-stop-marker.png',
-                    scaledSize: new google.maps.Size(40, 40),
-                    anchor: new google.maps.Point(20, 40),
-                  },
-                  title: `${waypoint.contactName} (${waypoint.gapDuration} min)`,
-                });
-                newMarkers.push(gapMarker);
-              }
-            });
           }
           
           setMarkers(newMarkers);
@@ -1595,6 +1579,18 @@ export default function RouteDetail() {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="gap-insert-after" className="!font-bold">Insert After Stop # (Optional)</Label>
+              <Input
+                id="gap-insert-after"
+                type="number"
+                min="0"
+                value={gapStopInsertAfter}
+                onChange={(e) => setGapStopInsertAfter(e.target.value)}
+                placeholder="Leave blank to add at end"
+              />
+              <p className="text-xs text-muted-foreground">Enter a stop number to insert the gap stop after that position. Leave blank to add at the end.</p>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="gap-description" className="!font-bold">Description (Optional)</Label>
               <textarea
                 id="gap-description"
@@ -1621,11 +1617,17 @@ export default function RouteDetail() {
                   toast.error("Please enter a valid duration");
                   return;
                 }
+                const insertAfter = gapStopInsertAfter.trim() ? parseInt(gapStopInsertAfter) : undefined;
+                if (insertAfter !== undefined && (isNaN(insertAfter) || insertAfter < 0)) {
+                  toast.error("Please enter a valid stop number");
+                  return;
+                }
                 addGapStopMutation.mutate({
                   routeId: parseInt(routeId!),
                   gapName: gapStopName,
                   gapDuration: duration,
                   gapDescription: gapStopDescription || undefined,
+                  insertAfterPosition: insertAfter,
                 });
               }}
               disabled={addGapStopMutation.isPending}
