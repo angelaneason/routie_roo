@@ -98,6 +98,7 @@ export const routeWaypoints = mysqlTable("route_waypoints", {
   latitude: varchar("latitude", { length: 32 }), // Latitude coordinate
   longitude: varchar("longitude", { length: 32 }), // Longitude coordinate
   phoneNumbers: text("phoneNumbers"), // JSON array of {value, type, label}
+  photoUrl: text("photoUrl"), // Contact photo URL from Google
   contactLabels: text("contactLabels"), // JSON array of contact labels from Google
   importantDates: text("importantDates"), // JSON array of {type, date} from contact
   comments: text("comments"), // JSON array of {option, customText} from contact

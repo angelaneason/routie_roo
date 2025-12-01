@@ -2112,3 +2112,9 @@
 - [ ] Update re-optimize logic to skip gap stops
 - [ ] Update waypoint reordering to handle gap stops
 - [ ] Add validation for gap stop data
+
+## Bug Fix - Map Markers Disappearing on Reorder
+
+- [x] Fix map markers disappearing when changing stop order with number inputs
+- [x] Ensure map updates when localWaypoints state changes
+- [x] Verify map markers persist after reordering

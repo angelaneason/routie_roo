@@ -323,7 +323,7 @@ export default function RouteDetail() {
 
   // Initialize map and render route
   useEffect(() => {
-    if (!map || !waypoints.length || waypoints.length < 2) return;
+    if (!map || !localWaypoints.length || localWaypoints.length < 2) return;
 
     const directionsService = new google.maps.DirectionsService();
     const renderer = new google.maps.DirectionsRenderer({
@@ -337,9 +337,9 @@ export default function RouteDetail() {
 
     setDirectionsRenderer(renderer);
 
-    const origin = waypoints[0];
-    const destination = waypoints[waypoints.length - 1];
-    const waypointsForApi = waypoints.slice(1, -1).map(wp => ({
+    const origin = localWaypoints[0];
+    const destination = localWaypoints[localWaypoints.length - 1];
+    const waypointsForApi = localWaypoints.slice(1, -1).map(wp => ({
       location: wp.address,
       stopover: true,
     }));
@@ -380,7 +380,7 @@ export default function RouteDetail() {
             route.legs.forEach((leg, index) => {
               if (index < route.legs.length - 1) {
                 // Get waypoint data for this marker (skip starting point at index 0)
-                const waypoint = waypoints[index + 1];
+                const waypoint = localWaypoints[index + 1];
                 const stopColor = waypoint?.stopColor || "#4F46E5";
                 const stopType = waypoint?.stopType || "visit";
                 
@@ -415,7 +415,7 @@ export default function RouteDetail() {
             
             // Last marker at the end location
             const lastLeg = route.legs[route.legs.length - 1];
-            const lastWaypoint = waypoints[waypoints.length - 1];
+            const lastWaypoint = localWaypoints[localWaypoints.length - 1];
             const lastStopColor = lastWaypoint?.stopColor || "#4F46E5";
             const lastStopType = lastWaypoint?.stopType || "visit";
             
@@ -428,7 +428,7 @@ export default function RouteDetail() {
               position: lastLeg.end_location,
               map,
               label: {
-                text: String(waypoints.length - 1),
+                text: String(localWaypoints.length - 1),
                 color: "white",
                 fontSize: "14px",
                 fontWeight: "bold",
@@ -458,7 +458,7 @@ export default function RouteDetail() {
       renderer.setMap(null);
       markers.forEach(marker => marker.setMap(null));
     };
-  }, [map, waypoints]);
+  }, [map, localWaypoints]);
 
   const handleCopyShareLink = () => {
     if (!route) return;

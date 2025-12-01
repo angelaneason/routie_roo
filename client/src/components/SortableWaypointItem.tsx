@@ -20,6 +20,7 @@ interface SortableWaypointItemProps {
   totalStops: number;
 }
 
+// Contact photo display added
 export function SortableWaypointItem({
   waypoint,
   index,
@@ -40,6 +41,24 @@ export function SortableWaypointItem({
   return (
     <div className="border rounded-lg p-4 space-y-3 bg-white">
       <div className="flex gap-3">
+        {/* Contact photo */}
+        {waypoint.position !== 0 && (
+          <div className="flex-shrink-0">
+            {waypoint.photoUrl ? (
+              <img
+                src={waypoint.photoUrl}
+                alt={waypoint.contactName || "Contact"}
+                className="h-10 w-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-sm font-medium text-primary">
+                  {(waypoint.contactName || "?").charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
         {/* Stop number input */}
         <div className="flex-shrink-0 flex flex-col items-center gap-1">
           {waypoint.position === 0 ? (

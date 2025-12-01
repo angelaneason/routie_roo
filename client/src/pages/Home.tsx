@@ -289,6 +289,7 @@ export default function Home() {
       contactName?: string;
       address: string;
       phoneNumbers?: string;
+      photoUrl?: string;
       contactLabels?: string;
       importantDates?: string;
       comments?: string;
@@ -301,6 +302,7 @@ export default function Home() {
         contactName: c.name || undefined,
         address: c.address || "",
         phoneNumbers: c.phoneNumbers || undefined,
+        photoUrl: c.photoUrl || undefined,
         contactLabels: c.labels || undefined,
         importantDates: c.importantDates || undefined,
         comments: c.comments || undefined,
@@ -328,6 +330,7 @@ export default function Home() {
           contactName: "Starting Point",
           address: finalStartingPoint,
           phoneNumbers: undefined,
+          photoUrl: undefined,
           contactLabels: undefined,
           importantDates: undefined,
           comments: undefined,

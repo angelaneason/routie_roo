@@ -592,6 +592,7 @@ export const appRouter = router({
           contactName: z.string().optional(),
           address: z.string(),
           phoneNumbers: z.string().optional(), // JSON string of phone numbers
+          photoUrl: z.string().optional(), // Contact photo URL
           contactLabels: z.string().optional(), // JSON string of contact labels
           importantDates: z.string().optional(), // JSON string of important dates
           comments: z.string().optional(), // JSON string of comments
@@ -665,6 +666,7 @@ export const appRouter = router({
             latitude: leg?.startLocation?.latLng?.latitude?.toString() || null,
             longitude: leg?.startLocation?.latLng?.longitude?.toString() || null,
             phoneNumbers: wp.phoneNumbers || null,
+            photoUrl: wp.photoUrl || null,
             contactLabels: wp.contactLabels || null,
             importantDates: wp.importantDates || null,
             comments: wp.comments || null,
