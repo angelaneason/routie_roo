@@ -161,12 +161,12 @@ export function SchedulerNotes() {
       onTouchStart={handleTouchStart}
     >
       {/* Content overlay on the sticky note */}
-      <div className="absolute inset-0 pt-[80px] px-8 pb-8 flex flex-col">
+      <div className="absolute inset-0 pt-[100px] px-6 pb-8 flex flex-col">
         {/* Toggle button */}
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-[70px] right-4 h-6 w-6 p-0 hover:bg-black/10"
+          className="absolute top-[90px] right-3 h-6 w-6 p-0 hover:bg-black/10"
           onClick={(e) => {
             e.stopPropagation();
             setIsExpanded(!isExpanded);
@@ -180,7 +180,7 @@ export function SchedulerNotes() {
         </Button>
 
         {/* Title */}
-        <h3 className="text-lg font-bold text-gray-800 mb-3 text-center pointer-events-none" style={{ fontFamily: 'cursive' }}>
+        <h3 className="text-base font-bold text-gray-800 mb-2 text-center pointer-events-none" style={{ fontFamily: 'cursive' }}>
           Reminders
         </h3>
 
@@ -197,14 +197,14 @@ export function SchedulerNotes() {
                     handleAddNote();
                   }
                 }}
-                className="bg-transparent border-gray-600/30 text-gray-900 placeholder:text-gray-600 text-sm h-7"
+                className="bg-transparent border-gray-600/30 text-gray-900 placeholder:text-gray-600 text-xs h-6 px-2"
                 style={{ fontFamily: 'cursive' }}
               />
               <Button
                 onClick={handleAddNote}
                 disabled={!newNoteText.trim() || createMutation.isPending}
                 size="sm"
-                className="bg-orange-600 hover:bg-orange-700 h-7 w-7 p-0"
+                className="bg-orange-600 hover:bg-orange-700 h-6 w-6 p-0 flex-shrink-0"
               >
                 <Plus className="h-3 w-3" />
               </Button>
