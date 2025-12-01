@@ -34,6 +34,7 @@ import { MobileNav } from "@/components/MobileNav";
 import { MobileMenu } from "@/components/MobileMenu";
 import { MobileContactCard } from "@/components/MobileContactCard";
 import { SwipeableContactCard } from "@/components/SwipeableContactCard";
+import { PullToRefresh } from "@/components/PullToRefresh";
 // StopTypeSelector removed - stop types now set via default in Settings and editable in route details
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -613,8 +614,18 @@ export default function Home() {
       <MobileNav onMenuClick={() => setIsMobileMenuOpen(true)} />
       <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
 
-      <main className="container py-8 mobile-content-padding">
-        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6">
+      <PullToRefresh
+        onRefresh={async () => {
+          await Promise.all([
+            contactsQuery.refetch(),
+            routesQuery.refetch(),
+            foldersQuery.refetch(),
+            startingPointsQuery.refetch()
+          ]);
+        }}
+      >
+        <main className="container py-8 mobile-content-padding">
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6">
           {/* Contacts Section */}
           <div className="space-y-6">
             {/* Create Route Section */}
@@ -1292,8 +1303,9 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </main>
+          </div>
+        </main>
+      </PullToRefresh>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteRouteId !== null} onOpenChange={() => setDeleteRouteId(null)}>
