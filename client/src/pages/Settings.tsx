@@ -134,14 +134,12 @@ export default function Settings() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <header className="bg-white border-b">
-        <div className="container py-3 md:py-4 flex items-center justify-between gap-3">
+        <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/">
-              <Button variant="ghost" size="sm" className="touch-target">
-                <ArrowLeft className="h-4 w-4 md:mr-2" />
-                <span className="hidden md:inline">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
-                </span>
               </Button>
             </Link>
             <div className="h-6 w-px bg-border" />
@@ -151,10 +149,10 @@ export default function Settings() {
         </div>
       </header>
 
-      <main className="container py-6 md:py-8 mobile-content-padding">
+      <main className="container py-8">
         <div className="max-w-4xl mx-auto space-y-6">
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold">Settings</h2>
+            <h2 className="text-3xl font-bold">Settings</h2>
             <p className="text-muted-foreground mt-2">
               Manage your preferences and account settings
             </p>
@@ -166,7 +164,7 @@ export default function Settings() {
             </div>
           ) : (
             <Tabs defaultValue="account" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="account">Account</TabsTrigger>
                 <TabsTrigger value="site">Site Config</TabsTrigger>
                 <TabsTrigger value="contacts">Contacts</TabsTrigger>
@@ -212,7 +210,7 @@ export default function Settings() {
                           });
                         }}
                       >
-                        <SelectTrigger id="calling-service" className="h-11 text-base">
+                        <SelectTrigger id="calling-service">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -247,7 +245,7 @@ export default function Settings() {
                           });
                         }}
                       >
-                        <SelectTrigger id="distance-unit" className="h-11 text-base">
+                        <SelectTrigger id="distance-unit">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -282,9 +280,8 @@ export default function Settings() {
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
                       <Label htmlFor="scheduling-email">Scheduling Team Email</Label>
-                        <Input
-                          id="scheduling-email"
-                          className="h-11 text-base"
+                      <Input
+                        id="scheduling-email"
                         type="email"
                         placeholder="scheduling@example.com"
                         defaultValue={currentUser?.schedulingEmail || ""}
@@ -303,10 +300,11 @@ export default function Settings() {
                     
                     <div className="space-y-2">
                       <Label>Reminder Intervals (Days Before Date)</Label>
-                      <div className="flex gap-2">                        <Input
+                      <div className="flex gap-2">
+                        <Input
                           type="text"
-                          placeholder="Enter address"
-                          className="h-11 text-base"                        defaultValue={
+                          placeholder="30, 10, 5"
+                          defaultValue={
                             currentUser?.reminderIntervals
                               ? JSON.parse(currentUser.reminderIntervals).join(", ")
                               : "30, 10, 5"
@@ -466,40 +464,33 @@ export default function Settings() {
                       </Accordion>
                     </div>
                     
-                    <div className="pt-4 border-t">
+                    <div className="flex items-center justify-between pt-4 border-t">
                       <Button
                         variant="outline"
-                        className="w-full touch-target"
                         onClick={() => setShowEmailPreview(true)}
                       >
                         Preview Email Templates
                       </Button>
-                    </div>
-                    
-                    <div className="pt-4 border-t">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <Label className="text-sm font-bold">Enable Date Reminders</Label>
-                          <p className="text-sm text-muted-foreground mt-1">Turn on/off automatic email reminders</p>
-                        </div>
-                        <Button
-                          variant={currentUser?.enableDateReminders ? "default" : "outline"}
-                          size="sm"
-                          className="min-h-[44px] shrink-0"
-                          onClick={() => {
-                            updateSettingsMutation.mutate({
-                              enableDateReminders: !currentUser?.enableDateReminders
-                            });
-                          }}
-                        >
-                          {currentUser?.enableDateReminders ? "Enabled" : "Disabled"}
-                        </Button>
+                      <div>
+                        <Label>Enable Date Reminders</Label>
+                        <p className="text-sm text-muted-foreground">Turn on/off automatic email reminders</p>
                       </div>
+                      <Button
+                        variant={currentUser?.enableDateReminders ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          updateSettingsMutation.mutate({
+                            enableDateReminders: !currentUser?.enableDateReminders
+                          });
+                        }}
+                      >
+                        {currentUser?.enableDateReminders ? "Enabled" : "Disabled"}
+                      </Button>
                     </div>
                     
                     <div className="pt-4 border-t">
                       <Link href="/reminder-history">
-                          <Button variant="outline" className="w-full touch-target">
+                        <Button variant="outline" className="w-full">
                           View Reminder History
                         </Button>
                       </Link>
@@ -524,7 +515,6 @@ export default function Settings() {
                         <Input
                           id="new-point-name"
                           placeholder="e.g., Home Office"
-                          className="h-11 text-base"
                           value={newPointName}
                           onChange={(e) => setNewPointName(e.target.value)}
                         />
@@ -534,13 +524,11 @@ export default function Settings() {
                         <Input
                           id="new-point-address"
                           placeholder="e.g., 123 Main St, City, State"
-                          className="h-11 text-base"
                           value={newPointAddress}
                           onChange={(e) => setNewPointAddress(e.target.value)}
                         />
                       </div>
                       <Button
-                        className="w-full sm:w-auto touch-target"
                         onClick={() => {
                           if (!newPointName || !newPointAddress) {
                             toast.error("Please fill in both name and address");
@@ -829,9 +817,8 @@ export default function Settings() {
                         <p className="text-sm text-muted-foreground">
                           Connect your Google Calendar to automatically create events for your route stops.
                         </p>
-                          <Button
-                            className="touch-target"
-                            onClick={() => getCalendarConnectionUrlMutation.mutate()}
+                        <Button
+                          onClick={() => getCalendarConnectionUrlMutation.mutate()}
                           disabled={getCalendarConnectionUrlMutation.isPending}
                         >
                           {getCalendarConnectionUrlMutation.isPending ? "Connecting..." : "Connect Google Calendar"}

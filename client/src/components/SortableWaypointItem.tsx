@@ -1,10 +1,9 @@
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { StopStatusBadge } from "@/components/StopStatusBadge";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
-import { CheckCircle2, XCircle, MessageSquare, Calendar, GripVertical, Trash2, Edit3, MapPin, Flag } from "lucide-react";
+import { CheckCircle2, XCircle, MessageSquare, Calendar, Trash2, Edit3, MapPin, Flag } from "lucide-react";
 
 interface SortableWaypointItemProps {
   waypoint: any;
@@ -17,6 +16,8 @@ interface SortableWaypointItemProps {
   onRemove?: () => void;
   onEditAddress?: () => void;
   onEdit?: () => void;
+  onPositionChange?: (waypointId: number, newPosition: number) => void;
+  totalStops: number;
 }
 
 export function SortableWaypointItem({
@@ -30,43 +31,38 @@ export function SortableWaypointItem({
   onRemove,
   onEditAddress,
   onEdit,
+  onPositionChange,
+  totalStops,
 }: SortableWaypointItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: waypoint.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
 
   const phoneNumbers = waypoint.phoneNumbers ? JSON.parse(waypoint.phoneNumbers) : [];
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="border rounded-lg p-3 md:p-4 space-y-3 bg-white"
-    >
+    <div className="border rounded-lg p-4 space-y-3 bg-white">
       <div className="flex gap-3">
-        <div
-          {...attributes}
-          {...listeners}
-          className="flex-shrink-0 cursor-grab active:cursor-grabbing touch-none"
-        >
-          <GripVertical className="h-5 w-5 text-muted-foreground" />
-        </div>
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
+        {/* Stop number input */}
+        <div className="flex-shrink-0 flex flex-col items-center gap-1">
           {waypoint.position === 0 ? (
-            <Flag className="h-4 w-4" />
+            <div className="w-12 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+              <Flag className="h-4 w-4" />
+            </div>
           ) : (
-            index
+            <>
+              <Input
+                type="number"
+                min="1"
+                max={totalStops}
+                value={index}
+                onChange={(e) => {
+                  const newPos = parseInt(e.target.value);
+                  if (newPos >= 1 && newPos <= totalStops && onPositionChange) {
+                    onPositionChange(waypoint.id, newPos);
+                  }
+                }}
+                className="w-12 h-8 text-center text-sm font-medium p-0"
+              />
+              <span className="text-xs text-muted-foreground">Stop</span>
+            </>
           )}
         </div>
         <div className="flex-1 min-w-0">
@@ -218,16 +214,14 @@ export function SortableWaypointItem({
           size="sm"
           variant="outline"
           onClick={onEdit}
-          className="touch-target"
         >
           <Edit3 className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">Edit Details</span>
-          <span className="sm:hidden">Edit</span>
+          Edit Details
         </Button>
         <Button
           size="sm"
           variant="outline"
-          className="text-destructive hover:bg-destructive hover:text-destructive-foreground touch-target"
+          className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
           onClick={onRemove}
         >
           <Trash2 className="h-4 w-4 mr-1" />
@@ -240,7 +234,7 @@ export function SortableWaypointItem({
             <Button
               size="sm"
               onClick={onComplete}
-              className="bg-green-600 hover:bg-green-700 touch-target"
+              className="bg-green-600 hover:bg-green-700"
             >
               <CheckCircle2 className="h-4 w-4 mr-1" />
               Complete

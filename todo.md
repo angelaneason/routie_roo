@@ -2073,152 +2073,42 @@
 
 
 
-## Mobile Optimization Sprint (Priority for Market Launch)
+## Route Detail Screen Enhancements
 
-### Phase 1: Mobile Navigation & Layout Foundation
-- [x] Add viewport meta tag with proper scaling (already present)
-- [x] Implement mobile-first CSS breakpoints (320px, 768px, 1024px)
-- [x] Create bottom navigation bar for mobile (Home, Routes, Calendar, Settings)
-- [x] Make top header sticky and compact on mobile
-- [x] Add hamburger menu for secondary navigation
-- [ ] Test navigation on iPhone and Android
-- [x] Ensure no horizontal scrolling on any page (CSS added)
+### Stop Reordering Improvements
+- [x] Remove drag-and-drop interface for stop reordering
+- [x] Add stop number input field for each waypoint
+- [x] Allow users to type new position number to reorder
+- [x] Add save button to persist manual order
+- [x] Add hasManualOrder flag to routes table
+- [x] Add reorderWaypoints backend procedure
+- [x] Fix TypeScript errors in RouteDetail
+- [ ] Modify re-optimize to preserve manual order (only optimize new stops)
 
-### Phase 2: Contact List Mobile Optimization
-- [ ] Convert contact list to card layout for mobile
-- [ ] Make contact cards touch-friendly (minimum 44px height)
-- [ ] Add swipe gestures for quick actions (call, text, delete)
-- [ ] Optimize search bar for mobile keyboards
-- [ ] Make "Add Contact" button floating action button (FAB) on mobile
-- [ ] Optimize contact detail view for mobile screens
-- [ ] Test contact list with 100+ contacts on mobile
+### Visual Enhancements
+- [ ] Add contact icons to route detail waypoints (matching contact list)
+- [x] Display contact labels/groups on each stop (already implemented in SortableWaypointItem lines 84-99)
+- [ ] Show visual indicators for contacts without addresses
+- [ ] Ensure consistent styling between contact list and route detail
 
-### Phase 3: Contact Forms Mobile Optimization
-- [ ] Stack form fields vertically on mobile
-- [ ] Make input fields full-width on mobile
-- [ ] Increase input field height for easier tapping (48px minimum)
-- [ ] Use appropriate mobile keyboard types (tel, email, etc.)
-- [ ] Add clear buttons (X) to input fields
-- [ ] Optimize address autocomplete dropdown for mobile
-- [ ] Make photo upload work with mobile camera
-- [ ] Test form submission on mobile
+### Gap Stop Feature
+- [x] Add isGapStop boolean field to route_waypoints table
+- [x] Add gapDuration field to route_waypoints table (in minutes)
+- [x] Add gapDescription field to route_waypoints table
+- [ ] Create "Add Gap Stop" button in route detail
+- [ ] Create gap stop dialog (description, duration, position)
+- [ ] Display gap stops differently from contact stops
+- [ ] Include gap stop duration in calendar time calculations
+- [ ] Exclude gap stops from contact-based operations
 
-### Phase 4: Route Planning Mobile Optimization
-- [ ] Convert route creation to step-by-step wizard on mobile
-- [ ] Make waypoint selection touch-friendly
-- [ ] Optimize map view for mobile (full-width, proper zoom)
-- [ ] Add touch controls for map (pinch-zoom, pan)
-- [ ] Make "Add Waypoint" button floating on mobile
-- [ ] Optimize waypoint list for mobile (scrollable, reorderable)
-- [ ] Test route creation flow on mobile end-to-end
+### Calendar Visual Indicator
+- [ ] Add calendar icon/badge to routes that have been added to calendar
+- [ ] Show calendar status in route list (Home page)
+- [ ] Show calendar status in route detail header
+- [ ] Use different visual for routes with scheduled dates vs calendar events
 
-### Phase 5: Route Detail Mobile Optimization
-- [ ] Make map full-width on mobile
-- [ ] Convert waypoint list to collapsible accordion on mobile
-- [ ] Make action buttons stack vertically on mobile
-- [ ] Add one-tap call/text/navigate buttons
-- [ ] Optimize "Mark Complete/Missed" buttons for thumb reach
-- [ ] Make route editing work smoothly on mobile
-- [ ] Test route execution on mobile
-
-### Phase 6: Calendar Mobile Optimization
-- [ ] Make calendar view responsive (month/week/day toggle)
-- [ ] Add swipe gestures for month navigation
-- [ ] Make event cards touch-friendly
-- [ ] Optimize event creation form for mobile
-- [ ] Make date/time pickers mobile-friendly
-- [ ] Test calendar interactions on mobile
-
-### Phase 7: Settings Mobile Optimization
-- [ ] Convert settings to accordion layout on mobile
-- [ ] Make all toggle switches touch-friendly
-- [ ] Optimize dropdowns for mobile selection
-- [ ] Make CSV import work with mobile file picker
-- [ ] Test all settings changes on mobile
-
-### Phase 8: Touch Interactions & Gestures
-- [ ] Ensure all buttons are minimum 44x44px
-- [ ] Add touch feedback (ripple effects, highlights)
-- [ ] Implement pull-to-refresh on list views
-- [ ] Add swipe-to-delete on contact/route lists
-- [ ] Test all touch interactions feel natural
-
-### Phase 9: Performance for Mobile
-- [ ] Optimize images for mobile (WebP format, lazy loading)
-- [ ] Reduce initial bundle size for faster mobile load
-- [ ] Add loading skeletons for better perceived performance
-- [ ] Test on slow 3G connection
-- [ ] Ensure Time to Interactive < 3 seconds on mobile
-
-### Phase 10: Mobile-Specific Features
-- [ ] Add tel: links for one-tap calling
-- [ ] Add sms: links for one-tap texting
-- [ ] Add maps: links to open native navigation apps
-- [ ] Implement native share API for route sharing
-- [ ] Add geolocation for "Use Current Location"
-- [ ] Enable camera for contact photos
-- [ ] Add PWA manifest for home screen install
-- [ ] Test all mobile-specific features
-
-### Testing Checklist
-- [ ] Test on iPhone (iOS Safari)
-- [ ] Test on Android (Chrome)
-- [ ] Test on small screen (320px width - iPhone SE)
-- [ ] Test on medium screen (375px width - iPhone 12)
-- [ ] Test on large screen (428px width - iPhone 14 Pro Max)
-- [ ] Test landscape orientation
-- [ ] Test with slow 3G network
-- [ ] Test offline mode on mobile
-- [ ] Verify no layout breaking on any screen size
-- [ ] Verify all features accessible with one hand
-
-
-## Housekeeping & UI Polish
-
-- [x] Fix stretched logo in header
-- [x] Update Calendar button label to "Add to Calendar" on route details
-- [x] Change Copy button label to "Duplicate Route" on route details
-- [x] Add creation date display to route details screen
-
-## Logo Size Fix
-
-- [x] Adjust logo sizing to be properly visible on desktop while preventing stretching
-
-## Bug Fixes
-
-- [x] Fix 404 error when clicking duplicate route (added cache invalidation and delay)
-- [x] Make ALL action buttons visible and accessible on mobile screens (added dropdown menu)
-
-## Admin Pages Mobile Optimization
-
-- [x] Optimize Missed Stops page for mobile
-- [x] Optimize Reschedule History page for mobile
-- [x] Optimize Archive page for mobile
-- [x] Optimize Changed Addresses page for mobile
-- [x] Optimize Admin Users page for mobile
-
-## Critical Bug
-
-- [x] Fix persistent 404 error when duplicating routes (added prefetching before navigation)
-
-
-## Settings Contacts Tab Layout Fix
-
-- [x] Make "Preview Email Templates" button full-width for consistency
-- [x] Improve spacing and alignment around "Enable Date Reminders" toggle
-- [x] Add visual separation with proper dividers
-- [x] Ensure consistent button styling throughout the section
-
-
-## Map Marker Color Bug
-
-- [x] Restore custom stop type colors on map markers in RouteDetail page
-- [x] Ensure markers display with assigned stop type colors (not all blue)
-- [x] Verify pickup/delivery arrow markers use correct colors
-- [x] Test that marker colors match waypoint badges
-- Note: Tested with new route - colors working correctly. Old routes have default blue color as expected.
-
-
-## Logo Size Fix
-
-- [x] Increase logo size in header back to larger size (h-16 or bigger)
+### Backend Updates
+- [ ] Update route creation to support gap stops
+- [ ] Update re-optimize logic to skip gap stops
+- [ ] Update waypoint reordering to handle gap stops
+- [ ] Add validation for gap stop data

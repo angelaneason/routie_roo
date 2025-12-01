@@ -112,7 +112,7 @@ export default function ChangedAddresses() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
       <header className="bg-white border-b shadow-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between mobile-header-compact">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/">
               <Button variant="ghost" size="sm">
@@ -121,7 +121,7 @@ export default function ChangedAddresses() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Changed Addresses Report</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Changed Addresses Report</h1>
               <p className="text-sm text-gray-600 italic">Track addresses modified in Routie Roo for Google Contacts sync</p>
             </div>
           </div>
@@ -132,23 +132,22 @@ export default function ChangedAddresses() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-4 md:py-8 mobile-content-padding">
+      <main className="container mx-auto px-4 py-8">
         <Card>
           <CardHeader>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Address Changes</CardTitle>
                 <CardDescription>
                   Contacts whose addresses have been modified in Routie Roo and need to be synced to Google Contacts
                 </CardDescription>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleExportCSV}
                   disabled={changedAddresses.length === 0}
-                  className="min-h-[44px] w-full sm:w-auto"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export CSV
@@ -158,7 +157,6 @@ export default function ChangedAddresses() {
                   size="sm"
                   onClick={handleMarkAllSynced}
                   disabled={changedAddresses.length === 0 || markAllSyncedMutation.isPending}
-                  className="min-h-[44px] w-full sm:w-auto"
                 >
                   {markAllSyncedMutation.isPending ? (
                     <>

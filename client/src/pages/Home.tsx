@@ -30,11 +30,6 @@ import { ContactImportDialog } from "@/components/ContactImportDialog";
 import { DocumentUploadDialog } from "@/components/DocumentUploadDialog";
 import { BulkDocumentUploadDialog } from "@/components/BulkDocumentUploadDialog";
 import { ContactDetailDialog } from "@/components/ContactDetailDialog";
-import { MobileNav } from "@/components/MobileNav";
-import { MobileMenu } from "@/components/MobileMenu";
-import { MobileContactCard } from "@/components/MobileContactCard";
-import { SwipeableContactCard } from "@/components/SwipeableContactCard";
-import { PullToRefresh } from "@/components/PullToRefresh";
 // StopTypeSelector removed - stop types now set via default in Settings and editable in route details
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -74,7 +69,6 @@ export default function Home() {
   const [uploadContactName, setUploadContactName] = useState<string>("");
   const [showBulkDocumentUpload, setShowBulkDocumentUpload] = useState(false);
   const [viewingContact, setViewingContact] = useState<any | null>(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Check for OAuth callback status and route creation from waypoints
   useEffect(() => {
@@ -393,7 +387,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
         <header className="p-6">
           <div className="container flex items-center gap-3">
-            <img src={APP_LOGO} alt="RoutieRoo" className="h-16 w-16 object-contain" />
+            <img src={APP_LOGO} alt="RoutieRoo" className="h-32" />
           </div>
         </header>
         
@@ -545,12 +539,12 @@ export default function Home() {
         }}
       />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <header className="bg-white border-b sticky top-0 z-30">
-        <div className="container py-4 md:py-4 mobile-header-compact flex items-center justify-between">
+      <header className="bg-white border-b">
+        <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={APP_LOGO} alt="RoutieRoo" className="h-16 w-16 md:h-20 md:w-20 object-contain" />
+            <img src={APP_LOGO} alt="RoutieRoo" className="h-24" />
           </div>
-          <div className="hidden md:flex items-center gap-3 desktop-nav">
+          <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground">
               {user?.name || user?.email}
             </span>
@@ -610,22 +604,8 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Mobile Navigation */}
-      <MobileNav onMenuClick={() => setIsMobileMenuOpen(true)} />
-      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
-
-      <PullToRefresh
-        onRefresh={async () => {
-          await Promise.all([
-            contactsQuery.refetch(),
-            routesQuery.refetch(),
-            foldersQuery.refetch(),
-            startingPointsQuery.refetch()
-          ]);
-        }}
-      >
-        <main className="container py-8 mobile-content-padding">
-          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6">
+      <main className="container py-8">
+        <div className="grid lg:grid-cols-2 gap-6">
           {/* Contacts Section */}
           <div className="space-y-6">
             {/* Create Route Section */}
@@ -637,7 +617,7 @@ export default function Home() {
                   Set up the route Roo will guide you through.
                 </CardDescription>
               </CardHeader>
-                <CardContent className="space-y-4 md:space-y-4">
+                <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="routeName" className="text-sm !font-bold">Route Name</Label>
                     <Input
@@ -645,7 +625,6 @@ export default function Home() {
                       placeholder="e.g., Client Visits - Monday"
                       value={routeName}
                       onChange={(e) => setRouteName(e.target.value)}
-                      className="touch-target text-base"
                     />
                   </div>
 
@@ -658,7 +637,7 @@ export default function Home() {
                         value={routeNotes}
                         onChange={(e) => setRouteNotes(e.target.value)}
                         rows={3}
-                        className="pr-10 touch-target text-base"
+                        className="pr-10"
                       />
                       <div className="absolute bottom-2 right-2">
                         <EmojiPickerButton
@@ -675,7 +654,6 @@ export default function Home() {
                       type="date"
                       value={scheduledDate}
                       onChange={(e) => setScheduledDate(e.target.value)}
-                      className="touch-target text-base"
                     />
                     <p className="text-xs text-muted-foreground">
                       Schedule this route for a specific date
@@ -706,7 +684,7 @@ export default function Home() {
                         placeholder="Enter custom starting address"
                         value={customStartingPoint}
                         onChange={(e) => setCustomStartingPoint(e.target.value)}
-                        className="mt-2 touch-target text-base"
+                        className="mt-2"
                       />
                     )}
                     <p className="text-xs text-muted-foreground">
@@ -749,7 +727,6 @@ export default function Home() {
                         placeholder="New folder name"
                         value={newFolderName}
                         onChange={(e) => setNewFolderName(e.target.value)}
-                        className="touch-target text-base"
                       />
                       <Button onClick={handleCreateFolder} disabled={createFolderMutation.isPending}>
                         {createFolderMutation.isPending ? (
@@ -782,8 +759,7 @@ export default function Home() {
 
 
                   <Button
-                    className="w-full touch-target"
-                    size="lg"
+                    className="w-full"
                     onClick={handleCreateRoute}
                     disabled={selectedContacts.size < 2 || !routeName.trim() || isCreatingRoute}
                   >
@@ -815,13 +791,13 @@ export default function Home() {
                     </CardDescription>
                   </div>
                   <div className="flex items-start gap-4">
-                    <div className="flex flex-col sm:flex-row flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={handleSyncContacts}
                         disabled={googleAuthQuery.isFetching}
-                        className="whitespace-nowrap w-full sm:w-auto touch-target"
+                        className="whitespace-nowrap"
                       >
                         {googleAuthQuery.isFetching ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -834,7 +810,7 @@ export default function Home() {
                         variant="outline"
                         size="sm"
                         onClick={() => setShowImportDialog(true)}
-                        className="whitespace-nowrap w-full sm:w-auto touch-target"
+                        className="whitespace-nowrap"
                       >
                         <Upload className="h-4 w-4" />
                         <span className="ml-2">Import CSV</span>
@@ -843,7 +819,7 @@ export default function Home() {
                         variant="outline"
                         size="sm"
                         onClick={() => setShowBulkDocumentUpload(true)}
-                        className="whitespace-nowrap w-full sm:w-auto touch-target"
+                        className="whitespace-nowrap"
                       >
                         <Paperclip className="h-4 w-4" />
                         <span className="ml-2">Bulk Upload Doc</span>
@@ -935,56 +911,9 @@ export default function Home() {
                 ) : (
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {filteredContacts.map((contact) => (
-                      /* Mobile: Use MobileContactCard with swipe, Desktop: Use original layout */
-                      <div key={contact.id} className="md:hidden">
-                        <SwipeableContactCard
-                          contact={contact}
-                          onCall={() => {
-                            const phones = contact.phoneNumbers ? JSON.parse(contact.phoneNumbers) : [];
-                            if (phones[0]) {
-                              const cleanNumber = phones[0].value.replace(/\D/g, '');
-                              window.open(`tel:+1${cleanNumber}`, '_blank');
-                            }
-                          }}
-                          onText={() => {
-                            const phones = contact.phoneNumbers ? JSON.parse(contact.phoneNumbers) : [];
-                            if (phones[0]) {
-                              const cleanNumber = phones[0].value.replace(/\D/g, '');
-                              window.open(`sms:+1${cleanNumber}`, '_blank');
-                            }
-                          }}
-                          onNavigate={() => {
-                            if (contact.address) {
-                              window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(contact.address)}`, '_blank');
-                            }
-                          }}
-                        >
-                          <MobileContactCard
-                            contact={contact}
-                            isSelected={selectedContacts.has(contact.id)}
-                            onToggle={() => handleContactToggle(contact.id)}
-                            onEdit={() => setEditingContact(contact)}
-                            onViewDetails={() => setViewingContact(contact)}
-                            onUploadDocument={() => {
-                              setUploadContactId(contact.id);
-                              setUploadContactName(contact.name || "Contact");
-                              setShowDocumentUpload(true);
-                            }}
-                            onToggleActive={() => {
-                              toggleContactActiveMutation.mutate({
-                                contactId: contact.id,
-                                isActive: contact.isActive !== 1,
-                              });
-                            }}
-                            preferredCallingService={user?.preferredCallingService || "phone"}
-                          />
-                        </SwipeableContactCard>
-                      </div>
-                    ))}
-                    {filteredContacts.map((contact) => (
                       <div
                         key={contact.id}
-                        className="hidden md:flex items-start gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer"
+                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer"
                         onClick={() => handleContactToggle(contact.id)}
                       >
                         <Checkbox
@@ -1181,17 +1110,17 @@ export default function Home() {
           </div>
 
           {/* Routes Section */}
-          <div id="routes-section">
+          <div>
             <Card>
               <CardHeader>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="font-bold">Your Hop Library</CardTitle>
                     <CardDescription className="italic">
                       A clear, hop-by-hop look at your route.
                     </CardDescription>
                   </div>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <div className="flex items-center gap-3">
                     {folders.length > 0 && (
                       <Select value={selectedFolderFilter} onValueChange={setSelectedFolderFilter}>
                         <SelectTrigger className="w-[180px]">
@@ -1238,7 +1167,7 @@ export default function Home() {
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {filteredRoutes.map((route) => (
-                      <div key={route.id} className="p-3 md:p-4 rounded-lg border hover:bg-accent transition-colors group touch-target">
+                      <div key={route.id} className="p-4 rounded-lg border hover:bg-accent transition-colors group">
                         <div className="flex items-start justify-between">
                           <Link href={`/route/${route.id}`} className="flex-1 min-w-0">
                             <div className="cursor-pointer">
@@ -1268,28 +1197,26 @@ export default function Home() {
                               </div>
                             </div>
                           </Link>
-                          <div className="flex items-center gap-1 md:gap-2">
+                          <div className="flex items-center gap-2">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-target"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
                               onClick={(e) => {
                                 e.preventDefault();
                                 handleArchiveRoute(route.id);
                               }}
-                              title="Archive Route"
                             >
                               <Archive className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-target"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
                               onClick={(e) => {
                                 e.preventDefault();
                                 handleDeleteRoute(route.id);
                               }}
-                              title="Delete Route"
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -1303,9 +1230,8 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
-          </div>
-        </main>
-      </PullToRefresh>
+        </div>
+      </main>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteRouteId !== null} onOpenChange={() => setDeleteRouteId(null)}>
@@ -1432,15 +1358,6 @@ export default function Home() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Floating Action Button (FAB) for Mobile - Add Contact */}
-      <button
-        className="md:hidden fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center touch-target active:scale-95 transition-transform"
-        onClick={() => setEditingContact({})}
-        aria-label="Add Contact"
-      >
-        <Plus className="h-6 w-6" />
-      </button>
     </div>
     </>
   );

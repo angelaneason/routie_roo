@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE route_waypoints \nADD COLUMN isGapStop BOOLEAN NOT NULL DEFAULT FALSE AFTER stopColor,\nADD COLUMN gapDuration INT AFTER isGapStop,\nADD COLUMN gapDescription TEXT AFTER gapDuration;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute ALTER TABLE route_waypoints \nADD COLUMN isGapStop BOOLEAN NOT NULL DEFAULT FALSE AFTER stopColor,\nADD COLUMN gapDuration INT AFTER isGapStop,\nADD COLUMN gapDescription TEXT AFTER gapDuration;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'isgapstop' in 'route_waypoints'"
+  ]
+}

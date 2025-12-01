@@ -49,8 +49,8 @@ export function getStopTypeConfig(type: StopType): StopTypeConfig {
 }
 
 interface StopTypeSelectorProps {
-  value: StopType;
-  onChange: (value: StopType, color: string) => void;
+  value: string;
+  onChange: (value: string, color: string) => void;
   size?: "sm" | "default";
 }
 

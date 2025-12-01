@@ -1590,6 +1590,49 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Reorder waypoints
+    reorderWaypoints: protectedProcedure
+      .input(z.object({
+        updates: z.array(z.object({
+          waypointId: z.number(),
+          position: z.number(),
+        })),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify all waypoints belong to user's routes
+        for (const update of input.updates) {
+          const waypoint = await db.select().from(routeWaypoints).where(eq(routeWaypoints.id, update.waypointId)).limit(1);
+          if (!waypoint.length) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Waypoint not found" });
+          }
+
+          const route = await getRouteById(waypoint[0].routeId);
+          if (!route || route.userId !== ctx.user.id) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+          }
+
+          // Update waypoint position
+          await db.update(routeWaypoints)
+            .set({ position: update.position })
+            .where(eq(routeWaypoints.id, update.waypointId));
+        }
+
+        // Mark route as having manual order
+        if (input.updates.length > 0) {
+          const firstWaypoint = await db.select().from(routeWaypoints).where(eq(routeWaypoints.id, input.updates[0].waypointId)).limit(1);
+          if (firstWaypoint.length) {
+            await db.update(routes)
+              .set({ hasManualOrder: true })
+              .where(eq(routes.id, firstWaypoint[0].routeId));
+          }
+        }
+
+        return { success: true };
+      }),
+
     // Update waypoint details (stop type, contact name, etc.)
     updateWaypointDetails: protectedProcedure
       .input(z.object({

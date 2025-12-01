@@ -63,6 +63,7 @@ export const routes = mysqlTable("routes", {
   totalDistance: int("totalDistance"), // Total distance in meters
   totalDuration: int("totalDuration"), // Total duration in seconds
   optimized: boolean("optimized").default(true).notNull(), // Whether waypoints were optimized
+  hasManualOrder: boolean("hasManualOrder").default(false).notNull(), // Whether user manually reordered stops
   folderId: int("folderId"), // Optional folder/category ID
   calendarId: int("calendarId"), // Optional calendar ID for scheduling
   googleCalendarId: varchar("googleCalendarId", { length: 255 }), // Google Calendar ID (e.g., 'primary' or calendar email)
@@ -102,6 +103,10 @@ export const routeWaypoints = mysqlTable("route_waypoints", {
   comments: text("comments"), // JSON array of {option, customText} from contact
   stopType: varchar("stopType", { length: 100 }).default("other"), // Type of stop (supports custom types)
   stopColor: varchar("stopColor", { length: 7 }).default("#3b82f6"), // Hex color for marker
+  // Gap stop fields
+  isGapStop: boolean("isGapStop").default(false).notNull(), // Whether this is a time gap (not a contact)
+  gapDuration: int("gapDuration"), // Duration of gap in minutes
+  gapDescription: text("gapDescription"), // Description of what the gap is for (lunch, meeting, etc.)
   // Execution workflow fields
   status: mysqlEnum("status", ["pending", "in_progress", "complete", "missed"]).default("pending"), // Stop completion status
   executionOrder: int("executionOrder"), // Order during execution (can differ from waypoint_order)

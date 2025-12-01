@@ -2,13 +2,12 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapView } from "@/components/Map";
 import { APP_TITLE } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon, Download, Sparkles, Archive, MoreVertical } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, MapPin, Share2, Copy, Calendar, CheckCircle2, XCircle, MessageSquare, GripVertical, Edit, Save, X, Plus, Trash2, Copy as CopyIcon, Download, Sparkles, Archive } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
@@ -20,23 +19,6 @@ import RouteNotes from "@/components/RouteNotes";
 import { useEffect, useState } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import { toast } from "sonner";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 export default function RouteDetail() {
   const { id } = useParams<{ id: string }>();
@@ -71,18 +53,12 @@ export default function RouteDetail() {
   const [showEditWaypointDialog, setShowEditWaypointDialog] = useState(false);
   const [editingWaypoint, setEditingWaypoint] = useState<any | null>(null);
   const [editWaypointName, setEditWaypointName] = useState("");
-  const [editWaypointStopType, setEditWaypointStopType] = useState("");
+  const [editWaypointStopType, setEditWaypointStopType] = useState<string>("visit");
   const [editWaypointStopColor, setEditWaypointStopColor] = useState("#3b82f6");
   const [editWaypointAddress, setEditWaypointAddress] = useState("");
   const [editWaypointPhoneNumbers, setEditWaypointPhoneNumbers] = useState<Array<{value: string, label?: string, type?: string}>>([]);
   const [editWaypointLabels, setEditWaypointLabels] = useState<string[]>([]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const [hasUnsavedOrder, setHasUnsavedOrder] = useState(false);
 
   const routeQuery = trpc.routes.get.useQuery(
     { routeId: parseInt(routeId!) },
@@ -178,6 +154,21 @@ export default function RouteDetail() {
     },
     onError: (error) => {
       toast.error(`Failed to remove waypoint: ${error.message}`);
+    },
+  });
+
+  const reorderWaypointsMutation = trpc.routes.reorderWaypoints.useMutation({
+    onSuccess: () => {
+      toast.success("Stop order saved");
+      setHasUnsavedOrder(false);
+      routeQuery.refetch();
+      // Recalculate route after reordering
+      if (routeId) {
+        recalculateRouteMutation.mutate({ routeId: parseInt(routeId) });
+      }
+    },
+    onError: (error) => {
+      toast.error(`Failed to save order: ${error.message}`);
     },
   });
 
@@ -300,16 +291,34 @@ export default function RouteDetail() {
     }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+  const handlePositionChange = (waypointId: number, newPosition: number) => {
+    setLocalWaypoints((items) => {
+      const oldIndex = items.findIndex((item) => item.id === waypointId);
+      if (oldIndex === -1) return items;
+      
+      // Adjust for 0-indexed array (newPosition is 1-indexed from user input)
+      const targetIndex = newPosition;
+      
+      // Don't allow moving to position 0 (starting point)
+      if (targetIndex === 0) return items;
+      
+      const newItems = [...items];
+      const [movedItem] = newItems.splice(oldIndex, 1);
+      newItems.splice(targetIndex, 0, movedItem);
+      
+      setHasUnsavedOrder(true);
+      return newItems;
+    });
+  };
 
-    if (over && active.id !== over.id) {
-      setLocalWaypoints((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
+  const saveWaypointOrder = () => {
+    // Update waypoint positions in database
+    const updates = localWaypoints.map((wp, index) => ({
+      waypointId: wp.id,
+      position: index,
+    }));
+    
+    reorderWaypointsMutation.mutate({ updates });
   };
 
   // Initialize map and render route
@@ -370,8 +379,7 @@ export default function RouteDetail() {
             // Intermediate waypoint markers
             route.legs.forEach((leg, index) => {
               if (index < route.legs.length - 1) {
-                // Get waypoint data for this marker
-                // leg[0].end_location is first stop = waypoints[1] (waypoints[0] is starting point)
+                // Get waypoint data for this marker (skip starting point at index 0)
                 const waypoint = waypoints[index + 1];
                 const stopColor = waypoint?.stopColor || "#4F46E5";
                 const stopType = waypoint?.stopType || "visit";
@@ -484,24 +492,10 @@ export default function RouteDetail() {
     },
   });
 
-  const utils = trpc.useUtils();
-  
   const copyRouteMutation = trpc.routes.copyRoute.useMutation({
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       toast.success("Route copied successfully!");
-      // Invalidate all route-related queries to ensure fresh data
-      await utils.routes.invalidate();
-      // Prefetch the new route data before navigating
-      try {
-        await utils.routes.getById.prefetch({ routeId: data.routeId });
-        // Navigate after data is prefetched
-        navigate(`/routes/${data.routeId}`);
-      } catch (error) {
-        // If prefetch fails, try navigation anyway with a delay
-        setTimeout(() => {
-          navigate(`/routes/${data.routeId}`);
-        }, 300);
-      }
+      window.location.href = `/routes/${data.routeId}`;
     },
     onError: (error) => {
       toast.error(error.message || "Failed to copy route");
@@ -651,18 +645,18 @@ export default function RouteDetail() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <header className="bg-white border-b sticky top-0 z-30">
-        <div className="container py-3 md:py-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+      <header className="bg-white border-b">
+        <div className="container py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
               <Link href="/">
-                <Button variant="ghost" size="sm" className="touch-target">
-                  <ArrowLeft className="h-4 w-4 md:mr-2" />
-                  <span className="hidden md:inline">Back</span>
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
                 </Button>
               </Link>
-              <div className="h-6 w-px bg-border hidden sm:block" />
-              <h1 className="text-base md:text-xl font-bold truncate">{route.name}</h1>
+              <div className="h-6 w-px bg-border" />
+              <h1 className="text-xl font-bold">{route.name}</h1>
               {route.completedAt && (
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium">
                   <CheckCircle2 className="h-4 w-4" />
@@ -675,7 +669,7 @@ export default function RouteDetail() {
                 </div>
               )}
             </div>
-            <div className="flex flex-wrap items-center gap-1 md:gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {isEditMode ? (
                 <>
                   <Button variant="outline" size="sm" onClick={() => setIsEditMode(false)}>
@@ -693,7 +687,7 @@ export default function RouteDetail() {
                 </>
               ) : (
                  <>                  {/* Primary Actions */}
-                  <Button variant="outline" size="sm" onClick={handleReoptimizeRoute} disabled={reoptimizeRouteMutation.isPending} className="hidden sm:flex">
+                  <Button variant="outline" size="sm" onClick={handleReoptimizeRoute} disabled={reoptimizeRouteMutation.isPending}>
                     {reoptimizeRouteMutation.isPending ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
@@ -706,73 +700,33 @@ export default function RouteDetail() {
                     Open in Maps
                   </Button>
                   
-                  {/* Desktop: Show all buttons */}
-                  <Button variant="outline" size="sm" onClick={handleCopyShareLink} className="hidden md:flex">
+                  {/* Sharing Actions */}
+                  <Button variant="outline" size="sm" onClick={handleCopyShareLink}>
                     <Copy className="h-4 w-4 mr-2" />
                     Copy Link
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)} className="hidden md:flex">
+                  <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)}>
                     <Share2 className="h-4 w-4 mr-2" />
                     Share
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleCopyRoute} className="hidden md:flex">
+                  
+                  {/* Secondary Actions */}
+                  <Button variant="outline" size="sm" onClick={handleCopyRoute}>
                     <CopyIcon className="h-4 w-4 mr-2" />
-                    Duplicate Route
+                    Copy
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleAddToCalendar} className="hidden md:flex">
+                  <Button variant="outline" size="sm" onClick={handleAddToCalendar}>
                     <Calendar className="h-4 w-4 mr-2" />
-                    Add to Calendar
+                    Calendar
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleExportToCSV} className="hidden md:flex">
+                  <Button variant="outline" size="sm" onClick={handleExportToCSV}>
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleArchiveRoute} disabled={archiveRouteMutation.isPending} className="hidden md:flex">
+                  <Button variant="outline" size="sm" onClick={handleArchiveRoute} disabled={archiveRouteMutation.isPending}>
                     <Archive className="h-4 w-4 mr-2" />
                     Archive
                   </Button>
-                  
-                  {/* Mobile: Dropdown menu with all actions */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="md:hidden">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuItem onClick={handleCopyRoute}>
-                        <CopyIcon className="h-4 w-4 mr-2" />
-                        Duplicate Route
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleAddToCalendar}>
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Add to Calendar
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleCopyShareLink}>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy Link
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setShowShareDialog(true)}>
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Share
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleExportToCSV}>
-                        <Download className="h-4 w-4 mr-2" />
-                        Export CSV
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleReoptimizeRoute}>
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        Re-optimize
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleArchiveRoute} disabled={archiveRouteMutation.isPending}>
-                        <Archive className="h-4 w-4 mr-2" />
-                        Archive
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </>
               )}
             </div>
@@ -780,12 +734,12 @@ export default function RouteDetail() {
         </div>
       </header>
 
-      <main className="container py-6 mobile-content-padding">
-        <div className="flex flex-col lg:grid lg:grid-cols-5 gap-6">
+      <main className="container py-6">
+        <div className="grid lg:grid-cols-5 gap-6">
           {/* Map */}
           <div className="lg:col-span-2 lg:sticky lg:top-6 lg:self-start">
             <Card className="overflow-hidden">
-              <div className="h-[400px] md:h-[500px] lg:h-[600px]">
+              <div className="h-[600px]">
                 <MapView
                   onMapReady={(loadedMap) => {
                     setMap(loadedMap);
@@ -820,12 +774,6 @@ export default function RouteDetail() {
                   <p className="text-sm text-muted-foreground">Stops</p>
                   <p className="text-2xl font-bold">{waypoints.length}</p>
                 </div>
-                <div className="pt-4 border-t">
-                  <p className="text-sm text-muted-foreground mb-1">Created</p>
-                  <p className="text-sm font-medium">
-                    {new Date(route.createdAt).toLocaleString()}
-                  </p>
-                </div>
                 {route.completedAt && (
                   <div className="pt-4 border-t">
                     <p className="text-sm text-muted-foreground mb-1">Completed</p>
@@ -851,8 +799,8 @@ export default function RouteDetail() {
                     Every hop in order — smooth, simple, efficient.
                   </CardDescription>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-2">
                     <Button
                       size="sm"
                       variant="outline"
@@ -863,7 +811,6 @@ export default function RouteDetail() {
                         setEditStartingPoint(route?.startingPointAddress || "");
                         setShowEditDialog(true);
                       }}
-                      className="w-full sm:w-auto touch-target"
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Route
@@ -872,7 +819,6 @@ export default function RouteDetail() {
                       size="sm"
                       variant="outline"
                       onClick={() => setShowAddContactDialog(true)}
-                      className="w-full sm:w-auto touch-target"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Contact
@@ -889,7 +835,7 @@ export default function RouteDetail() {
                         }}
                       />
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                    <div className="flex gap-2 mt-3">
                       <Button
                         size="sm"
                         variant="outline"
@@ -908,7 +854,7 @@ export default function RouteDetail() {
                             });
                           }
                         }}
-                        className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300 w-full sm:w-auto touch-target"
+                        className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
                       >
                         <CheckCircle2 className="h-4 w-4 mr-1" />
                         Complete All Remaining
@@ -933,7 +879,7 @@ export default function RouteDetail() {
                             });
                           }
                         }}
-                        className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300 w-full sm:w-auto touch-target"
+                        className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300"
                       >
                         <XCircle className="h-4 w-4 mr-1" />
                         Mark All as Missed
@@ -943,16 +889,20 @@ export default function RouteDetail() {
                 )}
               </CardHeader>
               <CardContent>
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext
-                    items={localWaypoints.map(w => w.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                {hasUnsavedOrder && (
+                  <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center justify-between">
+                    <p className="text-sm text-yellow-800">You have unsaved stop order changes</p>
+                    <Button
+                      size="sm"
+                      onClick={saveWaypointOrder}
+                      disabled={reorderWaypointsMutation.isPending}
+                    >
+                      <Save className="h-4 w-4 mr-1" />
+                      Save Order
+                    </Button>
+                  </div>
+                )}
+                <div className="space-y-3 max-h-[600px] overflow-y-auto">
                       {localWaypoints.map((waypoint: any, index) => (
                         <SortableWaypointItem
                           key={waypoint.id}
@@ -1010,11 +960,11 @@ export default function RouteDetail() {
                             }
                             setShowEditWaypointDialog(true);
                           }}
+                          onPositionChange={handlePositionChange}
+                          totalStops={localWaypoints.length - 1}
                         />
                       ))}
                     </div>
-                  </SortableContext>
-                </DndContext>
               </CardContent>
             </Card>
 

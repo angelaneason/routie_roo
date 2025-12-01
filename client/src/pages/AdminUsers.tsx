@@ -93,7 +93,7 @@ export default function AdminUsers() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between mobile-header-compact">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/">
               <Button variant="ghost" size="sm">
@@ -102,7 +102,7 @@ export default function AdminUsers() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <Users className="h-6 w-6 text-blue-600" />
                 User Management
               </h1>
@@ -113,7 +113,7 @@ export default function AdminUsers() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-4 md:py-8 mobile-content-padding">
+      <main className="container mx-auto px-4 py-8">
         {usersQuery.isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
@@ -123,7 +123,7 @@ export default function AdminUsers() {
             {users.map((u: any) => (
               <Card key={u.id} className={u.id === user?.id ? "border-2 border-blue-500" : ""}>
                 <CardHeader>
-                  <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                  <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="flex items-center gap-2">
                         {u.name || "Unnamed User"}
@@ -146,7 +146,7 @@ export default function AdminUsers() {
                         </div>
                       </CardDescription>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <div className="flex gap-2">
                       {u.id !== user?.id && (
                         <>
                           <Button
@@ -154,7 +154,6 @@ export default function AdminUsers() {
                             size="sm"
                             onClick={() => handleMergeClick(u.id)}
                             disabled={mergeUsersMutation.isPending}
-                            className="min-h-[44px] w-full sm:w-auto"
                           >
                             <GitMerge className="h-4 w-4 mr-2" />
                             Merge
@@ -164,7 +163,6 @@ export default function AdminUsers() {
                             size="sm"
                             onClick={() => handleDeleteClick(u.id)}
                             disabled={deleteUserMutation.isPending || u.routeCount > 0 || u.contactCount > 0}
-                            className="min-h-[44px] w-full sm:w-auto"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete

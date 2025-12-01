@@ -80,7 +80,7 @@ export default function RescheduleHistory() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <header className="bg-white border-b">
-        <div className="container py-3 md:py-4 flex items-center justify-between mobile-header-compact">
+        <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/">
               <Button variant="ghost" size="sm">
@@ -95,16 +95,16 @@ export default function RescheduleHistory() {
         </div>
       </header>
 
-      <main className="container py-4 md:py-8 mobile-content-padding">
+      <main className="container py-8">
         <div className="max-w-6xl mx-auto space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold">Reschedule History</h2>
+              <h2 className="text-3xl font-bold">Reschedule History</h2>
               <p className="text-muted-foreground mt-2 italic">
                 Complete history of all rescheduled stops
               </p>
             </div>
-            <Button onClick={exportToCSV} variant="outline" disabled={history.length === 0} className="min-h-[44px] w-full sm:w-auto">
+            <Button onClick={exportToCSV} variant="outline" disabled={history.length === 0}>
               <Download className="h-4 w-4 mr-2" />
               Export CSV
             </Button>
@@ -113,10 +113,10 @@ export default function RescheduleHistory() {
           {/* Filters */}
           <Card>
             <CardContent className="pt-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex items-center gap-4">
                 <label className="text-sm font-medium">Filter by status:</label>
                 <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
-                  <SelectTrigger className="w-full sm:w-48 min-h-[44px] text-base">
+                  <SelectTrigger className="w-48">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
