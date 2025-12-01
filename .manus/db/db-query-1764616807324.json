@@ -1,0 +1,35 @@
+{
+  "query": "SELECT id, contactName, photoUrl FROM route_waypoints WHERE routeId = 1020001 LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, contactName, photoUrl FROM route_waypoints WHERE routeId = 1020001 LIMIT 5;",
+  "rows": [
+    {
+      "id": "1050001",
+      "contactName": "Starting Point",
+      "photoUrl": "NULL"
+    },
+    {
+      "id": "1050002",
+      "contactName": "MONMOUTH Rose",
+      "photoUrl": "NULL"
+    },
+    {
+      "id": "1050003",
+      "contactName": "COLLEYMORE Gwendolyn",
+      "photoUrl": "NULL"
+    },
+    {
+      "id": "1050004",
+      "contactName": "ONEAL Alice",
+      "photoUrl": "NULL"
+    },
+    {
+      "id": "1050005",
+      "contactName": "WILSON Teressa",
+      "photoUrl": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tcontactName\tphotoUrl\n1050001\tStarting Point\tNULL\n1050002\tMONMOUTH Rose\tNULL\n1050003\tCOLLEYMORE Gwendolyn\tNULL\n1050004\tONEAL Alice\tNULL\n1050005\tWILSON Teressa\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

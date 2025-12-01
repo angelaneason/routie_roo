@@ -1,0 +1,30 @@
+{
+  "query": "SELECT id, name, photoUrl FROM cached_contacts WHERE name LIKE '%MONMOUTH%' OR name LIKE '%COLLEYMORE%' LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, name, photoUrl FROM cached_contacts WHERE name LIKE '%MONMOUTH%' OR name LIKE '%COLLEYMORE%' LIMIT 5;",
+  "rows": [
+    {
+      "id": "210151",
+      "name": "MONMOUTH Rose",
+      "photoUrl": "https://lh3.googleusercontent.com/contacts/AG6tpzFCJOtC5eM72JdmjUC8IyN9tFh3tKEqKgjnlAyA4j2FJqRA1Bi2=s100"
+    },
+    {
+      "id": "210159",
+      "name": "COLLEYMORE Gwendolyn",
+      "photoUrl": "https://lh3.googleusercontent.com/contacts/AG6tpzFVTdjQsJQeUYkhf67RRkI6mC04HmXQpXzLyqkDYvDvfzlIK0fc=s100"
+    },
+    {
+      "id": "510148",
+      "name": "MONMOUTH Rose",
+      "photoUrl": "https://lh3.googleusercontent.com/contacts/AG6tpzFCJOtC5eM72JdmjUC8IyN9tFh3tKEqKgjnlAyA4j2FJqRA1Bi2=s100"
+    },
+    {
+      "id": "510156",
+      "name": "COLLEYMORE Gwendolyn",
+      "photoUrl": "https://lh3.googleusercontent.com/contacts/AG6tpzFVTdjQsJQeUYkhf67RRkI6mC04HmXQpXzLyqkDYvDvfzlIK0fc=s100"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tphotoUrl\n210151\tMONMOUTH Rose\thttps://lh3.googleusercontent.com/contacts/AG6tpzFCJOtC5eM72JdmjUC8IyN9tFh3tKEqKgjnlAyA4j2FJqRA1Bi2=s100\n210159\tCOLLEYMORE Gwendolyn\thttps://lh3.googleusercontent.com/contacts/AG6tpzFVTdjQsJQeUYkhf67RRkI6mC04HmXQpXzLyqkDYvDvfzlIK0fc=s100\n510148\tMONMOUTH Rose\thttps://lh3.googleusercontent.com/contacts/AG6tpzFCJOtC5eM72JdmjUC8IyN9tFh3tKEqKgjnlAyA4j2FJqRA1Bi2=s100\n510156\tCOLLEYMORE Gwendolyn\thttps://lh3.googleusercontent.com/contacts/AG6tpzFVTdjQsJQeUYkhf67RRkI6mC04HmXQpXzLyqkDYvDvfzlIK0fc=s100\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

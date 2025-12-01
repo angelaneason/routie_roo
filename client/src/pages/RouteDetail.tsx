@@ -460,12 +460,7 @@ export default function RouteDetail() {
     };
   }, [map, localWaypoints]);
 
-  const handleCopyShareLink = () => {
-    if (!route) return;
-    const shareUrl = `${window.location.origin}/share/${route.shareId}`;
-    navigator.clipboard.writeText(shareUrl);
-    toast.success("Share link copied to clipboard!");
-  };
+
 
   const handleOpenInGoogleMaps = () => {
     if (googleMapsUrlQuery.data?.url) {
@@ -656,7 +651,6 @@ export default function RouteDetail() {
                 </Button>
               </Link>
               <div className="h-6 w-px bg-border" />
-              <h1 className="text-xl font-bold">{route.name}</h1>
               {route.completedAt && (
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium">
                   <CheckCircle2 className="h-4 w-4" />
@@ -701,10 +695,6 @@ export default function RouteDetail() {
                   </Button>
                   
                   {/* Sharing Actions */}
-                  <Button variant="outline" size="sm" onClick={handleCopyShareLink}>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy Link
-                  </Button>
                   <Button variant="outline" size="sm" onClick={() => setShowShareDialog(true)}>
                     <Share2 className="h-4 w-4 mr-2" />
                     Share
@@ -717,7 +707,7 @@ export default function RouteDetail() {
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleAddToCalendar}>
                     <Calendar className="h-4 w-4 mr-2" />
-                    Calendar
+                    Add To Calendar
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleExportToCSV}>
                     <Download className="h-4 w-4 mr-2" />
@@ -758,6 +748,9 @@ export default function RouteDetail() {
                 <CardTitle>Route Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold mb-4">{route.name}</h2>
+                </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Distance</p>
                   <p className="text-2xl font-bold">

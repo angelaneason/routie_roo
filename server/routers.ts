@@ -970,9 +970,8 @@ export const appRouter = router({
         for (let i = 0; i < waypoints.length; i++) {
           const wp = waypoints[i];
           
-          // Skip starting point (waypoints with no contact name and no contactId)
-          const wpWithContactId = wp as any; // Type assertion for contactId field
-          if (!wp.contactName && !wpWithContactId.contactId) {
+          // Skip starting point (position 0 is always the anchor/starting point)
+          if (wp.position === 0) {
             continue;
           }
           

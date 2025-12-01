@@ -2118,3 +2118,20 @@
 - [x] Fix map markers disappearing when changing stop order with number inputs
 - [x] Ensure map updates when localWaypoints state changes
 - [x] Verify map markers persist after reordering
+
+## Bug Fix - Contact Photos Not Displaying on Waypoints
+
+- [ ] Verify photoUrl is being fetched from cached_contacts
+- [ ] Check if photoUrl is being passed when creating routes
+- [ ] Verify photoUrl is stored in route_waypoints table
+- [ ] Debug SortableWaypointItem photo rendering logic
+- [ ] Test with actual Google contact photos
+
+## UI/UX Improvements - User Requested
+
+- [x] Exclude starting point from calendar events (it's just an anchor)
+- [x] Fix route notes section not working at bottom of Route Details (route_notes table was missing, now created)
+- [x] Remove "Copy Link" button (doesn't work, duplicate of Share)
+- [x] Move route name from screen header into route details card
+- [x] Move contact labels to display under contact name
+- [x] Change "Calendar" button text to "Add To Calendar"
