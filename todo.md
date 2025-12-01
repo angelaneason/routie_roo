@@ -2178,3 +2178,10 @@
 - [x] Fix stop type colors in shared route view (now using waypoint.stopColor)
 - [x] Fix missing Google profile photos in shared route view (now displaying with stop number badge)
 - [x] Test all fixes
+
+## PhotoUrl Backfill - Complete
+
+- [x] Create backfill script to update existing waypoints with contact photoUrls
+- [x] Run backfill script on all existing routes (updated 9 waypoints, 24 total with photos)
+- [x] Verify photoUrls are populated in route waypoints
+- [x] Ensure addWaypoint mutation saves photoUrl for new waypoints

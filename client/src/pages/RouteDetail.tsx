@@ -1684,6 +1684,7 @@ function AddContactToRoute({ routeId, onSuccess }: { routeId: number; onSuccess:
                 contactName: contact.name || undefined,
                 address: contact.address,
                 phoneNumbers: contact.phoneNumbers || undefined,
+                photoUrl: contact.photoUrl || undefined,
               });
             }}
           >

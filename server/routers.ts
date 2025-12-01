@@ -1438,6 +1438,7 @@ export const appRouter = router({
         phoneNumbers: z.string().optional(),
         stopType: z.string().optional(), // Accept any custom stop type name
         stopColor: z.string().optional(),
+        photoUrl: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -1461,6 +1462,7 @@ export const appRouter = router({
           phoneNumbers: input.phoneNumbers || null,
           stopType: input.stopType || "visit",
           stopColor: input.stopColor || "#3b82f6",
+          photoUrl: input.photoUrl || null,
           position: nextOrder,
           executionOrder: nextOrder,
           status: "pending",
