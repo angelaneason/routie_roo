@@ -488,12 +488,19 @@ export default function RouteDetail() {
   const copyRouteMutation = trpc.routes.copyRoute.useMutation({
     onSuccess: async (data) => {
       toast.success("Route copied successfully!");
-      // Invalidate routes list to include the new route
-      await utils.routes.list.invalidate();
-      // Small delay to ensure data is available
-      setTimeout(() => {
+      // Invalidate all route-related queries to ensure fresh data
+      await utils.routes.invalidate();
+      // Prefetch the new route data before navigating
+      try {
+        await utils.routes.getById.prefetch({ routeId: data.routeId });
+        // Navigate after data is prefetched
         navigate(`/routes/${data.routeId}`);
-      }, 100);
+      } catch (error) {
+        // If prefetch fails, try navigation anyway with a delay
+        setTimeout(() => {
+          navigate(`/routes/${data.routeId}`);
+        }, 300);
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Failed to copy route");

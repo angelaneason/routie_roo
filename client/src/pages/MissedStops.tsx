@@ -61,7 +61,7 @@ export default function MissedStops() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <header className="bg-white border-b">
-        <div className="container py-4 flex items-center justify-between">
+        <div className="container py-3 md:py-4 flex items-center justify-between mobile-header-compact">
           <div className="flex items-center gap-3">
             <Link href="/">
               <Button variant="ghost" size="sm">
@@ -76,10 +76,10 @@ export default function MissedStops() {
         </div>
       </header>
 
-      <main className="container py-8">
+      <main className="container py-4 md:py-8 mobile-content-padding">
         <div className="max-w-6xl mx-auto space-y-6">
           <div>
-            <h2 className="text-3xl font-bold">Mis-Hops</h2>
+            <h2 className="text-2xl md:text-3xl font-bold">Mis-Hops</h2>
             <p className="text-muted-foreground mt-2 italic">
               Stops that need a second look before the route is complete.
             </p>
@@ -146,7 +146,7 @@ export default function MissedStops() {
                               setSelectedWaypoint(waypoint);
                               setRescheduledDate("");
                             }}
-                            className="bg-purple-600 hover:bg-purple-700"
+                            className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto min-h-[44px]"
                           >
                             <Calendar className="h-4 w-4 mr-1" />
                             Reschedule
@@ -176,7 +176,8 @@ export default function MissedStops() {
                             const waypointIds = selectedWaypoints.join(',');
                             navigate(`/?createRouteFromWaypoints=${waypointIds}`);
                           }}
-                          className="bg-green-600 hover:bg-green-700"
+                          className="bg-green-600 hover:bg-green-700 min-h-[44px] text-sm md:text-base"
+                          size="sm"
                         >
                           <Route className="h-4 w-4 mr-2" />
                           Create Route from Selected ({selectedWaypoints.length})

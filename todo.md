@@ -2188,3 +2188,15 @@
 
 - [x] Fix 404 error when clicking duplicate route (added cache invalidation and delay)
 - [x] Make ALL action buttons visible and accessible on mobile screens (added dropdown menu)
+
+## Admin Pages Mobile Optimization
+
+- [x] Optimize Missed Stops page for mobile
+- [x] Optimize Reschedule History page for mobile
+- [x] Optimize Archive page for mobile
+- [x] Optimize Changed Addresses page for mobile
+- [x] Optimize Admin Users page for mobile
+
+## Critical Bug
+
+- [x] Fix persistent 404 error when duplicating routes (added prefetching before navigation)

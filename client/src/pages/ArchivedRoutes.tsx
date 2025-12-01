@@ -60,13 +60,13 @@ export default function ArchivedRoutes() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between mobile-header-compact">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">Archived Routes</h1>
+              <h1 className="text-xl md:text-2xl font-bold">Archived Routes</h1>
               <p className="text-sm text-muted-foreground">
                 Routes that have been archived
               </p>
@@ -75,7 +75,7 @@ export default function ArchivedRoutes() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-4 md:py-8 mobile-content-padding">
         <Card>
           <CardHeader>
             <CardTitle>Archived Routes</CardTitle>
@@ -105,7 +105,7 @@ export default function ArchivedRoutes() {
                     key={route.id}
                     className="p-4 rounded-lg border hover:bg-accent transition-colors"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
                       <Link href={`/route/${route.id}`} className="flex-1 min-w-0">
                         <div className="cursor-pointer">
                           <h3 className="font-medium truncate">{route.name}</h3>
@@ -133,6 +133,7 @@ export default function ArchivedRoutes() {
                         size="sm"
                         onClick={() => handleUnarchive(route.id)}
                         disabled={unarchiveMutation.isPending}
+                        className="min-h-[44px] w-full sm:w-auto"
                       >
                         <Unplug className="h-4 w-4 mr-2" />
                         Restore
