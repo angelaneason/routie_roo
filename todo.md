@@ -1863,3 +1863,211 @@
 - [x] Update: clearCalendarEvents now deletes events from Google Calendar API
 - [x] Update: Clear calendarEventId from all waypoints when removing from calendar
 - [x] Test: Click remove button → Events deleted from Google Calendar → UI updates
+
+
+## Standalone Mobile-First Rebuild (Market Launch Priority)
+
+### Phase 1: Remove Google Dependency - Core Contact Management
+- [ ] Create manual contact entry form (name, phone, email, address)
+- [ ] Build contact list view (works without Google Contacts)
+- [ ] Add contact editing functionality
+- [ ] Add contact deletion with confirmation
+- [ ] Implement contact search (by name, phone, address)
+- [ ] Add contact photo upload (local file upload)
+- [ ] Build CSV contact import (upload CSV file with contacts)
+- [ ] Add contact export to CSV
+- [ ] Create contact validation (ensure required fields)
+- [ ] Add address autocomplete using Google Maps Autocomplete API (no auth required)
+- [ ] Test contact management flow end-to-end
+
+### Phase 2: Remove Google Dependency - Local Calendar System
+- [ ] Create calendar_events table in database (id, userId, title, startTime, endTime, location, description, type)
+- [ ] Build manual event creation form
+- [ ] Add event editing functionality
+- [ ] Add event deletion with confirmation
+- [ ] Create calendar view (month/week/day) showing local events
+- [ ] Integrate route events into local calendar
+- [ ] Add iCal export for events (users can import to any calendar app)
+- [ ] Add CSV export for events
+- [ ] Remove dependency on Google Calendar API for event storage
+- [ ] Make Google Calendar sync optional (keep as enhancement feature)
+- [ ] Test local calendar system end-to-end
+
+### Phase 3: Mobile-First UI Redesign
+- [ ] Audit all pages on mobile (iPhone, Android)
+- [ ] Redesign homepage for mobile (touch-friendly navigation)
+- [ ] Redesign contact list for mobile (card layout, large touch targets)
+- [ ] Redesign route creation for mobile (step-by-step wizard)
+- [ ] Redesign route detail for mobile (collapsible sections)
+- [ ] Redesign calendar for mobile (swipe navigation)
+- [ ] Redesign settings for mobile (accordion layout)
+- [ ] Add mobile-friendly map controls
+- [ ] Implement bottom navigation bar for mobile
+- [ ] Add pull-to-refresh on list views
+- [ ] Test all touch interactions (tap, swipe, pinch-zoom)
+- [ ] Optimize for small screens (320px width minimum)
+
+### Phase 4: Simplified Onboarding (No Google Required)
+- [ ] Remove Google OAuth requirement for sign-up
+- [ ] Create simple email/password registration
+- [ ] Build "Getting Started" wizard (no Google steps)
+  - Step 1: Add your first contact
+  - Step 2: Create your first route
+  - Step 3: Explore calendar and execution
+- [ ] Add sample data option (pre-populate with demo contacts/routes)
+- [ ] Create interactive tutorial overlays
+- [ ] Add skip option for users who want to dive in
+- [ ] Test onboarding with 10 new users (target < 5 min to first route)
+
+### Phase 5: Offline Mode (Critical for Field Workers)
+- [ ] Implement service worker for offline support
+- [ ] Cache route data in IndexedDB
+- [ ] Cache contact data in IndexedDB
+- [ ] Allow route execution offline (mark stops complete/missed)
+- [ ] Queue offline changes for sync when online
+- [ ] Add offline indicator banner
+- [ ] Test offline → online transition
+- [ ] Ensure maps work offline (cached tiles)
+
+### Phase 6: Performance Optimization for Mobile
+- [ ] Reduce initial bundle size (< 300KB gzipped)
+- [ ] Implement lazy loading for routes
+- [ ] Implement lazy loading for contacts
+- [ ] Add image compression for contact photos
+- [ ] Optimize map rendering for mobile
+- [ ] Add loading skeletons for all pages
+- [ ] Test on slow 3G connection
+- [ ] Test on low-end Android device
+- [ ] Measure and optimize Time to Interactive (< 3 seconds)
+
+### Phase 7: Mobile-Specific Features
+- [ ] Add "Call" button with tel: link (no Google Voice dependency)
+- [ ] Add "Text" button with sms: link
+- [ ] Add "Navigate" button with maps: link (opens native maps app)
+- [ ] Add "Share Route" via native share API
+- [ ] Implement geolocation for "Use Current Location" as starting point
+- [ ] Add camera integration for contact photos
+- [ ] Support mobile notifications (route reminders)
+- [ ] Add home screen install prompt (PWA)
+
+### Phase 8: Optional Google Integration (Enhancement, Not Requirement)
+- [ ] Move Google Calendar sync to "Integrations" settings
+- [ ] Move Google Contacts sync to "Integrations" settings
+- [ ] Make both integrations clearly optional
+- [ ] Add "Connect Google" buttons (not required for core functionality)
+- [ ] Show benefits of connecting Google (automatic sync)
+- [ ] Allow disconnecting Google without losing data
+- [ ] Test app works fully without any Google connection
+
+### Phase 9: Alternative Authentication
+- [ ] Implement email/password authentication
+- [ ] Add "Forgot Password" flow
+- [ ] Add email verification
+- [ ] Add social login options (Apple, Facebook) as alternatives to Google
+- [ ] Remove Google OAuth as only login method
+- [ ] Test authentication flow on mobile
+
+### Phase 10: Data Portability
+- [ ] Build comprehensive CSV export (all contacts, routes, events)
+- [ ] Build CSV import for contacts
+- [ ] Build CSV import for routes (if user has data from other tools)
+- [ ] Add "Download All My Data" button (GDPR compliance)
+- [ ] Create data backup/restore functionality
+- [ ] Test import/export with large datasets
+
+### Testing & Launch Preparation
+- [ ] Test complete flow on iPhone (iOS Safari)
+- [ ] Test complete flow on Android (Chrome)
+- [ ] Test on tablet (iPad, Android tablet)
+- [ ] Test with 1000+ contacts (performance)
+- [ ] Test with 100+ routes (performance)
+- [ ] Test offline mode thoroughly
+- [ ] Conduct user testing with 10 field workers
+- [ ] Fix all critical bugs found in testing
+- [ ] Create mobile-optimized screenshots for marketing
+- [ ] Update user manual for standalone version
+
+### Documentation Updates
+- [ ] Rewrite user manual to remove Google dependency mentions
+- [ ] Create "Import Contacts from CSV" guide
+- [ ] Create "Export to Your Calendar App" guide
+- [ ] Update marketing copy to emphasize "No Google Required"
+- [ ] Create comparison chart: Standalone vs Google-Connected modes
+
+
+
+## Hybrid Architecture: Support Both Google & Standalone Modes
+
+### Phase 1: Dual Authentication System
+- [ ] Keep existing Google OAuth login
+- [ ] Add email/password authentication as alternative
+- [ ] Create unified user model (supports both auth methods)
+- [ ] Add "Sign up with Email" and "Sign up with Google" options on registration
+- [ ] Allow users to link Google account to existing email account later
+- [ ] Test both authentication flows
+
+### Phase 2: Hybrid Contact Management
+- [ ] Keep existing Google Contacts sync functionality
+- [ ] Add manual contact entry form (for non-Google users)
+- [ ] Add CSV contact import (for non-Google users)
+- [ ] Show "Import from Google Contacts" button for Google-authenticated users
+- [ ] Show "Add Manually" and "Import CSV" buttons for all users
+- [ ] Store all contacts in local database (regardless of source)
+- [ ] Add contact_source field (google, manual, csv) to track origin
+- [ ] Enable editing locally-stored Google contacts
+- [ ] Add optional Google Contacts sync toggle in settings
+- [ ] Test contact management for both user types
+
+### Phase 3: Hybrid Calendar System
+- [ ] Keep existing Google Calendar integration
+- [ ] Create local calendar_events table for standalone events
+- [ ] Show "Add to Google Calendar" button (only for Google-authenticated users)
+- [ ] Show "Add to Local Calendar" button (for all users)
+- [ ] Display both Google and local events in calendar view
+- [ ] Add iCal export for local events
+- [ ] Add "Sync to Google Calendar" toggle in settings (for Google users)
+- [ ] Allow Google users to choose: local-only, Google-only, or both
+- [ ] Test calendar functionality for both user types
+
+### Phase 4: Settings & User Preferences
+- [ ] Add "Account Type" indicator in settings (Google-connected vs Standalone)
+- [ ] Add "Connect Google Account" button for standalone users
+- [ ] Add "Disconnect Google Account" button for Google users (with warning)
+- [ ] Show Google-specific settings only to Google-connected users
+- [ ] Add "Data Source" preferences (prefer Google vs prefer local)
+- [ ] Create migration flow: standalone → Google-connected
+- [ ] Create migration flow: Google-connected → standalone
+- [ ] Test account type switching
+
+### Phase 5: UI Adaptation Based on Account Type
+- [ ] Show/hide Google-specific buttons based on authentication method
+- [ ] Display "Connect Google for automatic sync" banner for standalone users
+- [ ] Add "Benefits of Connecting Google" tooltip/modal
+- [ ] Show contact source badges (Google icon vs manual icon)
+- [ ] Adapt onboarding wizard based on chosen authentication method
+- [ ] Test UI for both user types
+
+### Phase 6: Data Sync Logic
+- [ ] Implement contact sync: Google → Local (for Google users)
+- [ ] Implement calendar sync: Local → Google (optional for Google users)
+- [ ] Add conflict resolution (last-write-wins or user-choice)
+- [ ] Add sync status indicators ("Synced", "Syncing", "Sync Failed")
+- [ ] Add manual "Sync Now" button
+- [ ] Handle Google token expiration gracefully
+- [ ] Test sync reliability
+
+### Phase 7: Mobile Optimization (Universal)
+- [ ] Ensure mobile UI works for both user types
+- [ ] Test onboarding on mobile for email/password flow
+- [ ] Test onboarding on mobile for Google OAuth flow
+- [ ] Optimize contact import (CSV) for mobile file upload
+- [ ] Test all features on iPhone and Android for both modes
+
+### Phase 8: Documentation & Marketing
+- [ ] Update user manual to explain both modes
+- [ ] Create "Standalone vs Google-Connected" comparison chart
+- [ ] Add FAQ: "Do I need a Google account?"
+- [ ] Create tutorial: "How to connect Google later"
+- [ ] Create tutorial: "How to import contacts without Google"
+- [ ] Update marketing copy: "Works with or without Google"
+
