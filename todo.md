@@ -2428,3 +2428,7 @@
 - [x] Add confirmation dialog before archiving routes
 - [x] Display archive date in Archive section (already exists)
 - [x] Add delete button with confirmation to archive screen
+
+## UI Layout Improvements
+
+- [x] Make "Your Hop Library" section match height of "Plan Your Next Hop" section

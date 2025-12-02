@@ -1226,7 +1226,7 @@ export default function Home() {
                     <p className="text-sm mt-2">Create your first route above to get started</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                  <div className="space-y-3 overflow-y-auto">
                     {filteredRoutes.map((route) => (
                       <div key={route.id} className="p-4 rounded-lg border hover:bg-accent transition-colors group">
                         <div className="flex items-start justify-between">
