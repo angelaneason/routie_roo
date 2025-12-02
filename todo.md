@@ -2302,3 +2302,13 @@
 - [x] Ensure no horizontal scroll when sticky note is hidden
 - [x] Make sticky note overlay content (not push layout) when shown on mobile
 - [x] Test that mobile layout stays normal width without sticky note
+
+
+## Mobile Viewport Width Issue
+
+- [x] Fix screen being too wide on mobile
+- [x] Fix stretched logo on mobile
+- [x] Fix calendar layout being misaligned
+- [x] Ensure sticky note toggle button is visible and accessible
+- [x] Add proper viewport constraints to prevent horizontal overflow
+- [x] Test all header elements fit within mobile viewport

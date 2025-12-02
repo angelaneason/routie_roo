@@ -203,7 +203,7 @@ export function SchedulerNotes() {
       {!isVisible && (
         <button
           onClick={() => setIsVisible(true)}
-          className="md:hidden fixed bottom-20 right-4 z-50 w-14 h-14 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all"
+          className="md:hidden fixed bottom-6 right-4 z-50 w-14 h-14 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all"
           aria-label="Show reminders"
         >
           <span className="text-2xl">📌</span>
