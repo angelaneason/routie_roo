@@ -2413,3 +2413,7 @@
 ## Label Colors Bug Fixes
 
 - [x] Filter out system-generated Google Contacts group identifiers (contactGroups/*) from Label Colors Settings display
+
+## Label Legend Feature
+
+- [x] Add label color legend to route detail page (alongside stop type legend)

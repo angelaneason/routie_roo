@@ -869,7 +869,7 @@ export default function RouteDetail() {
                   </div>
                 )}
                 
-                {/* Color Legend */}
+                {/* Stop Type Legend */}
                 {(() => {
                   // Extract unique stop types from waypoints (excluding starting point and gap stops)
                   const uniqueStopTypes = new Map<string, string>();
@@ -894,6 +894,60 @@ export default function RouteDetail() {
                             </div>
                           ))}
                         </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
+                {/* Label Color Legend */}
+                {(() => {
+                  if (!labelColorsQuery.data || labelColorsQuery.data.length === 0) {
+                    return null;
+                  }
+
+                  // Extract unique labels with colors from waypoints that have exactly one colored label
+                  const labelsInRoute = new Map<string, string>();
+                  
+                  waypoints.forEach(wp => {
+                    if (wp.contactLabels && wp.position !== 0 && !wp.isGapStop) {
+                      try {
+                        const labels = JSON.parse(wp.contactLabels);
+                        const labelsWithColors = labels.filter((label: string) => 
+                          labelColorsQuery.data.some(lc => lc.labelName === label)
+                        );
+                        
+                        // Only show labels that appear as center colors (exactly one colored label)
+                        if (labelsWithColors.length === 1) {
+                          const labelColor = labelColorsQuery.data.find(lc => lc.labelName === labelsWithColors[0]);
+                          if (labelColor) {
+                            labelsInRoute.set(labelColor.labelName, labelColor.color);
+                          }
+                        }
+                      } catch (e) {
+                        // Ignore parse errors
+                      }
+                    }
+                  });
+                  
+                  if (labelsInRoute.size > 0) {
+                    return (
+                      <div className="pt-4 border-t">
+                        <p className="text-sm text-muted-foreground mb-3">Label Groups on Route</p>
+                        <div className="flex flex-wrap gap-3">
+                          {Array.from(labelsInRoute.entries()).map(([labelName, color]) => (
+                            <div key={labelName} className="flex items-center gap-2">
+                              <div 
+                                className="w-4 h-4 rounded-full border-2 border-gray-400"
+                                style={{ backgroundColor: color }}
+                              />
+                              <span className="text-sm font-medium">{labelName}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2 italic">
+                          Markers with label color in center and stop type color as border
+                        </p>
                       </div>
                     );
                   }
