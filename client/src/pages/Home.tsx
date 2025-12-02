@@ -468,12 +468,18 @@ export default function Home() {
       try {
         const labels = JSON.parse(contact.labels);
         return labels
+          .map((label: string) => {
+            // Extract name from contactGroups/xxx format
+            if (label.startsWith('contactGroups/')) {
+              return label.split('/').pop() || '';
+            }
+            return label;
+          })
           .filter((label: string) => {
             const lower = label.toLowerCase();
-            // Exclude myContacts, starred, and ALL contactGroups/*
-            return lower !== 'mycontacts' && 
-                   lower !== 'starred' && 
-                   !label.startsWith('contactGroups/');
+            // Filter out system labels and hex IDs (Google's internal group IDs)
+            const isHexId = /^[0-9a-f]{12,}$/i.test(label);
+            return lower !== 'mycontacts' && lower !== 'starred' && label.trim() !== '' && !isHexId;
           });
       } catch {
         return [];
@@ -983,7 +989,9 @@ export default function Home() {
                 })
                 .filter((label: string) => {
                   const lower = label.toLowerCase();
-                  return lower !== 'mycontacts' && lower !== 'starred' && label.trim() !== '';
+                  // Filter out system labels and hex IDs (Google's internal group IDs)
+                  const isHexId = /^[0-9a-f]{12,}$/i.test(label);
+                  return lower !== 'mycontacts' && lower !== 'starred' && label.trim() !== '' && !isHexId;
                 });
                               if (userFriendlyLabels.length > 0) {
                                 return (

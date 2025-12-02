@@ -2387,6 +2387,16 @@
 
 ## Stop Type Colors Not Applied
 
-- [x] Investigate where stop types are assigned during route creation
+- [x] Investigate where stop types are assigned during route creation - stop types were deleted
 - [x] Fix to use user's custom stop type colors instead of hardcoded defaults
-- [ ] Test with custom stop type colors
+- [x] Created "Visit" stop type with black color (#000000)
+- [x] Set "Visit" as default stop type in settings
+- [ ] Test creating new route to verify black color is applied
+
+
+## Duplicate Contact Issue
+
+- [ ] Investigate Ashley Marston appearing under wrong label (Prairie PT instead of correct label)
+- [ ] Check if contact ID 750664c109a2dd83 has correct labels in database
+- [ ] Verify label filtering logic is working correctly
+- [ ] Fix any data inconsistencies

@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, name, color, isDefault FROM stop_types ORDER BY name",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, name, color, isDefault FROM stop_types ORDER BY name",
+  "rows": [
+    {
+      "id": "30002",
+      "name": "⌼ OASIS",
+      "color": "#f73bb2",
+      "isDefault": "0"
+    },
+    {
+      "id": "30004",
+      "name": "▲RE (re-eval)",
+      "color": "#3beaf7",
+      "isDefault": "0"
+    },
+    {
+      "id": "30003",
+      "name": "● Visit",
+      "color": "#050505",
+      "isDefault": "0"
+    },
+    {
+      "id": "30001",
+      "name": "◼︎Eval",
+      "color": "#3b82f6",
+      "isDefault": "0"
+    },
+    {
+      "id": "30005",
+      "name": "♦︎DC (discharge",
+      "color": "#f7573b",
+      "isDefault": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tcolor\tisDefault\n30002\t⌼ OASIS\t#f73bb2\t0\n30004\t▲RE (re-eval)\t#3beaf7\t0\n30003\t● Visit\t#050505\t0\n30001\t◼︎Eval\t#3b82f6\t0\n30005\t♦︎DC (discharge\t#f7573b\t0\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

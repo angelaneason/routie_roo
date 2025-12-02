@@ -1,0 +1,20 @@
+{
+  "query": "SELECT id, name, labels FROM cached_contacts WHERE name LIKE '%Alisha%' LIMIT 5",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, name, labels FROM cached_contacts WHERE name LIKE '%Alisha%' LIMIT 5",
+  "rows": [
+    {
+      "id": "210214",
+      "name": "Alisha Garner",
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "id": "570204",
+      "name": "Alisha Garner",
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tlabels\n210214\tAlisha Garner\t[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n570204\tAlisha Garner\t[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}
