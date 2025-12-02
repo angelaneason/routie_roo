@@ -2331,3 +2331,10 @@
 - [x] Make route planning cards responsive
 - [x] Ensure hop library fits within mobile viewport
 - [x] Test all home page sections on mobile
+
+
+## Contact Label Badge Layout
+
+- [x] Make contact label badges span full width on mobile
+- [x] Change label badges from inline to block/full-width layout
+- [x] Test label display on mobile
