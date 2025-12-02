@@ -2417,3 +2417,7 @@
 ## Label Legend Feature
 
 - [x] Add label color legend to route detail page (alongside stop type legend)
+
+## Archive Filter Enhancement
+
+- [x] Filter archived routes from main "Your Hop Library" display (show only in Archive section)

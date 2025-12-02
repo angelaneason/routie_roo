@@ -550,6 +550,9 @@ export default function Home() {
     ? routes.filter(r => r.folderId === null)
     : routes.filter(r => r.folderId === parseInt(selectedFolderFilter));
   
+  // Filter out archived routes from main library (they only appear in Archive section)
+  filteredRoutes = filteredRoutes.filter(route => !route.archivedAt);
+  
   // Filter out completed routes if checkbox is checked
   if (hideCompletedRoutes) {
     filteredRoutes = filteredRoutes.filter(route => {
