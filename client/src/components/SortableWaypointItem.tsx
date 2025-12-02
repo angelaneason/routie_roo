@@ -122,16 +122,18 @@ export function SortableWaypointItem({
                 }
                 return label;
               });
-              // Filter out system labels
+              // Filter out system labels and hex IDs
               const filteredLabels = extractedLabels.filter((label: string) => {
                 const lower = label.toLowerCase();
-                return lower !== 'mycontacts' && lower !== 'starred';
+                // Filter out system labels and hex IDs (Google's internal group IDs)
+                const isHexId = /^[0-9a-f]{12,}$/i.test(label);
+                return lower !== 'mycontacts' && lower !== 'starred' && label.trim() !== '' && !isHexId;
               });
               if (filteredLabels.length === 0) return null;
               return (
                 <div className="flex gap-1 flex-wrap mb-1">
                   {filteredLabels.map((label: string, idx: number) => (
-                    <span key={idx} className="text-xs font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                    <span key={idx} className="text-sm font-bold bg-primary/10 text-primary px-2 py-0.5 rounded whitespace-nowrap">
                       {label}
                     </span>
                   ))}

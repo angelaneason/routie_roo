@@ -200,10 +200,11 @@ export function SchedulerNotes() {
       {!isVisible && (
         <button
           onClick={() => setIsVisible(true)}
-          className="fixed bottom-6 right-4 z-50 w-14 h-14 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all"
+          className="fixed bottom-6 right-4 z-50 w-14 h-14 hover:scale-110 text-purple-700 rounded-full shadow-lg flex items-center justify-center transition-all border-2 border-purple-600"
+          style={{ backgroundColor: '#ecec56' }}
           aria-label="Show reminders"
         >
-          <span className="text-2xl">📌</span>
+          <img src="/purple-pushpin.png" alt="Pin" className="w-8 h-8" />
         </button>
       )}
 
@@ -217,14 +218,14 @@ export function SchedulerNotes() {
             top: `${position.y}px`,
             width: `${size.width}px`,
             height: `${displayHeight}px`,
-            backgroundColor: '#e9d5ff', // Light purple
+            backgroundColor: '#ecec56', // Bright yellow
             touchAction: 'none',
           }}
         >
           {/* Close button - show on all devices */}
           <button
             onClick={() => setIsVisible(false)}
-            className="absolute top-2 left-2 z-20 w-8 h-8 bg-purple-600 hover:bg-purple-700 text-white rounded-full flex items-center justify-center"
+            className="absolute top-2 left-2 z-20 w-8 h-8 bg-purple-600 hover:bg-purple-700 text-yellow-100 rounded-full flex items-center justify-center shadow-md"
             aria-label="Hide reminders"
           >
             ×
@@ -237,9 +238,9 @@ export function SchedulerNotes() {
             onTouchStart={handleDragStart}
           >
             <img 
-              src="/yellow-pushpin.png" 
-              alt="Pushpin" 
-              className="w-20 h-20 drop-shadow-lg pointer-events-none"
+              src="/purple-pushpin.png" 
+              alt="Purple Pushpin" 
+              className="w-16 h-16 drop-shadow-lg pointer-events-none"
             />
           </div>
 
@@ -282,14 +283,14 @@ export function SchedulerNotes() {
                         handleAddNote();
                       }
                     }}
-                    className="bg-white/50 border-purple-400/50 text-gray-900 placeholder:text-gray-600 text-sm font-bold"
+                    className="bg-white/70 border-purple-400 text-gray-900 placeholder:text-gray-600 text-sm font-bold"
                     style={{ fontFamily: 'cursive' }}
                   />
                   <Button
                     onClick={handleAddNote}
                     disabled={!newNoteText.trim() || createMutation.isPending}
                     size="sm"
-                    className="bg-purple-600 hover:bg-purple-700 flex-shrink-0"
+                    className="bg-purple-600 hover:bg-purple-700 text-yellow-100 flex-shrink-0"
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -301,7 +302,7 @@ export function SchedulerNotes() {
                   {pendingNotes.map((note) => (
                     <div
                       key={note.id}
-                      className="flex items-start gap-2 text-gray-900 bg-white/30 p-2 rounded"
+                      className="flex items-start gap-2 text-gray-900 bg-white/50 p-2 rounded border border-purple-200"
                       style={{ fontFamily: 'cursive' }}
                     >
                       <Checkbox
@@ -328,7 +329,7 @@ export function SchedulerNotes() {
                       {completedNotes.map((note) => (
                         <div
                           key={note.id}
-                          className="flex items-start gap-2 text-gray-700 bg-white/20 p-2 rounded"
+                          className="flex items-start gap-2 text-gray-700 bg-white/30 p-2 rounded border border-purple-100"
                           style={{ fontFamily: 'cursive' }}
                         >
                           <Checkbox

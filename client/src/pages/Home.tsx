@@ -961,7 +961,7 @@ export default function Home() {
                             </span>
                           </div>
                         )}
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <p className="font-medium">{contact.name}</p>
                             {(!contact.address || contact.address.trim() === "") && (
@@ -992,17 +992,17 @@ export default function Home() {
                   // Filter out system labels and hex IDs (Google's internal group IDs)
                   const isHexId = /^[0-9a-f]{12,}$/i.test(label);
                   return lower !== 'mycontacts' && lower !== 'starred' && label.trim() !== '' && !isHexId;
-                });
+                                });
                               if (userFriendlyLabels.length > 0) {
                                 return (
-                                  <div className="flex flex-col md:flex-row md:flex-wrap gap-1 mt-1">
+                                  <div className="flex flex-wrap gap-1 mt-1">
                                     {userFriendlyLabels.slice(0, 3).map((label: string, idx: number) => (
-                                      <span key={idx} className="block w-full md:inline-block md:w-auto px-2 py-0.5 text-sm font-bold bg-primary/10 text-primary rounded">
+                                      <span key={idx} style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all', hyphens: 'none', overflowWrap: 'normal' }} className="inline-block px-2 py-0.5 text-sm font-bold bg-primary/10 text-primary rounded">
                                         {label}
                                       </span>
                                     ))}
                                     {userFriendlyLabels.length > 3 && (
-                                      <span className="block w-full md:inline-block md:w-auto px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded">
+                                      <span className="inline-block px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded whitespace-nowrap">
                                         +{userFriendlyLabels.length - 3}
                                       </span>
                                     )}
