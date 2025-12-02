@@ -2479,3 +2479,13 @@
 - [x] Add "Edit Address" button to waypoint cards in route detail page
 - [x] Ensure address edit dialog shows "Update contact address permanently" option
 - [x] Test that clicking edit address opens the correct dialog with radio buttons
+
+
+## Consolidate Address Editing into Edit Details Dialog
+
+- [x] Remove separate "Edit Address" button from waypoint cards
+- [x] Add radio buttons to Edit Details dialog for address update scope (temporary vs permanent)
+- [x] When address changes and "permanent" is selected, update contact card and sync to Google Contacts
+- [x] When address changes and "temporary" is selected, only update waypoint
+- [ ] Test that address geocoding works in the consolidated dialog
+- [ ] Test that Google Contacts sync works from Edit Details dialog

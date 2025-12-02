@@ -1720,8 +1720,10 @@ export const appRouter = router({
         stopType: z.string().optional(),
         stopColor: z.string().optional(),
         address: z.string().optional(),
-        phoneNumbers: z.string().optional(), // JSON string
-        contactLabels: z.string().optional(), // JSON string
+        phoneNumbers: z.string().optional(),
+        contactLabels: z.string().optional(),
+        updateContact: z.boolean().optional(),
+        contactId: z.number().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -1747,17 +1749,44 @@ export const appRouter = router({
         if (input.phoneNumbers !== undefined) updateData.phoneNumbers = input.phoneNumbers;
         if (input.contactLabels !== undefined) updateData.contactLabels = input.contactLabels;
 
+        // If address changed, geocode it to get coordinates
+        if (input.address) {
+          try {
+            const { makeRequest } = await import("./_core/map");
+            type GeocodingResult = {
+              results: Array<{
+                geometry: { location: { lat: number; lng: number } };
+                formatted_address: string;
+              }>;
+              status: string;
+            };
+            const geocodeResult = await makeRequest<GeocodingResult>(
+              "/maps/api/geocode/json",
+              { address: input.address }
+            );
+            
+            if (geocodeResult.status === "OK" && geocodeResult.results.length > 0) {
+              const location = geocodeResult.results[0].geometry.location;
+              updateData.latitude = location.lat.toString();
+              updateData.longitude = location.lng.toString();
+            }
+          } catch (error) {
+            console.error("Failed to geocode address:", error);
+            // Continue without coordinates
+          }
+        }
+
         // Update waypoint in database
         await db.update(routeWaypoints)
           .set(updateData as any)
           .where(eq(routeWaypoints.id, input.waypointId));
 
-        // Sync to Google Contact if contactId exists and relevant fields changed
-        const updatedWaypoint = waypoint[0] as any; // Type assertion for contactId field
-        if (updatedWaypoint.contactId && (input.address || input.phoneNumbers || input.contactLabels)) {
+        // Sync to Google Contact only if updateContact flag is true
+        const contactIdToSync = input.contactId || (waypoint[0] as any).contactId;
+        if (input.updateContact && contactIdToSync && (input.address || input.phoneNumbers || input.contactLabels)) {
           const { syncToGoogleContact } = await import("./googleContactSync");
           const syncResult = await syncToGoogleContact({
-            contactId: updatedWaypoint.contactId,
+            contactId: contactIdToSync,
             userId: ctx.user.id,
             address: input.address,
             phoneNumbers: input.phoneNumbers,
@@ -1767,11 +1796,19 @@ export const appRouter = router({
           if (!syncResult.success) {
             console.warn("[Google Sync] Failed to sync waypoint changes:", syncResult.error);
             // Don't fail the mutation - waypoint update succeeded
+          } else {
+            // Update cached_contacts table with new address
+            if (input.address) {
+              await db.update(cachedContacts)
+                .set({ address: input.address })
+                .where(eq(cachedContacts.id, contactIdToSync));
+            }
           }
         }
         
         // Sync to Google Calendar if route has calendar events and relevant fields changed
-        if (route.googleCalendarId && updatedWaypoint.calendarEventId && (input.contactName || input.stopType || input.address)) {
+        const waypointData = waypoint[0] as any;
+        if (route.googleCalendarId && waypointData.calendarEventId && (input.contactName || input.stopType || input.address)) {
           try {
             // Get fresh access token
             const user = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
@@ -1798,21 +1835,21 @@ export const appRouter = router({
               // Update calendar event
               const stopTypeDisplay = input.stopType 
                 ? input.stopType.charAt(0).toUpperCase() + input.stopType.slice(1)
-                : updatedWaypoint.stopType
-                ? updatedWaypoint.stopType.charAt(0).toUpperCase() + updatedWaypoint.stopType.slice(1)
+                : waypointData.stopType
+                ? waypointData.stopType.charAt(0).toUpperCase() + waypointData.stopType.slice(1)
                 : 'Stop';
               
               await updateCalendarEvent(
                 accessToken,
-                updatedWaypoint.calendarEventId,
+                waypointData.calendarEventId,
                 {
-                  summary: `${stopTypeDisplay}: ${input.contactName || updatedWaypoint.contactName || 'Waypoint'}`,
-                  location: input.address || updatedWaypoint.address,
+                  summary: `${stopTypeDisplay}: ${input.contactName || waypointData.contactName || 'Waypoint'}`,
+                  location: input.address || waypointData.address,
                 },
                 route.googleCalendarId
               );
               
-              console.log(`[Calendar Sync] Updated event ${updatedWaypoint.calendarEventId}`);
+              console.log(`[Calendar Sync] Updated event ${waypointData.calendarEventId}`);
             }
           } catch (error) {
             console.warn("[Calendar Sync] Failed to update calendar event:", error);

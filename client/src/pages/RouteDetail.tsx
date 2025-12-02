@@ -58,6 +58,7 @@ export default function RouteDetail() {
   const [editWaypointAddress, setEditWaypointAddress] = useState("");
   const [editWaypointPhoneNumbers, setEditWaypointPhoneNumbers] = useState<Array<{value: string, label?: string, type?: string}>>([]);
   const [editWaypointLabels, setEditWaypointLabels] = useState<string[]>([]);
+  const [editWaypointUpdateContact, setEditWaypointUpdateContact] = useState(false);
   const [hasUnsavedOrder, setHasUnsavedOrder] = useState(false);
   const [showAddGapStopDialog, setShowAddGapStopDialog] = useState(false);
   const [gapStopName, setGapStopName] = useState("");
@@ -114,8 +115,12 @@ export default function RouteDetail() {
   });
 
   const updateWaypointDetailsMutation = trpc.routes.updateWaypointDetails.useMutation({
-    onSuccess: () => {
-      toast.success("Waypoint updated");
+    onSuccess: (_, variables) => {
+      if (variables.updateContact) {
+        toast.success("Waypoint updated and synced to contact & Google Contacts");
+      } else {
+        toast.success("Waypoint updated");
+      }
       routeQuery.refetch();
       setShowEditWaypointDialog(false);
     },
@@ -1144,6 +1149,7 @@ export default function RouteDetail() {
                             setEditWaypointStopType(waypoint.stopType || "visit");
                             setEditWaypointStopColor(waypoint.stopColor || "#3b82f6");
                             setEditWaypointAddress(waypoint.address || "");
+                            setEditWaypointUpdateContact(false); // Reset to default (temporary)
                             try {
                               const phones = waypoint.phoneNumbers ? JSON.parse(waypoint.phoneNumbers) : [];
                               setEditWaypointPhoneNumbers(phones);
@@ -1608,6 +1614,39 @@ export default function RouteDetail() {
                 placeholder="Enter address"
               />
             </div>
+            {editingWaypoint?.contactId && (
+              <div className="space-y-3 pt-2 border-t">
+                <Label className="!font-bold">Address Update Scope</Label>
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="edit-address-scope"
+                      checked={!editWaypointUpdateContact}
+                      onChange={() => setEditWaypointUpdateContact(false)}
+                      className="w-4 h-4"
+                    />
+                    <div>
+                      <div className="font-medium">Temporary (route only)</div>
+                      <div className="text-sm text-muted-foreground">Update address for this route only</div>
+                    </div>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="edit-address-scope"
+                      checked={editWaypointUpdateContact}
+                      onChange={() => setEditWaypointUpdateContact(true)}
+                      className="w-4 h-4"
+                    />
+                    <div>
+                      <div className="font-medium">Update contact address permanently</div>
+                      <div className="text-sm text-muted-foreground">Save to contact profile and sync to Google Contacts</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Phone Numbers</Label>
               {editWaypointPhoneNumbers.map((phone, idx) => (
@@ -1705,6 +1744,8 @@ export default function RouteDetail() {
                   address: editWaypointAddress || undefined,
                   phoneNumbers: editWaypointPhoneNumbers.length > 0 ? JSON.stringify(editWaypointPhoneNumbers) : undefined,
                   contactLabels: editWaypointLabels.length > 0 ? JSON.stringify(editWaypointLabels) : undefined,
+                  updateContact: editWaypointUpdateContact,
+                  contactId: editingWaypoint.contactId || undefined,
                 });
               }}
               disabled={updateWaypointDetailsMutation.isPending}
