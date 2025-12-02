@@ -2312,3 +2312,13 @@
 - [x] Ensure sticky note toggle button is visible and accessible
 - [x] Add proper viewport constraints to prevent horizontal overflow
 - [x] Test all header elements fit within mobile viewport
+
+
+## Remaining Mobile Width Issues
+
+- [x] Fix screen still being too wide on mobile (cannot see full content)
+- [x] Fix calendar page - stuck on calendar list with no way to scroll or exit
+- [x] Add back button or navigation on calendar page for mobile
+- [x] Identify and fix elements causing horizontal overflow
+- [x] Ensure all pages have proper max-width constraints
+- [x] Test navigation between pages on mobile

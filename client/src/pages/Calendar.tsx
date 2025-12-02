@@ -20,7 +20,7 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [selectedDayEvents, setSelectedDayEvents] = useState<any[]>([]);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
   const [visibleCalendars, setVisibleCalendars] = useState<string[]>([]);
   const [showAddEventDialog, setShowAddEventDialog] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any | null>(null);
@@ -248,7 +248,7 @@ export default function Calendar() {
 
     return (
       <div className="relative overflow-x-auto">
-        <div className="flex min-w-[800px]">
+        <div className="flex">
           {/* Time column */}
           <div className="w-16 flex-shrink-0">
             <div className="h-12 border-b border-gray-200" /> {/* Header spacer */}
@@ -448,28 +448,28 @@ export default function Calendar() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 md:p-6">
       <div className="container max-w-7xl">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Routie Roo Calendar - Let's hop to it!</h1>
-            <p className="text-muted-foreground">View and manage your scheduled routes</p>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Routie Roo Calendar</h1>
+            <p className="text-sm md:text-base text-muted-foreground">View and manage your scheduled routes</p>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => setShowAddEventDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Event
+          <div className="flex gap-2 w-full md:w-auto">
+            <Button onClick={() => setShowAddEventDialog(true)} size="sm" className="flex-1 md:flex-initial">
+              <Plus className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Add Event</span>
             </Button>
-            <Link href="/">
-              <Button variant="outline">Back to Home</Button>
+            <Link href="/" className="flex-1 md:flex-initial">
+              <Button variant="outline" size="sm" className="w-full">Back to Home</Button>
             </Link>
           </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-col md:flex-row gap-4">
           {/* Calendar sidebar */}
           {!sidebarCollapsed && (
-            <Card className="w-64 flex-shrink-0 p-4 h-fit">
+            <Card className="w-full md:w-64 flex-shrink-0 p-4 h-fit mb-4 md:mb-0">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-sm">My Calendars</h3>
                 <div className="flex items-center gap-1">
@@ -543,10 +543,10 @@ export default function Calendar() {
             </Button>
           )}
 
-          <Card className="p-6 flex-1">
+          <Card className="p-2 md:p-6 flex-1 overflow-hidden">
             {/* Calendar Header */}
-            <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 md:mb-6 gap-3">
+              <div className="flex items-center gap-2 w-full md:w-auto">
                 <Button variant="outline" size="sm" onClick={navigatePrevious}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -556,11 +556,11 @@ export default function Calendar() {
                 <Button variant="outline" size="sm" onClick={navigateNext}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
-                <h2 className="text-xl font-semibold ml-4">{getDisplayTitle()}</h2>
+                <h2 className="text-base md:text-xl font-semibold ml-2 md:ml-4 truncate">{getDisplayTitle()}</h2>
               </div>
 
               {/* View switcher */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full md:w-auto">
                 <Button
                   variant={viewMode === "day" ? "default" : "outline"}
                   size="sm"
