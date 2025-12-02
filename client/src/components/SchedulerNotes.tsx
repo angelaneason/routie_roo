@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,8 @@ import { ChevronDown, ChevronUp, Plus, Trash2, GripVertical } from "lucide-react
 import { toast } from "sonner";
 
 export function SchedulerNotes() {
+  // Hide completely on mobile by default to avoid layout issues
+  const [isVisible, setIsVisible] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
   // Start collapsed on mobile to avoid covering content
   const [isExpanded, setIsExpanded] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
   const [newNoteText, setNewNoteText] = useState("");
@@ -31,10 +33,13 @@ export function SchedulerNotes() {
           // On mobile: smaller, positioned lower to avoid header
           setPosition({ x: (windowWidth - size.width) / 2, y: 120 });
           setSize({ width: 240, height: 300 });
+          // Hide on mobile by default
+          setIsVisible(false);
         } else {
-          // On desktop: larger, top right
+          // On desktop: larger, top right, always visible
           setPosition({ x: windowWidth - size.width - 20, y: 60 });
           setSize({ width: 280, height: 400 });
+          setIsVisible(true);
         }
       }
     };
@@ -77,67 +82,43 @@ export function SchedulerNotes() {
 
   // Drag handlers
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
     
-    setIsDragging(true);
     setDragOffset({
       x: clientX - position.x,
       y: clientY - position.y,
     });
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      setPosition({
-        x: e.clientX - dragOffset.x,
-        y: e.clientY - dragOffset.y,
-      });
-    } else if (isResizing) {
-      const deltaX = e.clientX - resizeStart.x;
-      const deltaY = e.clientY - resizeStart.y;
-      const newWidth = Math.max(250, Math.min(500, resizeStart.width + deltaX));
-      const newHeight = Math.max(300, Math.min(700, resizeStart.height + deltaY));
-      setSize({ width: newWidth, height: newHeight });
-    }
+  const handleDragMove = (e: MouseEvent | TouchEvent) => {
+    if (!isDragging) return;
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    setPosition({
+      x: clientX - dragOffset.x,
+      y: clientY - dragOffset.y,
+    });
   };
 
-  const handleMouseUp = () => {
+  const handleDragEnd = () => {
     setIsDragging(false);
-    setIsResizing(false);
-  };
-
-  const handleTouchMove = (e: TouchEvent) => {
-    if (isDragging) {
-      const touch = e.touches[0];
-      setPosition({
-        x: touch.clientX - dragOffset.x,
-        y: touch.clientY - dragOffset.y,
-      });
-      e.preventDefault();
-    } else if (isResizing) {
-      const touch = e.touches[0];
-      const deltaX = touch.clientX - resizeStart.x;
-      const deltaY = touch.clientY - resizeStart.y;
-      const newWidth = Math.max(250, Math.min(500, resizeStart.width + deltaX));
-      const newHeight = Math.max(300, Math.min(700, resizeStart.height + deltaY));
-      setSize({ width: newWidth, height: newHeight });
-      e.preventDefault();
-    }
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-    setIsResizing(false);
   };
 
   // Resize handlers
   const handleResizeStart = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     e.stopPropagation();
+    setIsResizing(true);
+    
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
     
-    setIsResizing(true);
     setResizeStart({
       x: clientX,
       y: clientY,
@@ -146,26 +127,59 @@ export function SchedulerNotes() {
     });
   };
 
+  const handleResizeMove = (e: MouseEvent | TouchEvent) => {
+    if (!isResizing) return;
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    const deltaX = clientX - resizeStart.x;
+    const deltaY = clientY - resizeStart.y;
+    
+    setSize({
+      width: Math.max(200, resizeStart.width + deltaX),
+      height: Math.max(200, resizeStart.height + deltaY),
+    });
+  };
+
+  const handleResizeEnd = () => {
+    setIsResizing(false);
+  };
+
+  // Add event listeners
   useEffect(() => {
-    if (isDragging || isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      document.addEventListener('touchmove', handleTouchMove, { passive: false });
-      document.addEventListener('touchend', handleTouchEnd);
-      
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-        document.removeEventListener('touchmove', handleTouchMove);
-        document.removeEventListener('touchend', handleTouchEnd);
-      };
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDragMove);
+      window.addEventListener('mouseup', handleDragEnd);
+      window.addEventListener('touchmove', handleDragMove);
+      window.addEventListener('touchend', handleDragEnd);
     }
-  }, [isDragging, isResizing, dragOffset, resizeStart]);
+    return () => {
+      window.removeEventListener('mousemove', handleDragMove);
+      window.removeEventListener('mouseup', handleDragEnd);
+      window.removeEventListener('touchmove', handleDragMove);
+      window.removeEventListener('touchend', handleDragEnd);
+    };
+  }, [isDragging, dragOffset]);
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener('mousemove', handleResizeMove);
+      window.addEventListener('mouseup', handleResizeEnd);
+      window.addEventListener('touchmove', handleResizeMove);
+      window.addEventListener('touchend', handleResizeEnd);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleResizeMove);
+      window.removeEventListener('mouseup', handleResizeEnd);
+      window.removeEventListener('touchmove', handleResizeMove);
+      window.removeEventListener('touchend', handleResizeEnd);
+    };
+  }, [isResizing, resizeStart]);
 
   const handleAddNote = () => {
-    if (newNoteText.trim()) {
-      createMutation.mutate({ noteText: newNoteText.trim() });
-    }
+    if (!newNoteText.trim()) return;
+    createMutation.mutate({ noteText: newNoteText.trim() });
   };
 
   const handleToggleComplete = (id: number) => {
@@ -184,127 +198,121 @@ export function SchedulerNotes() {
   const displayHeight = isExpanded ? size.height : 50;
 
   return (
-    <div
-      ref={cardRef}
-      className="fixed z-40 max-w-[calc(100vw-2rem)] select-none shadow-2xl rounded-lg transition-all duration-300"
-      style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        width: `${size.width}px`,
-        height: `${displayHeight}px`,
-        backgroundColor: '#e9d5ff', // Light purple
-        touchAction: 'none',
-      }}
-    >
-      {/* Pushpin at top - draggable */}
-      <div 
-        className="absolute -top-12 left-1/2 -translate-x-1/2 cursor-grab active:cursor-grabbing z-10"
-        onMouseDown={handleDragStart}
-        onTouchStart={handleDragStart}
-      >
-        <img 
-          src="/yellow-pushpin.png" 
-          alt="Pushpin" 
-          className="w-20 h-20 drop-shadow-lg pointer-events-none"
-        />
-      </div>
+    <>
+      {/* Floating toggle button - only show on mobile when sticky note is hidden */}
+      {!isVisible && (
+        <button
+          onClick={() => setIsVisible(true)}
+          className="md:hidden fixed bottom-20 right-4 z-50 w-14 h-14 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all"
+          aria-label="Show reminders"
+        >
+          <span className="text-2xl">📌</span>
+        </button>
+      )}
 
-      {/* Invisible drag area for easier dragging */}
-      <div 
-        className="absolute top-0 left-0 right-0 h-8 cursor-grab active:cursor-grabbing"
-        onMouseDown={handleDragStart}
-        onTouchStart={handleDragStart}
-      />
-
-      {/* Content area */}
-      <div className="h-full flex flex-col pt-6 px-4 pb-4">
-        {/* Toggle button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-purple-300/50"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsExpanded(!isExpanded);
+      {/* Sticky note - hidden on mobile by default, always visible on desktop */}
+      {isVisible && (
+        <div
+          ref={cardRef}
+          className="fixed z-40 max-w-[calc(100vw-2rem)] select-none shadow-2xl rounded-lg transition-all duration-300"
+          style={{
+            left: `${position.x}px`,
+            top: `${position.y}px`,
+            width: `${size.width}px`,
+            height: `${displayHeight}px`,
+            backgroundColor: '#e9d5ff', // Light purple
+            touchAction: 'none',
           }}
         >
-          {isExpanded ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-        </Button>
+          {/* Close button - only on mobile */}
+          <button
+            onClick={() => setIsVisible(false)}
+            className="md:hidden absolute top-2 left-2 z-20 w-8 h-8 bg-purple-600 hover:bg-purple-700 text-white rounded-full flex items-center justify-center"
+            aria-label="Hide reminders"
+          >
+            ×
+          </button>
 
-        {isExpanded && (
-          <div className="flex-1 flex flex-col gap-3 overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            {/* Add new note */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Add reminder..."
-                value={newNoteText}
-                onChange={(e) => setNewNoteText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleAddNote();
-                  }
-                }}
-                className="bg-white/50 border-purple-400/50 text-gray-900 placeholder:text-gray-600 text-sm font-bold"
-                style={{ fontFamily: 'cursive' }}
-              />
-              <Button
-                onClick={handleAddNote}
-                disabled={!newNoteText.trim() || createMutation.isPending}
-                size="sm"
-                className="bg-purple-600 hover:bg-purple-700 flex-shrink-0"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
+          {/* Pushpin at top - draggable */}
+          <div 
+            className="absolute -top-12 left-1/2 -translate-x-1/2 cursor-grab active:cursor-grabbing z-10"
+            onMouseDown={handleDragStart}
+            onTouchStart={handleDragStart}
+          >
+            <img 
+              src="/yellow-pushpin.png" 
+              alt="Pushpin" 
+              className="w-20 h-20 drop-shadow-lg pointer-events-none"
+            />
+          </div>
 
-            {/* Notes list - scrollable */}
-            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
-              {/* Pending notes */}
-              {pendingNotes.map((note) => (
-                <div
-                  key={note.id}
-                  className="flex items-start gap-2 text-gray-900 bg-white/30 p-2 rounded"
-                  style={{ fontFamily: 'cursive' }}
-                >
-                  <Checkbox
-                    checked={false}
-                    onCheckedChange={() => handleToggleComplete(note.id)}
-                    className="mt-0.5 h-4 w-4 border-gray-700"
+          {/* Invisible drag area for easier dragging */}
+          <div 
+            className="absolute top-0 left-0 right-0 h-8 cursor-grab active:cursor-grabbing"
+            onMouseDown={handleDragStart}
+            onTouchStart={handleDragStart}
+          />
+
+          {/* Content area */}
+          <div className="h-full flex flex-col pt-6 px-4 pb-4">
+            {/* Toggle button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-purple-300/50"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+            >
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+
+            {isExpanded && (
+              <div className="flex-1 flex flex-col gap-3 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                {/* Add new note */}
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add reminder..."
+                    value={newNoteText}
+                    onChange={(e) => setNewNoteText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleAddNote();
+                      }
+                    }}
+                    className="bg-white/50 border-purple-400/50 text-gray-900 placeholder:text-gray-600 text-sm font-bold"
+                    style={{ fontFamily: 'cursive' }}
                   />
-                  <span className="flex-1 text-sm leading-tight font-bold break-words">{note.noteText}</span>
                   <Button
-                    variant="ghost"
+                    onClick={handleAddNote}
+                    disabled={!newNoteText.trim() || createMutation.isPending}
                     size="sm"
-                    onClick={() => handleDelete(note.id)}
-                    className="h-5 w-5 p-0 text-red-700 hover:text-red-900 hover:bg-black/10 flex-shrink-0"
+                    className="bg-purple-600 hover:bg-purple-700 flex-shrink-0"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-              ))}
 
-              {/* Completed notes */}
-              {completedNotes.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-purple-400/30">
-                  <p className="text-xs text-gray-700 font-bold">Done</p>
-                  {completedNotes.map((note) => (
+                {/* Notes list - scrollable */}
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                  {/* Pending notes */}
+                  {pendingNotes.map((note) => (
                     <div
                       key={note.id}
-                      className="flex items-start gap-2 text-gray-700 bg-white/20 p-2 rounded"
+                      className="flex items-start gap-2 text-gray-900 bg-white/30 p-2 rounded"
                       style={{ fontFamily: 'cursive' }}
                     >
                       <Checkbox
-                        checked={true}
+                        checked={false}
                         onCheckedChange={() => handleToggleComplete(note.id)}
                         className="mt-0.5 h-4 w-4 border-gray-700"
                       />
-                      <span className="flex-1 text-sm line-through opacity-60 leading-tight font-bold break-words">
-                        {note.noteText}
-                      </span>
+                      <span className="flex-1 text-sm leading-tight font-bold break-words">{note.noteText}</span>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -315,31 +323,62 @@ export function SchedulerNotes() {
                       </Button>
                     </div>
                   ))}
+
+                  {/* Completed notes */}
+                  {completedNotes.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t border-purple-400/30">
+                      <p className="text-xs text-gray-700 font-bold">Done</p>
+                      {completedNotes.map((note) => (
+                        <div
+                          key={note.id}
+                          className="flex items-start gap-2 text-gray-700 bg-white/20 p-2 rounded"
+                          style={{ fontFamily: 'cursive' }}
+                        >
+                          <Checkbox
+                            checked={true}
+                            onCheckedChange={() => handleToggleComplete(note.id)}
+                            className="mt-0.5 h-4 w-4 border-gray-700"
+                          />
+                          <span className="flex-1 text-sm line-through opacity-60 leading-tight font-bold break-words">
+                            {note.noteText}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(note.id)}
+                            className="h-5 w-5 p-0 text-red-700 hover:text-red-900 hover:bg-black/10 flex-shrink-0"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Empty state */}
+                  {notes.length === 0 && (
+                    <p className="text-sm text-center text-gray-700 py-8 font-bold" style={{ fontFamily: 'cursive' }}>
+                      No reminders yet!
+                    </p>
+                  )}
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Empty state */}
-              {notes.length === 0 && (
-                <p className="text-sm text-center text-gray-700 py-8 font-bold" style={{ fontFamily: 'cursive' }}>
-                  No reminders yet!
-                </p>
-              )}
-            </div>
+            {/* Resize handle - only show when expanded */}
+            {isExpanded && (
+              <div
+                className="absolute bottom-1 right-1 cursor-nwse-resize p-2 hover:bg-purple-300/50 rounded"
+                onMouseDown={handleResizeStart}
+                onTouchStart={handleResizeStart}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <GripVertical className="h-4 w-4 text-purple-700" />
+              </div>
+            )}
           </div>
-        )}
-
-        {/* Resize handle - only show when expanded */}
-        {isExpanded && (
-          <div
-            className="absolute bottom-1 right-1 cursor-nwse-resize p-2 hover:bg-purple-300/50 rounded"
-            onMouseDown={handleResizeStart}
-            onTouchStart={handleResizeStart}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <GripVertical className="h-4 w-4 text-purple-700" />
-          </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 }

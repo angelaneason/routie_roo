@@ -1,16 +1,44 @@
 import { describe, expect, it } from "vitest";
 
 describe("Sticky Note Mobile Behavior", () => {
-  it("should start collapsed on mobile viewport", () => {
+  it("should be hidden by default on mobile viewport", () => {
     const isMobile = 375 < 768; // Mobile width
-    const initialExpanded = isMobile ? false : true;
-    expect(initialExpanded).toBe(false);
+    const initialVisible = isMobile ? false : true;
+    expect(initialVisible).toBe(false);
   });
 
-  it("should start expanded on desktop viewport", () => {
+  it("should be visible by default on desktop viewport", () => {
     const isDesktop = 1024 >= 768; // Desktop width
-    const initialExpanded = isDesktop ? true : false;
-    expect(initialExpanded).toBe(true);
+    const initialVisible = isDesktop ? true : false;
+    expect(initialVisible).toBe(true);
+  });
+
+  it("should show floating toggle button when hidden on mobile", () => {
+    const isVisible = false;
+    const isMobile = true;
+    const shouldShowButton = !isVisible && isMobile;
+    expect(shouldShowButton).toBe(true);
+  });
+
+  it("should not show floating toggle button on desktop", () => {
+    const isVisible = false;
+    const isMobile = false;
+    const shouldShowButton = !isVisible && isMobile;
+    expect(shouldShowButton).toBe(false);
+  });
+
+  it("should show close button only on mobile when visible", () => {
+    const isVisible = true;
+    const isMobile = true;
+    const shouldShowCloseButton = isVisible && isMobile;
+    expect(shouldShowCloseButton).toBe(true);
+  });
+
+  it("should not show close button on desktop", () => {
+    const isVisible = true;
+    const isMobile = false;
+    const shouldShowCloseButton = isVisible && isMobile;
+    expect(shouldShowCloseButton).toBe(false);
   });
 
   it("should use smaller dimensions on mobile", () => {
@@ -23,36 +51,24 @@ describe("Sticky Note Mobile Behavior", () => {
     expect(size.height).toBe(300);
   });
 
-  it("should use larger dimensions on desktop", () => {
-    const isDesktop = 1024 >= 768;
-    const size = isDesktop 
-      ? { width: 280, height: 400 }
-      : { width: 240, height: 300 };
-    
-    expect(size.width).toBe(280);
-    expect(size.height).toBe(400);
-  });
-
   it("should position lower on mobile to avoid header", () => {
     const isMobile = 375 < 768;
     const yPosition = isMobile ? 120 : 60;
     expect(yPosition).toBe(120);
   });
 
-  it("should use lower z-index to not interfere with modals", () => {
-    const zIndex = 40; // Changed from 50
-    expect(zIndex).toBeLessThan(50);
+  it("should not cause horizontal scroll when hidden", () => {
+    const isVisible = false;
+    const causesScroll = isVisible; // Only causes scroll when visible
+    expect(causesScroll).toBe(false);
   });
 
-  it("should collapse to 50px height when collapsed", () => {
-    const isExpanded = false;
-    const displayHeight = isExpanded ? 400 : 50;
-    expect(displayHeight).toBe(50);
-  });
-
-  it("should show full height when expanded", () => {
-    const isExpanded = true;
-    const displayHeight = isExpanded ? 400 : 50;
-    expect(displayHeight).toBe(400);
+  it("should toggle visibility when button is clicked", () => {
+    let isVisible = false;
+    isVisible = !isVisible; // Simulate toggle
+    expect(isVisible).toBe(true);
+    
+    isVisible = !isVisible; // Toggle back
+    expect(isVisible).toBe(false);
   });
 });

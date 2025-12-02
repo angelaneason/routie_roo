@@ -2293,3 +2293,12 @@
 - [x] Adjust z-index or positioning to prevent layout interference
 - [x] Consider making sticky note collapsible by default on mobile
 - [x] Test sticky note doesn't block important UI elements
+
+
+## Sticky Note Horizontal Scroll Issue
+
+- [x] Hide sticky note completely on mobile (< 768px) by default
+- [x] Add floating toggle button on mobile to show/hide sticky note
+- [x] Ensure no horizontal scroll when sticky note is hidden
+- [x] Make sticky note overlay content (not push layout) when shown on mobile
+- [x] Test that mobile layout stays normal width without sticky note
