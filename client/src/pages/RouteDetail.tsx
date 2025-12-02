@@ -670,8 +670,8 @@ export default function RouteDetail() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <header className="bg-white border-b">
         <div className="container py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3 flex-wrap">
               <Link href="/">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
@@ -851,8 +851,8 @@ export default function RouteDetail() {
                     Every hop in order — smooth, simple, efficient.
                   </CardDescription>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
                       variant="outline"
@@ -896,7 +896,7 @@ export default function RouteDetail() {
                         }}
                       />
                     </div>
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex flex-wrap gap-2 mt-3">
                       <Button
                         size="sm"
                         variant="outline"

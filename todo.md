@@ -2359,3 +2359,24 @@
 - [x] Fix pushpin button not appearing on desktop
 - [x] Ensure button is always visible regardless of sticky note state
 - [x] Test button visibility on desktop
+
+
+## Contact Labels Not Showing on Route Details
+
+- [x] Investigate why labels are not displaying on waypoint cards
+- [x] Check if contactLabels field is being passed to waypoint component
+- [x] Fix label rendering in SortableWaypointItem component (extract from contactGroups/ format)
+- [ ] Test label display on route details page
+
+## Mobile Label Truncation Issue
+
+- [x] Remove text truncation (whitespace-nowrap, text-ellipsis) from mobile contact labels
+- [x] Ensure full label text displays (e.g., "R. Harms" instead of "PT...")
+- [ ] Test label display on mobile devices
+
+
+## Mobile Route Detail Text Overflow
+
+- [x] Fix text running off page on mobile route detail view
+- [x] Add proper text wrapping and responsive layout (header and action buttons)
+- [ ] Test on mobile devices

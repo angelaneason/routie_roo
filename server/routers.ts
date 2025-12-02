@@ -975,8 +975,8 @@ export const appRouter = router({
             continue;
           }
           
-          // Check if this is a gap stop
-          const isGapStop = wp.isGapStop === true || wp.isGapStop === 1 || wp.isGapStop === '1';
+          // Check if this is a gap stop (handle boolean, number, or string types from DB)
+          const isGapStop = Boolean(wp.isGapStop);
           
           if (isGapStop) {
             // Gap stops don't get calendar events, but their duration affects timing
