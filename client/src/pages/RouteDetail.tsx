@@ -64,6 +64,7 @@ export default function RouteDetail() {
   const [gapStopDuration, setGapStopDuration] = useState("30");
   const [gapStopDescription, setGapStopDescription] = useState("");
   const [gapStopInsertAfter, setGapStopInsertAfter] = useState("");
+  const [showArchiveConfirmDialog, setShowArchiveConfirmDialog] = useState(false);
 
   const routeQuery = trpc.routes.get.useQuery(
     { routeId: parseInt(routeId!) },
@@ -608,8 +609,13 @@ export default function RouteDetail() {
   };
 
   const handleArchiveRoute = () => {
+    setShowArchiveConfirmDialog(true);
+  };
+
+  const confirmArchiveRoute = () => {
     if (!routeId) return;
     archiveRouteMutation.mutate({ routeId: parseInt(routeId) });
+    setShowArchiveConfirmDialog(false);
   };
 
   const handleReoptimizeRoute = () => {
@@ -1777,6 +1783,36 @@ export default function RouteDetail() {
               disabled={addGapStopMutation.isPending}
             >
               {addGapStopMutation.isPending ? "Adding..." : "Add Gap Stop"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Archive Confirmation Dialog */}
+      <Dialog open={showArchiveConfirmDialog} onOpenChange={setShowArchiveConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Archive Route?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to archive "{route?.name}"? The route will be moved to the Archive section and hidden from your main library.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowArchiveConfirmDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmArchiveRoute} disabled={archiveRouteMutation.isPending}>
+              {archiveRouteMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Archiving...
+                </>
+              ) : (
+                <>
+                  <Archive className="h-4 w-4 mr-2" />
+                  Archive
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

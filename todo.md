@@ -2421,3 +2421,10 @@
 ## Archive Filter Enhancement
 
 - [x] Filter archived routes from main "Your Hop Library" display (show only in Archive section)
+
+## Archive Enhancements
+
+- [x] Add unarchive functionality to restore routes from Archive section (already exists)
+- [x] Add confirmation dialog before archiving routes
+- [x] Display archive date in Archive section (already exists)
+- [x] Add delete button with confirmation to archive screen

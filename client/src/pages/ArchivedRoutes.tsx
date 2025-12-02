@@ -1,15 +1,18 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { APP_TITLE, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Archive, ArrowLeft, Loader2, Unplug } from "lucide-react";
+import { Archive, ArrowLeft, Loader2, Trash2, Unplug } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
+import { useState } from "react";
 
 export default function ArchivedRoutes() {
   const { user, loading, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
+  const [deleteConfirmRoute, setDeleteConfirmRoute] = useState<{id: number, name: string} | null>(null);
 
   // Fetch archived routes
   const archivedRoutesQuery = trpc.routes.getArchivedRoutes.useQuery(undefined, {
@@ -26,8 +29,25 @@ export default function ArchivedRoutes() {
     },
   });
 
+  const deleteMutation = trpc.routes.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Route permanently deleted");
+      archivedRoutesQuery.refetch();
+      setDeleteConfirmRoute(null);
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete route: ${error.message}`);
+    },
+  });
+
   const handleUnarchive = (routeId: number) => {
     unarchiveMutation.mutate({ routeId });
+  };
+
+  const handleDelete = () => {
+    if (deleteConfirmRoute) {
+      deleteMutation.mutate({ routeId: deleteConfirmRoute.id });
+    }
   };
 
   if (loading) {
@@ -128,15 +148,26 @@ export default function ArchivedRoutes() {
                           </div>
                         </div>
                       </Link>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleUnarchive(route.id)}
-                        disabled={unarchiveMutation.isPending}
-                      >
-                        <Unplug className="h-4 w-4 mr-2" />
-                        Restore
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleUnarchive(route.id)}
+                          disabled={unarchiveMutation.isPending}
+                        >
+                          <Unplug className="h-4 w-4 mr-2" />
+                          Restore
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setDeleteConfirmRoute({ id: route.id, name: route.name })}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -145,6 +176,36 @@ export default function ArchivedRoutes() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteConfirmRoute} onOpenChange={(open) => !open && setDeleteConfirmRoute(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Route Permanently?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to permanently delete "{deleteConfirmRoute?.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirmRoute(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Permanently
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
