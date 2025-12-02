@@ -276,6 +276,16 @@ export function SortableWaypointItem({
           <Edit3 className="h-4 w-4 mr-1" />
           Edit Details
         </Button>
+        {!isGapStop && onEditAddress && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onEditAddress}
+          >
+            <MapPin className="h-4 w-4 mr-1" />
+            Edit Address
+          </Button>
+        )}
         <Button
           size="sm"
           variant="outline"

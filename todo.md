@@ -2472,3 +2472,10 @@
 - [x] Call Google Contacts sync when "Update contact address permanently" is selected
 - [x] Handle sync errors gracefully (show warning if Google sync fails)
 - [ ] Test that address changes propagate to Google Contacts
+
+
+## Address Edit Button on Waypoint Cards
+
+- [x] Add "Edit Address" button to waypoint cards in route detail page
+- [x] Ensure address edit dialog shows "Update contact address permanently" option
+- [x] Test that clicking edit address opens the correct dialog with radio buttons
