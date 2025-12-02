@@ -2338,3 +2338,10 @@
 - [x] Make contact label badges span full width on mobile
 - [x] Change label badges from inline to block/full-width layout
 - [x] Test label display on mobile
+
+
+## Label Text Wrapping Fix
+
+- [x] Prevent label text from wrapping to multiple lines
+- [x] Make labels display on single line (e.g., "PT Randy Harms" on one line)
+- [x] Test on mobile

@@ -969,7 +969,7 @@ export default function Home() {
                                 return (
                                   <div className="flex flex-col md:flex-row md:flex-wrap gap-1 mt-1">
                                     {userFriendlyLabels.slice(0, 3).map((label: string, idx: number) => (
-                                      <span key={idx} className="block w-full md:inline-block md:w-auto px-2 py-0.5 text-sm font-bold bg-primary/10 text-primary rounded">
+                                      <span key={idx} className="block w-full md:inline-block md:w-auto px-2 py-0.5 text-sm font-bold bg-primary/10 text-primary rounded whitespace-nowrap overflow-hidden text-ellipsis">
                                         {label}
                                       </span>
                                     ))}
