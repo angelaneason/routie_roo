@@ -7,8 +7,8 @@ import { ChevronDown, ChevronUp, Plus, Trash2, GripVertical } from "lucide-react
 import { toast } from "sonner";
 
 export function SchedulerNotes() {
-  // Hide completely on mobile by default to avoid layout issues
-  const [isVisible, setIsVisible] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
+  // Hide by default on all devices
+  const [isVisible, setIsVisible] = useState(false);
   // Start collapsed on mobile to avoid covering content
   const [isExpanded, setIsExpanded] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
   const [newNoteText, setNewNoteText] = useState("");
@@ -33,13 +33,10 @@ export function SchedulerNotes() {
           // On mobile: smaller, positioned lower to avoid header
           setPosition({ x: (windowWidth - size.width) / 2, y: 120 });
           setSize({ width: 240, height: 300 });
-          // Hide on mobile by default
-          setIsVisible(false);
         } else {
-          // On desktop: larger, top right, always visible
+          // On desktop: larger, top right
           setPosition({ x: windowWidth - size.width - 20, y: 60 });
           setSize({ width: 280, height: 400 });
-          setIsVisible(true);
         }
       }
     };

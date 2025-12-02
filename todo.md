@@ -2345,3 +2345,10 @@
 - [x] Prevent label text from wrapping to multiple lines
 - [x] Make labels display on single line (e.g., "PT Randy Harms" on one line)
 - [x] Test on mobile
+
+
+## Sticky Note Desktop Toggle
+
+- [x] Make sticky note hidden by default on desktop (like mobile)
+- [x] Show floating pushpin button on desktop
+- [x] Test toggle functionality on desktop
