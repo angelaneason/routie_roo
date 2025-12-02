@@ -75,6 +75,11 @@ export default function RouteDetail() {
     { enabled: !!routeId }
   );
 
+  // Fetch label colors for map markers
+  const labelColorsQuery = trpc.labelColors.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
   const route = routeQuery.data?.route;
   const waypoints = routeQuery.data?.waypoints || [];
 
@@ -412,6 +417,33 @@ export default function RouteDetail() {
                 const stopColor = waypoint?.stopColor || "#4F46E5";
                 const stopType = waypoint?.stopType || "visit";
                 
+                // Determine marker colors based on labels
+                let fillColor = stopColor; // default to stop type color
+                let strokeColor = "white"; // default white border
+                let strokeWeight = 2;
+                
+                // Check if waypoint has exactly one label with assigned color
+                if (waypoint?.contactLabels && labelColorsQuery.data) {
+                  try {
+                    const labels = JSON.parse(waypoint.contactLabels);
+                    const labelsWithColors = labels.filter((label: string) => 
+                      labelColorsQuery.data.some(lc => lc.labelName === label)
+                    );
+                    
+                    // If exactly one label has a color, use it as center with stop type as border
+                    if (labelsWithColors.length === 1) {
+                      const labelColor = labelColorsQuery.data.find(lc => lc.labelName === labelsWithColors[0]);
+                      if (labelColor) {
+                        fillColor = labelColor.color; // label color in center
+                        strokeColor = stopColor; // stop type color as border
+                        strokeWeight = 4; // thicker border to show both colors
+                      }
+                    }
+                  } catch (e) {
+                    // If parsing fails, use default colors
+                  }
+                }
+                
                 // Choose marker shape based on stop type
                 let markerPath = google.maps.SymbolPath.CIRCLE;
                 if (stopType === "pickup" || stopType === "delivery") {
@@ -430,10 +462,10 @@ export default function RouteDetail() {
                   icon: {
                     path: markerPath,
                     scale: 20,
-                    fillColor: stopColor,
+                    fillColor: fillColor,
                     fillOpacity: 1,
-                    strokeColor: "white",
-                    strokeWeight: 2,
+                    strokeColor: strokeColor,
+                    strokeWeight: strokeWeight,
                     rotation: stopType === "delivery" ? 90 : 0,
                   },
                 });
@@ -446,6 +478,33 @@ export default function RouteDetail() {
             const lastWaypoint = localWaypoints[localWaypoints.length - 1];
             const lastStopColor = lastWaypoint?.stopColor || "#4F46E5";
             const lastStopType = lastWaypoint?.stopType || "visit";
+            
+            // Determine marker colors based on labels for last waypoint
+            let lastFillColor = lastStopColor; // default to stop type color
+            let lastStrokeColor = "white"; // default white border
+            let lastStrokeWeight = 2;
+            
+            // Check if last waypoint has exactly one label with assigned color
+            if (lastWaypoint?.contactLabels && labelColorsQuery.data) {
+              try {
+                const labels = JSON.parse(lastWaypoint.contactLabels);
+                const labelsWithColors = labels.filter((label: string) => 
+                  labelColorsQuery.data.some(lc => lc.labelName === label)
+                );
+                
+                // If exactly one label has a color, use it as center with stop type as border
+                if (labelsWithColors.length === 1) {
+                  const labelColor = labelColorsQuery.data.find(lc => lc.labelName === labelsWithColors[0]);
+                  if (labelColor) {
+                    lastFillColor = labelColor.color; // label color in center
+                    lastStrokeColor = lastStopColor; // stop type color as border
+                    lastStrokeWeight = 4; // thicker border to show both colors
+                  }
+                }
+              } catch (e) {
+                // If parsing fails, use default colors
+              }
+            }
             
             let lastMarkerPath = google.maps.SymbolPath.CIRCLE;
             if (lastStopType === "pickup" || lastStopType === "delivery") {
@@ -464,10 +523,10 @@ export default function RouteDetail() {
               icon: {
                 path: lastMarkerPath,
                 scale: 20,
-                fillColor: lastStopColor,
+                fillColor: lastFillColor,
                 fillOpacity: 1,
-                strokeColor: "white",
-                strokeWeight: 2,
+                strokeColor: lastStrokeColor,
+                strokeWeight: lastStrokeWeight,
                 rotation: lastStopType === "delivery" ? 90 : 0,
               },
             });

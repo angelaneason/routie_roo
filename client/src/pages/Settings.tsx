@@ -19,6 +19,7 @@ import React from "react";
 import StopTypesSettings from "./StopTypesSettings";
 import { ImportantDateTypesSettings } from "@/components/ImportantDateTypesSettings";
 import { CommentOptionsSettings } from "@/components/CommentOptionsSettings";
+import { LabelColorsSettings } from "@/components/LabelColorsSettings";
 
 export default function Settings() {
   const { user, isAuthenticated } = useAuth();
@@ -173,11 +174,12 @@ export default function Settings() {
             </div>
           ) : (
             <Tabs defaultValue="account" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="account">Account</TabsTrigger>
                 <TabsTrigger value="site">Site Config</TabsTrigger>
                 <TabsTrigger value="contacts">Contacts</TabsTrigger>
                 <TabsTrigger value="routes">Routes</TabsTrigger>
+                <TabsTrigger value="labels">Label Colors</TabsTrigger>
               </TabsList>
 
               {/* ========== ACCOUNT TAB ========== */}
@@ -869,6 +871,11 @@ export default function Settings() {
                     </Button>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              {/* ========== LABEL COLORS TAB ========== */}
+              <TabsContent value="labels" className="space-y-4 mt-6">
+                <LabelColorsSettings />
               </TabsContent>
             </Tabs>
           )}

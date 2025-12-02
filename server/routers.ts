@@ -44,7 +44,7 @@ import {
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
 import { validateAddress } from "./addressValidation";
-import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes, InsertRoute, cachedContacts, rescheduleHistory, schedulerNotes } from "../drizzle/schema";
+import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes, InsertRoute, cachedContacts, rescheduleHistory, schedulerNotes, labelColors } from "../drizzle/schema";
 import { eq, and, or, desc, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -3440,6 +3440,79 @@ export const appRouter = router({
 
       return { updated };
     }),
+  }),
+
+  labelColors: router({    // Get user's label colors
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      
+      const userLabelColors = await db
+        .select()
+        .from(labelColors)
+        .where(eq(labelColors.userId, ctx.user.id));
+      
+      return userLabelColors;
+    }),
+
+    // Set color for a label
+    setColor: protectedProcedure
+      .input(z.object({
+        labelName: z.string().min(1).max(255),
+        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a valid hex code (e.g., #FF5733)")
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Check if label color already exists
+        const existing = await db
+          .select()
+          .from(labelColors)
+          .where(
+            and(
+              eq(labelColors.userId, ctx.user.id),
+              eq(labelColors.labelName, input.labelName)
+            )
+          )
+          .limit(1);
+
+        if (existing.length > 0) {
+          // Update existing color
+          await db
+            .update(labelColors)
+            .set({ color: input.color })
+            .where(eq(labelColors.id, existing[0].id));
+        } else {
+          // Insert new label color
+          await db.insert(labelColors).values({
+            userId: ctx.user.id,
+            labelName: input.labelName,
+            color: input.color
+          });
+        }
+
+        return { success: true };
+      }),
+
+    // Delete a label color
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        await db
+          .delete(labelColors)
+          .where(
+            and(
+              eq(labelColors.id, input.id),
+              eq(labelColors.userId, ctx.user.id)
+            )
+          );
+
+        return { success: true };
+      }),
   }),
 });
 

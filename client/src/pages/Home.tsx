@@ -143,6 +143,11 @@ export default function Home() {
     enabled: isAuthenticated,
   });
 
+  // Fetch label colors
+  const labelColorsQuery = trpc.labelColors.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
   // Get Google Auth URL
   const googleAuthQuery = trpc.contacts.getGoogleAuthUrl.useQuery(undefined, {
     enabled: false,
@@ -995,12 +1000,30 @@ export default function Home() {
                                 });
                               if (userFriendlyLabels.length > 0) {
                                 return (
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {userFriendlyLabels.slice(0, 3).map((label: string, idx: number) => (
-                                      <span key={idx} style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all', hyphens: 'none', overflowWrap: 'normal' }} className="inline-block px-2 py-0.5 text-sm font-bold bg-primary/10 text-primary rounded">
-                                        {label}
-                                      </span>
-                                    ))}
+                                   <div className="flex flex-wrap gap-1 mt-1">
+                                    {userFriendlyLabels.slice(0, 3).map((label: string, idx: number) => {
+                                      // Find custom color for this label
+                                      const labelColor = labelColorsQuery.data?.find(lc => lc.labelName === label);
+                                      const bgColor = labelColor ? labelColor.color : '#e0e7ff'; // default light blue
+                                      const textColor = labelColor ? '#ffffff' : '#4f46e5'; // white for custom colors, dark blue for default
+                                      
+                                      return (
+                                        <span 
+                                          key={idx} 
+                                          style={{ 
+                                            whiteSpace: 'nowrap', 
+                                            wordBreak: 'keep-all', 
+                                            hyphens: 'none', 
+                                            overflowWrap: 'normal',
+                                            backgroundColor: bgColor,
+                                            color: textColor
+                                          }} 
+                                          className="inline-block px-2 py-0.5 text-sm font-bold rounded"
+                                        >
+                                          {label}
+                                        </span>
+                                      );
+                                    })}
                                     {userFriendlyLabels.length > 3 && (
                                       <span className="inline-block px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded whitespace-nowrap">
                                         +{userFriendlyLabels.length - 3}

@@ -328,3 +328,18 @@ export const schedulerNotes = mysqlTable("scheduler_notes", {
 
 export type SchedulerNote = typeof schedulerNotes.$inferSelect;
 export type InsertSchedulerNote = typeof schedulerNotes.$inferInsert;
+
+/**
+ * Label Colors table - stores custom colors for contact labels
+ */
+export const labelColors = mysqlTable("label_colors", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Owner of the label color setting
+  labelName: varchar("labelName", { length: 255 }).notNull(), // Label name (e.g., "PT R Harms", "Applesoft")
+  color: varchar("color", { length: 7 }).notNull(), // Hex color code (e.g., "#FF5733")
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type LabelColor = typeof labelColors.$inferSelect;
+export type InsertLabelColor = typeof labelColors.$inferInsert;
