@@ -2409,3 +2409,7 @@
 - [x] Build label color settings UI
 - [x] Apply label colors to contact cards
 - [x] Apply label colors to map markers (dual-color design: label color center + stop type border)
+
+## Label Colors Bug Fixes
+
+- [x] Filter out system-generated Google Contacts group identifiers (contactGroups/*) from Label Colors Settings display

@@ -34,8 +34,12 @@ export function LabelColorsSettings() {
           const labels = JSON.parse(contact.labels);
           if (Array.isArray(labels)) {
             labels.forEach(label => {
-              // Filter out hex IDs (8-16 character hex strings)
-              if (typeof label === 'string' && !/^[0-9a-f]{8,16}$/i.test(label)) {
+              // Filter out:
+              // 1. Hex IDs (8-16 character hex strings)
+              // 2. System contactGroups identifiers (contactGroups/*)
+              if (typeof label === 'string' && 
+                  !/^[0-9a-f]{8,16}$/i.test(label) &&
+                  !label.startsWith('contactGroups/')) {
                 labelsSet.add(label);
               }
             });
