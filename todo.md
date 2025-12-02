@@ -2285,3 +2285,11 @@
 - [x] Add smooth transition animation when collapsing/expanding
 - [x] Hide resize handle when collapsed
 - [x] Ensure add reminder input works when expanded
+
+
+## Sticky Note Mobile Layout Issue
+
+- [x] Fix sticky note covering page content when expanded on mobile
+- [x] Adjust z-index or positioning to prevent layout interference
+- [x] Consider making sticky note collapsible by default on mobile
+- [x] Test sticky note doesn't block important UI elements

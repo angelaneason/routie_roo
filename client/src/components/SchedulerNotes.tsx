@@ -7,10 +7,15 @@ import { ChevronDown, ChevronUp, Plus, Trash2, GripVertical } from "lucide-react
 import { toast } from "sonner";
 
 export function SchedulerNotes() {
-  const [isExpanded, setIsExpanded] = useState(true);
+  // Start collapsed on mobile to avoid covering content
+  const [isExpanded, setIsExpanded] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
   const [newNoteText, setNewNoteText] = useState("");
   const [position, setPosition] = useState({ x: 0, y: 20 });
-  const [size, setSize] = useState({ width: 280, height: 400 });
+  // Smaller size on mobile to avoid covering content
+  const [size, setSize] = useState({ 
+    width: typeof window !== 'undefined' && window.innerWidth < 768 ? 240 : 280, 
+    height: typeof window !== 'undefined' && window.innerWidth < 768 ? 300 : 400 
+  });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -22,10 +27,14 @@ export function SchedulerNotes() {
     const updatePosition = () => {
       if (cardRef.current) {
         const windowWidth = window.innerWidth;
-        if (windowWidth < 640) {
-          setPosition({ x: (windowWidth - size.width) / 2, y: 60 });
+        if (windowWidth < 768) {
+          // On mobile: smaller, positioned lower to avoid header
+          setPosition({ x: (windowWidth - size.width) / 2, y: 120 });
+          setSize({ width: 240, height: 300 });
         } else {
+          // On desktop: larger, top right
           setPosition({ x: windowWidth - size.width - 20, y: 60 });
+          setSize({ width: 280, height: 400 });
         }
       }
     };
@@ -177,7 +186,7 @@ export function SchedulerNotes() {
   return (
     <div
       ref={cardRef}
-      className="fixed z-50 max-w-[calc(100vw-2rem)] select-none shadow-2xl rounded-lg transition-all duration-300"
+      className="fixed z-40 max-w-[calc(100vw-2rem)] select-none shadow-2xl rounded-lg transition-all duration-300"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
