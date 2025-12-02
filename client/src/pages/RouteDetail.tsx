@@ -844,6 +844,31 @@ export default function RouteDetail() {
                 <div>
                   <h2 className="text-2xl font-bold mb-4">{route.name}</h2>
                 </div>
+                
+                {/* Missing Coordinates Warning */}
+                {(() => {
+                  const waypointsWithoutCoords = waypoints.filter(
+                    (wp: any) => !wp.latitude || !wp.longitude
+                  );
+                  if (waypointsWithoutCoords.length > 0) {
+                    return (
+                      <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <span className="text-yellow-600 dark:text-yellow-400 text-lg">⚠️</span>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                              {waypointsWithoutCoords.length} stop(s) could not be located on the map due to missing address coordinates.
+                            </p>
+                            <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1">
+                              The route is shown with available locations only. Missing stops: {waypointsWithoutCoords.map((wp: any) => wp.contactName).join(", ")}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
                 <div>
                   <p className="text-sm text-muted-foreground">Total Distance</p>
                   <p className="text-2xl font-bold">

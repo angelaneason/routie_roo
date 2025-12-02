@@ -17,6 +17,7 @@ export const users = mysqlTable("users", {
   eventDurationMode: mysqlEnum("eventDurationMode", ["stop_only", "include_drive"]).default("stop_only"), // Calendar event duration mode
   defaultStopType: varchar("defaultStopType", { length: 100 }), // Default stop type for new routes
   defaultStopTypeColor: varchar("defaultStopTypeColor", { length: 7 }), // Default stop type color
+  allowMultipleVisits: int("allowMultipleVisits").default(0).notNull(), // 0 = prevent duplicates, 1 = allow same contact multiple times
   googleCalendarAccessToken: text("googleCalendarAccessToken"), // Google Calendar OAuth access token
   googleCalendarRefreshToken: text("googleCalendarRefreshToken"), // Google Calendar OAuth refresh token
   googleCalendarTokenExpiry: timestamp("googleCalendarTokenExpiry"), // When the access token expires

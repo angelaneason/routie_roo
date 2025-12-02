@@ -2434,3 +2434,19 @@
 - [x] Make "Your Hop Library" section match height of "Plan Your Next Hop" section
 
 - [x] Increase height of "Plan Your Next Hop" section to better balance with "Your Hop Library"
+
+
+## Multiple Contacts Per Route Setting
+
+- [x] Add allowMultipleVisits boolean field to users table
+- [x] Add setting toggle in Settings page (Routes tab)
+- [x] Update route creation to check allowMultipleVisits setting
+- [x] Show/hide duplicate contact warning based on setting
+- [x] Test enabling and disabling the setting
+
+## Missing Coordinates Validation
+
+- [x] Add validation during route creation to detect waypoints with missing coordinates
+- [x] Show warning message in route detail page if any stops have null lat/lng
+- [x] Display which specific stops are missing coordinates with visual indicator
+- [x] Show prominent warning toast when creating routes with missing coordinates

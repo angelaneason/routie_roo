@@ -677,11 +677,22 @@ export const appRouter = router({
 
         await createRouteWaypoints(waypointsToCreate as any); // Type assertion for custom stop types
 
+        // Check for waypoints with missing coordinates
+        const waypointsWithoutCoords = waypointsToCreate.filter(
+          wp => !wp.latitude || !wp.longitude
+        );
+        const missingCoordinatesCount = waypointsWithoutCoords.length;
+        const missingCoordinatesWarning = missingCoordinatesCount > 0
+          ? `${missingCoordinatesCount} stop(s) could not be located on the map due to missing address coordinates`
+          : null;
+
         return {
           routeId,
           shareId,
           totalDistance: routeData.distanceMeters,
           totalDuration: parseInt(routeData.duration.replace('s', '')),
+          missingCoordinatesCount,
+          missingCoordinatesWarning,
         };
       }),
 
@@ -2480,6 +2491,7 @@ export const appRouter = router({
         enabledReminderDateTypes: z.array(z.string()).optional(), // Date types that trigger reminders
         defaultStopType: z.string().optional(), // Default stop type for new routes
         defaultStopTypeColor: z.string().optional(), // Default stop type color
+        allowMultipleVisits: z.number().optional(), // 0 = prevent duplicates, 1 = allow multiple visits
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -2497,6 +2509,7 @@ export const appRouter = router({
         if (input.reminderIntervals !== undefined) updateData.reminderIntervals = JSON.stringify(input.reminderIntervals);
         if (input.enabledReminderDateTypes !== undefined) updateData.enabledReminderDateTypes = JSON.stringify(input.enabledReminderDateTypes);
         if (input.defaultStopType !== undefined) updateData.defaultStopType = input.defaultStopType;
+        if (input.allowMultipleVisits !== undefined) updateData.allowMultipleVisits = input.allowMultipleVisits;
         if (input.defaultStopTypeColor !== undefined) updateData.defaultStopTypeColor = input.defaultStopTypeColor;
 
         await db.update(users)

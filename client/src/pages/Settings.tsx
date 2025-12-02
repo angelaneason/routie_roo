@@ -793,6 +793,38 @@ export default function Settings() {
                   </CardContent>
                 </Card>
 
+                {/* Allow Multiple Visits */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Multiple Visits Per Route</CardTitle>
+                    <CardDescription>Allow adding the same contact multiple times to a single route</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="allow-multiple-visits">Allow Multiple Visits</Label>
+                      <Select
+                        value={currentUser?.allowMultipleVisits ? "yes" : "no"}
+                        onValueChange={(value) => {
+                          updateSettingsMutation.mutate({
+                            allowMultipleVisits: value === "yes" ? 1 : 0
+                          });
+                        }}
+                      >
+                        <SelectTrigger id="allow-multiple-visits">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="no">No - Prevent duplicate contacts</SelectItem>
+                          <SelectItem value="yes">Yes - Allow same contact multiple times</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-muted-foreground">
+                        When enabled, you can add the same contact to a route multiple times (useful for multiple service types, delivery + pickup, etc.)
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Google Calendar Connection */}
                 <Card>
                   <CardHeader>

@@ -157,6 +157,14 @@ export default function Home() {
   const createRouteMutation = trpc.routes.create.useMutation({
     onSuccess: (data) => {
       toast.success("Route planned! Let's hop to it 🦘");
+      
+      // Show warning if any coordinates are missing
+      if (data.missingCoordinatesWarning) {
+        toast.warning(data.missingCoordinatesWarning, {
+          duration: 6000,
+        });
+      }
+      
       setSelectedContacts(new Set());
       setContactStopTypes(new Map());
       setRouteName("");
@@ -253,12 +261,20 @@ export default function Home() {
   };
 
   const handleContactToggle = (contactId: number) => {
+    const allowMultiple = userQuery.data?.allowMultipleVisits === 1;
     const newSelected = new Set(selectedContacts);
     const newStopTypes = new Map(contactStopTypes);
     
     if (newSelected.has(contactId)) {
-      newSelected.delete(contactId);
-      newStopTypes.delete(contactId);
+      // If multiple visits not allowed, deselect the contact
+      if (!allowMultiple) {
+        newSelected.delete(contactId);
+        newStopTypes.delete(contactId);
+      } else {
+        // If multiple visits allowed, show warning that they can't unselect this way
+        toast.info("To remove a specific visit, use the route creation panel below");
+        return;
+      }
     } else {
       newSelected.add(contactId);
       // Initialize with user's default stop type from settings, or "visit" as fallback
