@@ -2367,11 +2367,14 @@
 - [x] Check if contactLabels field is being passed to waypoint component
 - [x] Fix label rendering in SortableWaypointItem component (extract from contactGroups/ format)
 - [ ] Test label display on route details page
+- [ ] Verify labels are being saved when creating new routes
+- [ ] Check if existing routes need label data migration
 
 ## Mobile Label Truncation Issue
 
 - [x] Remove text truncation (whitespace-nowrap, text-ellipsis) from mobile contact labels
-- [x] Ensure full label text displays (e.g., "R. Harms" instead of "PT...")
+- [x] Extract full label names from contactGroups/ format ("R. Harms" instead of "PT R Harms")
+- [x] Fix label container to allow text wrapping like phone numbers
 - [ ] Test label display on mobile devices
 
 
@@ -2380,3 +2383,10 @@
 - [x] Fix text running off page on mobile route detail view
 - [x] Add proper text wrapping and responsive layout (header and action buttons)
 - [ ] Test on mobile devices
+
+
+## Stop Type Colors Not Applied
+
+- [x] Investigate where stop types are assigned during route creation
+- [x] Fix to use user's custom stop type colors instead of hardcoded defaults
+- [ ] Test with custom stop type colors

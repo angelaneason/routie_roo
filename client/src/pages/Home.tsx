@@ -138,6 +138,11 @@ export default function Home() {
     enabled: isAuthenticated,
   });
 
+  // Fetch user's stop types
+  const stopTypesQuery = trpc.stopTypes.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
   // Get Google Auth URL
   const googleAuthQuery = trpc.contacts.getGoogleAuthUrl.useQuery(undefined, {
     enabled: false,
@@ -297,7 +302,16 @@ export default function Home() {
       stopType: string;
       stopColor: string;
     }> = selectedContactsList.map(c => {
-      const stopTypeInfo = contactStopTypes.get(c.id) || { type: "visit", color: "#3b82f6" };
+      // Get stop type from contactStopTypes map, or use user's custom "visit" type as default
+      let stopTypeInfo = contactStopTypes.get(c.id);
+      if (!stopTypeInfo) {
+        // Find user's "visit" stop type or use blue as final fallback
+        const visitStopType = stopTypesQuery.data?.find(st => st.name.toLowerCase() === "visit");
+        stopTypeInfo = {
+          type: "visit",
+          color: visitStopType?.color || "#3b82f6"
+        };
+      }
       return {
         contactId: c.id, // Store contact ID for Google sync
         contactName: c.name || undefined,
@@ -958,13 +972,19 @@ export default function Home() {
                           {contact.labels && (() => {
                             try {
                               const labels = JSON.parse(contact.labels);
-              // Filter out myContacts, starred, and ALL contactGroups/*
-              const userFriendlyLabels = labels.filter((label: string) => {
-                const lower = label.toLowerCase();
-                return lower !== 'mycontacts' && 
-                       lower !== 'starred' && 
-                       !label.startsWith('contactGroups/');
-              });
+              // Extract label names from contactGroups/ format and filter out system labels
+              const userFriendlyLabels = labels
+                .map((label: string) => {
+                  // Extract name from contactGroups/xxx format
+                  if (label.startsWith('contactGroups/')) {
+                    return label.split('/').pop() || '';
+                  }
+                  return label;
+                })
+                .filter((label: string) => {
+                  const lower = label.toLowerCase();
+                  return lower !== 'mycontacts' && lower !== 'starred' && label.trim() !== '';
+                });
                               if (userFriendlyLabels.length > 0) {
                                 return (
                                   <div className="flex flex-col md:flex-row md:flex-wrap gap-1 mt-1">

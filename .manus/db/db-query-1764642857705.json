@@ -1,0 +1,20 @@
+{
+  "query": "SELECT contactName, contactLabels, contactId FROM route_waypoints WHERE contactName IN ('GAINES Frank', 'ONEAL Alice') LIMIT 2",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT contactName, contactLabels, contactId FROM route_waypoints WHERE contactName IN ('GAINES Frank', 'ONEAL Alice') LIMIT 2",
+  "rows": [
+    {
+      "contactName": "ONEAL Alice",
+      "contactLabels": "[\"♾️PT Randy Harms\",\"Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]",
+      "contactId": "510221"
+    },
+    {
+      "contactName": "ONEAL Alice",
+      "contactLabels": "[\"♾️PT Randy Harms\",\"Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]",
+      "contactId": "510221"
+    }
+  ],
+  "messages": [],
+  "stdout": "contactName\tcontactLabels\tcontactId\nONEAL Alice\t[\"♾️PT Randy Harms\",\"Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\t510221\nONEAL Alice\t[\"♾️PT Randy Harms\",\"Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\t510221\n",
+  "stderr": "",
+  "execution_time_ms": 53
+}

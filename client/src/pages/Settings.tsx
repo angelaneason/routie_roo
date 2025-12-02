@@ -101,11 +101,20 @@ export default function Settings() {
 
   const disconnectCalendarMutation = trpc.settings.disconnectCalendar.useMutation({
     onSuccess: () => {
-      toast.success("Calendar disconnected");
       userQuery.refetch();
+      toast.success("Calendar disconnected");
     },
     onError: (error) => {
       toast.error(`Failed to disconnect: ${error.message}`);
+    }
+  });
+
+  const backfillLabelsMutation = trpc.admin.backfillWaypointLabels.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Updated ${data.updated} waypoints with labels! 🦘`);
+    },
+    onError: (error) => {
+      toast.error(`Failed to update labels: ${error.message}`);
     }
   });
 
@@ -825,6 +834,39 @@ export default function Settings() {
                         </Button>
                       </div>
                     )}
+                  </CardContent>
+                </Card>
+
+                {/* Label Migration */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Update Existing Routes with Labels</CardTitle>
+                    <CardDescription>
+                      Backfill contact labels for routes created before label support was added
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      If you have existing routes that don't show contact labels on waypoint cards, click this button to update them with labels from your contacts.
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        if (confirm("Update all existing routes with contact labels? This may take a moment.")) {
+                          backfillLabelsMutation.mutate();
+                        }
+                      }}
+                      disabled={backfillLabelsMutation.isPending}
+                    >
+                      {backfillLabelsMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        "Update Route Labels"
+                      )}
+                    </Button>
                   </CardContent>
                 </Card>
               </TabsContent>

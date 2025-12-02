@@ -45,7 +45,7 @@ import {
 import { TRPCError } from "@trpc/server";
 import { validateAddress } from "./addressValidation";
 import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes, InsertRoute, cachedContacts, rescheduleHistory, schedulerNotes } from "../drizzle/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, or, desc, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 // Helper to calculate route using Google Maps Routes API
@@ -3384,6 +3384,62 @@ export const appRouter = router({
 
         return { success: true };
       }),
+
+    // Backfill contact labels for existing waypoints
+    backfillWaypointLabels: protectedProcedure.mutation(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+
+      // Get all waypoints for this user's routes that have contactId but no labels
+      const userRouteIds = await db
+        .select({ id: routes.id })
+        .from(routes)
+        .where(eq(routes.userId, ctx.user.id));
+
+      if (userRouteIds.length === 0) {
+        return { updated: 0 };
+      }
+
+      const routeIds = userRouteIds.map(r => r.id);
+      
+      // Get waypoints that need label backfill
+      const waypointsToUpdate = await db
+        .select()
+        .from(routeWaypoints)
+        .where(
+          and(
+            sql`${routeWaypoints.routeId} IN (${sql.join(routeIds.map(id => sql`${id}`), sql`, `)})`,
+            sql`${routeWaypoints.contactId} IS NOT NULL`,
+            or(
+              sql`${routeWaypoints.contactLabels} IS NULL`,
+              eq(routeWaypoints.contactLabels, 'null')
+            )
+          )
+        );
+
+      let updated = 0;
+      
+      // Update each waypoint with labels from its contact
+      for (const waypoint of waypointsToUpdate) {
+        if (!waypoint.contactId) continue;
+        
+        const contact = await db
+          .select()
+          .from(cachedContacts)
+          .where(eq(cachedContacts.id, waypoint.contactId))
+          .limit(1);
+        
+        if (contact.length > 0 && contact[0].labels) {
+          await db
+            .update(routeWaypoints)
+            .set({ contactLabels: contact[0].labels })
+            .where(eq(routeWaypoints.id, waypoint.id));
+          updated++;
+        }
+      }
+
+      return { updated };
+    }),
   }),
 });
 
