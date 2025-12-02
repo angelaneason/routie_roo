@@ -544,7 +544,7 @@ export default function Home() {
       />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <header className="bg-white border-b">
-        <div className="container py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="container py-4 px-2 md:px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img src={APP_LOGO} alt="RoutieRoo" className="h-16 md:h-24" />
           </div>
@@ -608,11 +608,11 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="container py-8">
+      <main className="container py-4 md:py-8 px-2 md:px-4">
         {/* Scheduler Sticky Notes - Fixed position, draggable */}
         <SchedulerNotes />
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {/* Contacts Section */}
           <div className="space-y-6">
             {/* Create Route Section */}
@@ -1130,7 +1130,7 @@ export default function Home() {
                   <div className="flex items-center gap-3">
                     {folders.length > 0 && (
                       <Select value={selectedFolderFilter} onValueChange={setSelectedFolderFilter}>
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-full md:w-[180px]">
                           <SelectValue placeholder="All Folders" />
                         </SelectTrigger>
                         <SelectContent>
