@@ -671,7 +671,7 @@ export default function Home() {
                         placeholder="Add any notes or details about this route..."
                         value={routeNotes}
                         onChange={(e) => setRouteNotes(e.target.value)}
-                        rows={3}
+                        rows={5}
                         className="pr-10"
                       />
                       <div className="absolute bottom-2 right-2">

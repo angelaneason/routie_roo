@@ -2432,3 +2432,5 @@
 ## UI Layout Improvements
 
 - [x] Make "Your Hop Library" section match height of "Plan Your Next Hop" section
+
+- [x] Increase height of "Plan Your Next Hop" section to better balance with "Your Hop Library"
