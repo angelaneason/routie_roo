@@ -2450,3 +2450,10 @@
 - [x] Show warning message in route detail page if any stops have null lat/lng
 - [x] Display which specific stops are missing coordinates with visual indicator
 - [x] Show prominent warning toast when creating routes with missing coordinates
+
+
+## Route UI Updates
+
+- [x] Add copy icon button to each route card in the library
+- [x] Remove "Copy Route" button from top action bar in RouteDetail
+- [x] Remove Export button from route detail page

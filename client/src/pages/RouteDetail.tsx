@@ -794,17 +794,9 @@ export default function RouteDetail() {
                   </Button>
                   
                   {/* Secondary Actions */}
-                  <Button variant="outline" size="sm" onClick={handleCopyRoute}>
-                    <CopyIcon className="h-4 w-4 mr-2" />
-                    Copy
-                  </Button>
                   <Button variant="outline" size="sm" onClick={handleAddToCalendar}>
                     <Calendar className="h-4 w-4 mr-2" />
                     Add To Calendar
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleExportToCSV}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleArchiveRoute} disabled={archiveRouteMutation.isPending}>
                     <Archive className="h-4 w-4 mr-2" />

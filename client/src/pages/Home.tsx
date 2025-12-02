@@ -22,7 +22,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { APP_TITLE, APP_LOGO, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon, Archive, FileText, Paperclip, Info, History, Users } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon, Archive, FileText, Paperclip, Info, History, Users, Copy } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { ContactEditDialog } from "@/components/ContactEditDialog";
@@ -202,6 +202,18 @@ export default function Home() {
     onError: (error) => {
       toast.error(error.message || "Couldn't delete route");
       setDeleteRouteId(null);
+    },
+  });
+
+  // Copy route mutation
+  const copyRouteMutation = trpc.routes.copyRoute.useMutation({
+    onSuccess: (data) => {
+      toast.success("Route copied successfully!");
+      routesQuery.refetch();
+      navigate(`/route/${data.routeId}`);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to copy route");
     },
   });
 
@@ -1275,6 +1287,18 @@ export default function Home() {
                             </div>
                           </Link>
                           <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                copyRouteMutation.mutate({ routeId: route.id });
+                              }}
+                              title="Copy route"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
