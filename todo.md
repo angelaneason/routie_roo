@@ -2457,3 +2457,18 @@
 - [x] Add copy icon button to each route card in the library
 - [x] Remove "Copy Route" button from top action bar in RouteDetail
 - [x] Remove Export button from route detail page
+
+
+## Waypoint Address Update Fix
+
+- [x] Update waypoint edit mutation to geocode address when changed
+- [x] Save latitude/longitude coordinates from geocoding result
+- [x] Clear missing coordinates warning after successful update
+- [x] Test that updated waypoint appears on map immediately
+
+## Two-Way Google Contacts Sync
+
+- [x] Add Google Contacts API update function to sync address changes
+- [x] Call Google Contacts sync when "Update contact address permanently" is selected
+- [x] Handle sync errors gracefully (show warning if Google sync fails)
+- [ ] Test that address changes propagate to Google Contacts

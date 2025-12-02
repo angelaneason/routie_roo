@@ -1847,8 +1847,40 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
         }
 
-        // Update waypoint
-        const updateData: any = { address: input.address };
+        // Geocode the new address to get coordinates
+        let latitude: string | null = null;
+        let longitude: string | null = null;
+        
+        try {
+          const { makeRequest } = await import("./_core/map");
+          type GeocodingResult = {
+            results: Array<{
+              geometry: { location: { lat: number; lng: number } };
+              formatted_address: string;
+            }>;
+            status: string;
+          };
+          const geocodeResult = await makeRequest<GeocodingResult>(
+            "/maps/api/geocode/json",
+            { address: input.address }
+          );
+          
+          if (geocodeResult.status === "OK" && geocodeResult.results.length > 0) {
+            const location = geocodeResult.results[0].geometry.location;
+            latitude = location.lat.toString();
+            longitude = location.lng.toString();
+          }
+        } catch (error) {
+          console.error("Failed to geocode address:", error);
+          // Continue without coordinates - user can try again
+        }
+
+        // Update waypoint with new address and coordinates
+        const updateData: any = { 
+          address: input.address,
+          latitude,
+          longitude
+        };
         if (input.contactName !== undefined) {
           updateData.contactName = input.contactName;
         }
@@ -1868,7 +1900,11 @@ export const appRouter = router({
             .limit(1);
           
           if (currentContact.length) {
-            const contactUpdateData: any = { address: input.address };
+            const contactUpdateData: any = { 
+              address: input.address,
+              latitude,
+              longitude
+            };
             const oldAddress = currentContact[0].address;
             const newAddress = input.address;
             
@@ -1894,6 +1930,23 @@ export const appRouter = router({
                 eq(cachedContacts.id, input.contactId),
                 eq(cachedContacts.userId, ctx.user.id)
               ));
+            
+            // Sync to Google Contacts if contact has Google resource name
+            if (currentContact[0].googleResourceName) {
+              const { syncToGoogleContact } = await import("./googleContactSync");
+              const syncResult = await syncToGoogleContact({
+                contactId: input.contactId,
+                userId: ctx.user.id,
+                address: input.address,
+              });
+              
+              if (!syncResult.success) {
+                console.warn("[Google Sync] Failed to sync address to Google Contacts:", syncResult.error);
+                // Don't fail the mutation - contact update succeeded locally
+              } else {
+                console.log("[Google Sync] Successfully synced address to Google Contacts");
+              }
+            }
           }
         }
 
