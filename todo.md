@@ -2352,3 +2352,10 @@
 - [x] Make sticky note hidden by default on desktop (like mobile)
 - [x] Show floating pushpin button on desktop
 - [x] Test toggle functionality on desktop
+
+
+## Pushpin Button Visibility Issue
+
+- [x] Fix pushpin button not appearing on desktop
+- [x] Ensure button is always visible regardless of sticky note state
+- [x] Test button visibility on desktop

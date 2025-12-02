@@ -196,11 +196,11 @@ export function SchedulerNotes() {
 
   return (
     <>
-      {/* Floating toggle button - only show on mobile when sticky note is hidden */}
+      {/* Floating toggle button - show on all devices when sticky note is hidden */}
       {!isVisible && (
         <button
           onClick={() => setIsVisible(true)}
-          className="md:hidden fixed bottom-6 right-4 z-50 w-14 h-14 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all"
+          className="fixed bottom-6 right-4 z-50 w-14 h-14 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all"
           aria-label="Show reminders"
         >
           <span className="text-2xl">📌</span>
@@ -221,10 +221,10 @@ export function SchedulerNotes() {
             touchAction: 'none',
           }}
         >
-          {/* Close button - only on mobile */}
+          {/* Close button - show on all devices */}
           <button
             onClick={() => setIsVisible(false)}
-            className="md:hidden absolute top-2 left-2 z-20 w-8 h-8 bg-purple-600 hover:bg-purple-700 text-white rounded-full flex items-center justify-center"
+            className="absolute top-2 left-2 z-20 w-8 h-8 bg-purple-600 hover:bg-purple-700 text-white rounded-full flex items-center justify-center"
             aria-label="Hide reminders"
           >
             ×
