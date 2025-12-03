@@ -96,6 +96,7 @@ export const routeWaypoints = mysqlTable("route_waypoints", {
   position: int("position").notNull(), // Order in the route (0 = origin, last = destination)
   contactName: varchar("contactName", { length: 255 }), // Name from contact (optional, for privacy)
   address: text("address").notNull(), // Full address string
+  addressType: varchar("addressType", { length: 50 }), // Type of address selected (home, work, other, custom)
   latitude: varchar("latitude", { length: 32 }), // Latitude coordinate
   longitude: varchar("longitude", { length: 32 }), // Longitude coordinate
   phoneNumbers: text("phoneNumbers"), // JSON array of {value, type, label}
@@ -133,13 +134,15 @@ export const cachedContacts = mysqlTable("cached_contacts", {
   googleResourceName: varchar("googleResourceName", { length: 255 }), // Google People API resource name
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 320 }),
-  address: text("address"),
+  addresses: text("addresses"), // JSON array of {type, formattedValue, isPrimary, latitude, longitude}
   phoneNumbers: text("phoneNumbers"), // JSON array of {value, type, label}
   photoUrl: text("photoUrl"), // Contact photo URL from Google
   labels: text("labels"), // JSON array of contact labels/groups from Google
   isActive: int("isActive").default(1).notNull(), // 1 = active, 0 = inactive
   importantDates: text("importantDates"), // JSON array of {type: string, date: string} - user-defined important dates
   comments: text("comments"), // JSON array of {option: string, customText?: string} - user-defined comments
+  // Legacy fields - kept for backward compatibility during migration
+  address: text("address"), // Deprecated: use addresses array instead
   originalAddress: text("originalAddress"), // Original address from Google Contacts (for tracking changes)
   addressModified: int("addressModified").default(0).notNull(), // 1 if address was modified in Routie Roo, 0 if not
   addressModifiedAt: timestamp("addressModifiedAt"), // When address was last modified

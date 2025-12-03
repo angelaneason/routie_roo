@@ -20,6 +20,9 @@ interface GoogleContact {
   addresses?: Array<{
     formattedValue?: string;
     type?: string;
+    metadata?: {
+      primary?: boolean;
+    };
   }>;
   phoneNumbers?: Array<{
     value?: string;
@@ -190,7 +193,19 @@ export function parseGoogleContacts(googleContacts: GoogleContact[], groupNameMa
     .map(contact => {
       const name = contact.names?.[0]?.displayName || "Unknown";
       const email = contact.emailAddresses?.[0]?.value || null;
-      const address = contact.addresses?.[0]?.formattedValue || null;
+      
+      // Parse all addresses with type and primary flag
+      const addresses = contact.addresses?.map(addr => ({
+        type: addr.type || "other",
+        formattedValue: addr.formattedValue || "",
+        isPrimary: addr.metadata?.primary || false,
+        // Coordinates will be geocoded later
+        latitude: null,
+        longitude: null,
+      })) || [];
+      
+      // Legacy single address field for backward compatibility
+      const address = addresses.find(a => a.isPrimary)?.formattedValue || addresses[0]?.formattedValue || null;
       
       // Parse phone numbers with labels
       const phoneNumbers = contact.phoneNumbers?.map(phone => ({
@@ -222,7 +237,8 @@ export function parseGoogleContacts(googleContacts: GoogleContact[], groupNameMa
         resourceName: contact.resourceName,
         name,
         email,
-        address,
+        address, // Legacy field - kept for backward compatibility
+        addresses: JSON.stringify(addresses),
         phoneNumbers: JSON.stringify(phoneNumbers),
         photoUrl,
         labels: JSON.stringify(labels),

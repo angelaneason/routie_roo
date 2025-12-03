@@ -187,7 +187,8 @@ export const appRouter = router({
             googleResourceName: contact.resourceName,
             name: contact.name,
             email: contact.email,
-            address: contact.address,
+            address: contact.address, // Legacy field
+            addresses: contact.addresses, // New array field
             phoneNumbers: contact.phoneNumbers,
             photoUrl: contact.photoUrl,
             labels: contact.labels,
@@ -613,6 +614,7 @@ export const appRouter = router({
           contactId: z.number().optional(), // cachedContacts ID for Google sync
           contactName: z.string().optional(),
           address: z.string(),
+          addressType: z.string().optional(), // Type of address used (home, work, other)
           phoneNumbers: z.string().optional(), // JSON string of phone numbers
           photoUrl: z.string().optional(), // Contact photo URL
           contactLabels: z.string().optional(), // JSON string of contact labels
@@ -685,6 +687,7 @@ export const appRouter = router({
             position: index,
             contactName: wp.contactName || null,
             address: wp.address,
+            addressType: wp.addressType || null, // Track which address type was used
             latitude: leg?.startLocation?.latLng?.latitude?.toString() || null,
             longitude: leg?.startLocation?.latLng?.longitude?.toString() || null,
             phoneNumbers: wp.phoneNumbers || null,

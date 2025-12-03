@@ -2518,3 +2518,87 @@
 - [x] Ensure edited notifications persist when navigating away
   - [x] Save button triggers immediate database update
   - [x] State management prevents loss of changes
+
+
+## Multiple Addresses Per Contact Feature - Dec 3, 2025
+
+### Research & Design
+- [ ] Research how Google Contacts API stores multiple addresses (home, work, other)
+- [ ] Design database schema for storing multiple addresses per contact
+- [ ] Design UI for selecting which address to use when adding contact to route
+- [ ] Determine default address selection logic (primary, home, work priority)
+
+### Database Schema
+- [ ] Update cached_contacts table to store addresses as JSON array instead of single string
+- [ ] Each address object should include: type (home/work/other), formattedValue, isPrimary flag
+- [ ] Update route_waypoints to track which address type was selected
+- [ ] Create migration script to convert existing single addresses to array format
+
+### Backend Implementation
+- [x] Update Google Contacts sync to fetch all addresses for each contact
+- [ ] Update contacts.update procedure to handle multiple addresses
+- [x] Update route creation to accept address selection parameter
+- [ ] Update waypoint editing to allow changing which address is used
+- [x] Update address validation to work with address arrays
+
+### Frontend - Contact Management
+- [ ] Update ContactEditDialog to show all addresses with add/edit/delete
+- [ ] Add address type selector (Home, Work, Other, Custom)
+- [ ] Add "Set as Primary" checkbox for default address
+- [ ] Display all addresses on contact cards with type labels
+- [ ] Update contact import CSV to support multiple addresses
+
+### Frontend - Route Creation
+- [ ] Add address selector dropdown when contact has multiple addresses
+- [ ] Show address type badges (Home, Work, etc.) in contact selection
+- [ ] Default to primary address if not specified
+- [ ] Update route waypoint display to show which address type is being used
+
+### Testing
+- [ ] Test Google Contacts sync with contacts that have multiple addresses
+- [ ] Test adding contact with multiple addresses to route
+- [ ] Test editing waypoint to change which address is used
+- [ ] Test address validation with multiple addresses
+- [ ] Test CSV import/export with multiple addresses
+
+
+## Multiple Addresses Per Contact Feature - Implementation Progress
+
+### Research & Design
+- [x] Research how Google Contacts API stores multiple addresses (home, work, other)
+- [x] Design database schema for storing multiple addresses per contact
+- [x] Design UI for selecting which address to use when adding contact to route
+- [x] Determine default address selection logic (primary, home, work priority)
+
+### Database Schema
+- [x] Update cached_contacts table to store addresses as JSON array instead of single string
+- [x] Each address object should include: type (home/work/other), formattedValue, isPrimary flag
+- [x] Update route_waypoints to track which address type was selected
+- [ ] Create migration script to convert existing single addresses to array format
+
+### Backend Implementation
+- [x] Update Google Contacts sync to fetch all addresses for each contact
+- [ ] Update contacts.update procedure to handle multiple addresses
+- [x] Update route creation to accept address selection parameter
+- [ ] Update waypoint editing to allow changing which address is used
+- [x] Update address validation to work with address arrays
+
+### Frontend - Contact Management
+- [ ] Update ContactEditDialog to show all addresses with add/edit/delete
+- [ ] Add address type selector (Home, Work, Other, Custom)
+- [ ] Add "Set as Primary" checkbox for default address
+- [ ] Display all addresses on contact cards with type labels
+- [ ] Update contact import CSV to support multiple addresses
+
+### Frontend - Route Creation
+- [ ] Add address selector dropdown when contact has multiple addresses
+- [ ] Show address type badges (Home, Work, etc.) in contact selection
+- [ ] Default to primary address if not specified
+- [ ] Update route waypoint display to show which address type is being used
+
+### Testing
+- [ ] Test Google Contacts sync with contacts that have multiple addresses
+- [ ] Test adding contact with multiple addresses to route
+- [ ] Test editing waypoint to change which address is used
+- [ ] Test address validation with multiple addresses
+- [ ] Test CSV import/export with multiple addresses

@@ -35,6 +35,7 @@ import { SchedulerNotes } from "@/components/SchedulerNotes";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Link, useLocation } from "wouter";
+import { getPrimaryAddress, hasMultipleAddresses, getAddressTypeIcon, getAddressTypeLabel } from "@/lib/addressHelpers";
 
 export default function Home() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
@@ -361,7 +362,12 @@ export default function Home() {
       .filter((c): c is NonNullable<typeof c> => c !== undefined && c !== null);
 
     // Check for contacts without addresses
-    const contactsWithoutAddress = selectedContactsList.filter(c => !c.address || c.address.trim() === "");
+    const contactsWithoutAddress = selectedContactsList.filter(c => {
+      // Check both new addresses array and legacy address field
+      const primaryAddr = getPrimaryAddress(c.addresses);
+      const hasAddress = primaryAddr?.formattedValue || c.address;
+      return !hasAddress || hasAddress.trim() === "";
+    });
     if (contactsWithoutAddress.length > 0) {
       const names = contactsWithoutAddress.map(c => c.name || "Unknown").join(", ");
       toast.error(`The following contact${contactsWithoutAddress.length > 1 ? 's have' : ' has'} no address: ${names}`);
@@ -372,6 +378,7 @@ export default function Home() {
       contactId?: number;
       contactName?: string;
       address: string;
+      addressType?: string;
       phoneNumbers?: string;
       photoUrl?: string;
       contactLabels?: string;
@@ -390,10 +397,15 @@ export default function Home() {
           color: visitStopType?.color || "#3b82f6"
         };
       }
+      // Get primary address from addresses array, fall back to legacy address field
+      const primaryAddr = getPrimaryAddress(c.addresses);
+      const addressToUse = primaryAddr?.formattedValue || c.address || "";
+      
       return {
         contactId: c.id, // Store contact ID for Google sync
         contactName: c.name || undefined,
-        address: c.address || "",
+        address: addressToUse,
+        addressType: primaryAddr?.type || undefined, // Track which address type was used
         phoneNumbers: c.phoneNumbers || undefined,
         photoUrl: c.photoUrl || undefined,
         contactLabels: c.labels || undefined,
@@ -1120,9 +1132,27 @@ export default function Home() {
                             } catch (e) {}
                             return null;
                           })()}
-                          <p className="text-sm text-muted-foreground truncate mt-1">
-                            {contact.address || "No address"}
-                          </p>
+                          <div className="mt-1">
+                            {(() => {
+                              // Try to get address from new addresses array first, fall back to legacy address field
+                              const primaryAddr = getPrimaryAddress(contact.addresses);
+                              const displayAddress = primaryAddr?.formattedValue || contact.address || "No address";
+                              const hasMultiple = hasMultipleAddresses(contact.addresses);
+                              
+                              return (
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm text-muted-foreground truncate flex-1">
+                                    {displayAddress}
+                                  </p>
+                                  {hasMultiple && (
+                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded whitespace-nowrap">
+                                      {getAddressTypeIcon(primaryAddr?.type || 'other')} +{hasMultipleAddresses(contact.addresses) ? 'more' : ''}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </div>
                           {contact.phoneNumbers && (() => {
                             try {
                               const phones = JSON.parse(contact.phoneNumbers);
