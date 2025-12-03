@@ -2602,3 +2602,11 @@
 - [ ] Test editing waypoint to change which address is used
 - [ ] Test address validation with multiple addresses
 - [ ] Test CSV import/export with multiple addresses
+
+
+## BUG: Multiple Addresses Not Syncing Properly
+- [x] Investigate why Shelton Patricia only shows one address when Google Contacts has two
+- [x] Check parseGoogleContacts function to ensure all addresses are extracted
+- [x] Check database insertion to ensure addresses array is being saved
+- [x] Fixed: upsertCachedContacts was missing addresses and labels in onDuplicateKeyUpdate
+- [ ] Test sync with contact that has multiple addresses
