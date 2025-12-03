@@ -357,6 +357,28 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Export contacts to CSV
+    exportToCSV: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const contacts = await getUserCachedContacts(ctx.user.id);
+      
+      // Format contacts for CSV export
+      const csvData = contacts.map(contact => ({
+        name: contact.name || '',
+        email: contact.email || '',
+        address: contact.address || '',
+        phoneNumbers: contact.phoneNumbers || '',
+        labels: contact.labels || '',
+        importantDates: contact.importantDates || '',
+        comments: contact.comments || '',
+        isActive: contact.isActive ? 'Yes' : 'No',
+      }));
+
+      return csvData;
+    }),
+
     // Import contacts from CSV
     importFromCSV: protectedProcedure
       .input(z.object({

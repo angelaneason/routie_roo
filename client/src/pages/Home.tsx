@@ -22,7 +22,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { APP_TITLE, APP_LOGO, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon, Archive, FileText, Paperclip, Info, History, Users, Copy } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Download, Calendar as CalendarIcon, Archive, FileText, Paperclip, Info, History, Users, Copy } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { ContactEditDialog } from "@/components/ContactEditDialog";
@@ -269,6 +269,51 @@ export default function Home() {
     const result = await googleAuthQuery.refetch();
     if (result.data?.url) {
       window.location.href = result.data.url;
+    }
+  };
+
+  const handleExportContacts = async () => {
+    try {
+      // Fetch contacts for export
+      const contacts = contactsQuery.data || [];
+      
+      if (contacts.length === 0) {
+        toast.info("No contacts to export");
+        return;
+      }
+
+      // Convert to CSV format
+      const headers = ['Name', 'Email', 'Address', 'Phone Numbers', 'Labels', 'Important Dates', 'Comments', 'Active'];
+      const csvRows = [
+        headers.join(','),
+        ...contacts.map((contact: any) => [
+          `"${contact.name || ''}"`,
+          `"${contact.email || ''}"`,
+          `"${contact.address || ''}"`,
+          `"${contact.phoneNumbers || ''}"`,
+          `"${contact.labels || ''}"`,
+          `"${contact.importantDates || ''}"`,
+          `"${contact.comments || ''}"`,
+          contact.isActive ? 'Yes' : 'No',
+        ].join(','))
+      ];
+
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `routieroo-contacts-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success(`Exported ${contacts.length} contact${contacts.length !== 1 ? 's' : ''} to CSV`);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export contacts');
     }
   };
 
@@ -886,6 +931,15 @@ export default function Home() {
                       >
                         <Paperclip className="h-4 w-4" />
                         <span className="ml-2">Bulk Upload Doc</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExportContacts}
+                        className="whitespace-nowrap"
+                      >
+                        <Download className="h-4 w-4" />
+                        <span className="ml-2">Export Contacts</span>
                       </Button>
                     </div>
                   </div>
