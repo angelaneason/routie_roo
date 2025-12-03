@@ -59,7 +59,8 @@ export function getAllAddresses(addressesJson: string | null): ContactAddress[] 
 /**
  * Get address type icon emoji
  */
-export function getAddressTypeIcon(type: string): string {
+export function getAddressTypeIcon(type?: string): string {
+  if (!type) return '📍';
   switch (type.toLowerCase()) {
     case 'home':
       return '🏠';
@@ -75,7 +76,8 @@ export function getAddressTypeIcon(type: string): string {
 /**
  * Get address type label (capitalized)
  */
-export function getAddressTypeLabel(type: string): string {
+export function getAddressTypeLabel(type?: string): string {
+  if (!type) return 'Address';
   return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
 }
 

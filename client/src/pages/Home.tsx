@@ -30,6 +30,7 @@ import { ContactImportDialog } from "@/components/ContactImportDialog";
 import { DocumentUploadDialog } from "@/components/DocumentUploadDialog";
 import { BulkDocumentUploadDialog } from "@/components/BulkDocumentUploadDialog";
 import { ContactDetailDialog } from "@/components/ContactDetailDialog";
+import { AddressSelector } from "@/components/AddressSelector";
 import { SchedulerNotes } from "@/components/SchedulerNotes";
 // StopTypeSelector removed - stop types now set via default in Settings and editable in route details
 import { useState, useEffect } from "react";
@@ -42,6 +43,9 @@ export default function Home() {
   const [, navigate] = useLocation();
   const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
   const [contactStopTypes, setContactStopTypes] = useState<Map<number, { type: string; color: string }>>(new Map());
+  const [selectedAddresses, setSelectedAddresses] = useState<Map<number, { addressType: string; formattedValue: string }>>(new Map());
+  const [addressSelectorOpen, setAddressSelectorOpen] = useState(false);
+  const [addressSelectorContact, setAddressSelectorContact] = useState<{ id: number; name: string; addresses: string | null } | null>(null);
   const [routeName, setRouteName] = useState("");
   const [routeNotes, setRouteNotes] = useState("");
   const [startingPoint, setStartingPoint] = useState("");
@@ -322,27 +326,91 @@ export default function Home() {
     const allowMultiple = userQuery.data?.allowMultipleVisits === 1;
     const newSelected = new Set(selectedContacts);
     const newStopTypes = new Map(contactStopTypes);
+    const newSelectedAddresses = new Map(selectedAddresses);
     
     if (newSelected.has(contactId)) {
       // If multiple visits not allowed, deselect the contact
       if (!allowMultiple) {
         newSelected.delete(contactId);
         newStopTypes.delete(contactId);
+        newSelectedAddresses.delete(contactId);
       } else {
         // If multiple visits allowed, show warning that they can't unselect this way
         toast.info("To remove a specific visit, use the route creation panel below");
         return;
       }
     } else {
+      // Find the contact to check if it has multiple addresses
+      const contact = contactsQuery.data?.find(c => c.id === contactId);
+      if (contact && hasMultipleAddresses(contact.addresses)) {
+        // Show address selector dialog
+        setAddressSelectorContact({
+          id: contact.id,
+          name: contact.name || 'Contact',
+          addresses: contact.addresses
+        });
+        setAddressSelectorOpen(true);
+        return; // Don't select yet, wait for address selection
+      }
+      
+      // Single address or no addresses - select immediately
       newSelected.add(contactId);
       // Initialize with user's default stop type from settings, or "visit" as fallback
       const userDefaultStopType = userQuery.data?.defaultStopType || "visit";
       const userDefaultStopTypeColor = userQuery.data?.defaultStopTypeColor || "#3b82f6";
       newStopTypes.set(contactId, { type: userDefaultStopType, color: userDefaultStopTypeColor });
+      
+      // Store primary address for single-address contacts
+      if (contact) {
+        const primaryAddr = getPrimaryAddress(contact.addresses);
+        if (primaryAddr) {
+          newSelectedAddresses.set(contactId, {
+            addressType: primaryAddr.type,
+            formattedValue: primaryAddr.formattedValue
+          });
+        }
+      }
     }
     
     setSelectedContacts(newSelected);
     setContactStopTypes(newStopTypes);
+    setSelectedAddresses(newSelectedAddresses);
+  };
+
+  const handleAddressSelected = (address: any) => {
+    if (!addressSelectorContact) return;
+    
+    const contactId = addressSelectorContact.id;
+    const newSelected = new Set(selectedContacts);
+    const newStopTypes = new Map(contactStopTypes);
+    const newSelectedAddresses = new Map(selectedAddresses);
+    
+    // Add contact to selection
+    newSelected.add(contactId);
+    
+    // Initialize with user's default stop type
+    const userDefaultStopType = userQuery.data?.defaultStopType || "visit";
+    const userDefaultStopTypeColor = userQuery.data?.defaultStopTypeColor || "#3b82f6";
+    newStopTypes.set(contactId, { type: userDefaultStopType, color: userDefaultStopTypeColor });
+    
+    // Store selected address
+    newSelectedAddresses.set(contactId, {
+      addressType: address.type,
+      formattedValue: address.formattedValue
+    });
+    
+    setSelectedContacts(newSelected);
+    setContactStopTypes(newStopTypes);
+    setSelectedAddresses(newSelectedAddresses);
+    setAddressSelectorOpen(false);
+    setAddressSelectorContact(null);
+    
+    toast.success(`Added ${addressSelectorContact.name} (${address.type} address)`);
+  };
+
+  const handleAddressSelectorCancel = () => {
+    setAddressSelectorOpen(false);
+    setAddressSelectorContact(null);
   };
 
   const handleCreateRoute = () => {
@@ -397,15 +465,18 @@ export default function Home() {
           color: visitStopType?.color || "#3b82f6"
         };
       }
-      // Get primary address from addresses array, fall back to legacy address field
+      // Get address from selectedAddresses map (user's choice for multi-address contacts)
+      // or fall back to primary address for single-address contacts
+      const selectedAddr = selectedAddresses.get(c.id);
       const primaryAddr = getPrimaryAddress(c.addresses);
-      const addressToUse = primaryAddr?.formattedValue || c.address || "";
+      const addressToUse = selectedAddr?.formattedValue || primaryAddr?.formattedValue || c.address || "";
+      const addressType = selectedAddr?.addressType || primaryAddr?.type || undefined;
       
       return {
         contactId: c.id, // Store contact ID for Google sync
         contactName: c.name || undefined,
         address: addressToUse,
-        addressType: primaryAddr?.type || undefined, // Track which address type was used
+        addressType: addressType, // Track which address type was used
         phoneNumbers: c.phoneNumbers || undefined,
         photoUrl: c.photoUrl || undefined,
         contactLabels: c.labels || undefined,
@@ -1486,6 +1557,17 @@ export default function Home() {
           setViewingContact(null);
         }}
       />
+
+      {/* Address Selector Dialog */}
+      {addressSelectorContact && (
+        <AddressSelector
+          contactName={addressSelectorContact.name}
+          addressesJson={addressSelectorContact.addresses}
+          open={addressSelectorOpen}
+          onSelect={handleAddressSelected}
+          onCancel={handleAddressSelectorCancel}
+        />
+      )}
 
       {/* Calendar Selection Dialog */}
       <Dialog open={showCalendarSelectionDialog} onOpenChange={setShowCalendarSelectionDialog}>

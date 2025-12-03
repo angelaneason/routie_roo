@@ -6,7 +6,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X, User, Paperclip } from "lucide-react";
+import { X, User, Paperclip, MapPin } from "lucide-react";
+import { getAllAddresses, getAddressTypeIcon, getAddressTypeLabel } from "@/lib/addressHelpers";
 import { DocumentsTab } from "./DocumentsTab";
 
 interface ContactDetailDialogProps {
@@ -15,6 +16,7 @@ interface ContactDetailDialogProps {
     name: string | null;
     email: string | null;
     address: string | null;
+    addresses: string | null;
     phoneNumbers: string | null;
     importantDates: string | null;
     comments: string | null;
@@ -106,13 +108,50 @@ export function ContactDetailDialog({
                 </div>
               )}
 
-              {/* Address */}
-              {contact.address && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Address</label>
-                  <p className="text-sm">{contact.address}</p>
-                </div>
-              )}
+              {/* Addresses */}
+              {(() => {
+                const addresses = getAllAddresses(contact.addresses);
+                const legacyAddress = contact.address;
+                
+                // Show addresses array if available, otherwise fall back to legacy address
+                if (addresses.length > 0) {
+                  return (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        {addresses.length > 1 ? 'Addresses' : 'Address'}
+                      </label>
+                      <div className="space-y-2 mt-1">
+                        {addresses.map((addr, idx) => (
+                          <div key={idx} className="flex items-start gap-2">
+                            <span className="text-lg mt-0.5">{getAddressTypeIcon(addr.type)}</span>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-muted-foreground uppercase">
+                                  {getAddressTypeLabel(addr.type)}
+                                </span>
+                                {addr.isPrimary && (
+                                  <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                                    Primary
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm mt-0.5">{addr.formattedValue}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                } else if (legacyAddress) {
+                  return (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Address</label>
+                      <p className="text-sm">{legacyAddress}</p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
 
               {/* Phone Numbers */}
               {phones.length > 0 && (

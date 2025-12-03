@@ -247,6 +247,11 @@ export const appRouter = router({
         name: z.string(),
         email: z.string(),
         address: z.string(),
+        addresses: z.array(z.object({
+          type: z.string(),
+          formattedValue: z.string(),
+          isPrimary: z.boolean(),
+        })).optional(),
         phoneNumbers: z.array(z.object({
           value: z.string(),
           label: z.string(),
@@ -282,6 +287,11 @@ export const appRouter = router({
           phoneNumbers: JSON.stringify(input.phoneNumbers),
           updatedAt: new Date(),
         };
+        
+        // Update addresses array if provided
+        if (input.addresses !== undefined) {
+          updateData.addresses = JSON.stringify(input.addresses);
+        }
         
         // Track address changes
         const oldAddress = currentContact[0].address;

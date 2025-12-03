@@ -2610,3 +2610,13 @@
 - [x] Check database insertion to ensure addresses array is being saved
 - [x] Fixed: upsertCachedContacts was missing addresses and labels in onDuplicateKeyUpdate
 - [ ] Test sync with contact that has multiple addresses
+
+
+## Multiple Addresses UI Implementation
+- [x] Update ContactDetailDialog to show all addresses with type badges
+- [x] Add address selector dropdown when adding contact to route
+- [x] Update ContactEditDialog to allow adding/editing/removing multiple addresses
+- [x] Add address type selector (Home, Work, Other) for each address
+- [x] Add "Set as Primary" option for addresses
+- [x] Show which address type is being used in route waypoints
+- [ ] Test address selection flow end-to-end

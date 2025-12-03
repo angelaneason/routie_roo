@@ -29,12 +29,19 @@ interface Comment {
   customText?: string;
 }
 
+interface Address {
+  type: string;
+  formattedValue: string;
+  isPrimary: boolean;
+}
+
 interface ContactEditDialogProps {
   contact: {
     id: number;
     name: string | null;
     email: string | null;
     address: string | null;
+    addresses: string | null;
     phoneNumbers: string | null;
     importantDates: string | null;
     comments: string | null;
@@ -45,6 +52,7 @@ interface ContactEditDialogProps {
     name: string;
     email: string;
     address: string;
+    addresses?: Address[];
     phoneNumbers: PhoneNumber[];
     importantDates?: ImportantDate[];
     comments?: Comment[];
@@ -64,9 +72,14 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
     ? JSON.parse(contact.comments)
     : [];
     
+  const initialAddresses: Address[] = contact.addresses
+    ? JSON.parse(contact.addresses)
+    : [];
+  
   const [name, setName] = useState(contact.name || "");
   const [email, setEmail] = useState(contact.email || "");
   const [address, setAddress] = useState(contact.address || "");
+  const [addresses, setAddresses] = useState<Address[]>(initialAddresses);
   const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumber[]>(initialPhones);
   const [importantDates, setImportantDates] = useState<ImportantDate[]>(initialDates);
   // Removed openPopoverIndex state - using native date input instead
@@ -116,6 +129,32 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
     const updated = [...phoneNumbers];
     updated[index] = { ...updated[index], [field]: value };
     setPhoneNumbers(updated);
+  };
+  
+  const addAddress = () => {
+    setAddresses([...addresses, { type: "home", formattedValue: "", isPrimary: addresses.length === 0 }]);
+  };
+  
+  const removeAddress = (index: number) => {
+    const updated = addresses.filter((_, i) => i !== index);
+    // If we removed the primary address, make the first one primary
+    if (addresses[index].isPrimary && updated.length > 0) {
+      updated[0].isPrimary = true;
+    }
+    setAddresses(updated);
+  };
+  
+  const updateAddress = (index: number, field: "type" | "formattedValue" | "isPrimary", value: string | boolean) => {
+    const updated = [...addresses];
+    if (field === "isPrimary" && value === true) {
+      // Unset all other primary flags
+      updated.forEach((addr, i) => {
+        addr.isPrimary = i === index;
+      });
+    } else {
+      updated[index] = { ...updated[index], [field]: value };
+    }
+    setAddresses(updated);
   };
   
   const addImportantDate = () => {
@@ -169,10 +208,14 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
     
     setSaving(true);
     try {
+      // Validate addresses - must have formattedValue
+      const validAddresses = addresses.filter(a => a.formattedValue.trim());
+      
       await onSave({
         name: name.trim(),
         email: email.trim(),
-        address: address.trim(),
+        address: address.trim(), // Keep legacy field for backward compatibility
+        addresses: validAddresses.length > 0 ? validAddresses : undefined,
         phoneNumbers: phoneNumbers.filter(p => p.value.trim()),
         importantDates: validDates,
         comments: validComments,
@@ -220,36 +263,63 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address" className="text-sm !font-bold">Address</Label>
-            <div className="flex gap-2">
-              <AddressAutocomplete
-                id="address"
-                value={address}
-                onChange={setAddress}
-                placeholder="Start typing address for suggestions..."
-                className="flex-1"
-              />
+            <div className="flex items-center justify-between">
+              <Label className="text-sm !font-bold">Addresses</Label>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={handleValidateAddress}
-                disabled={validating || !address}
-                className="shrink-0"
+                onClick={addAddress}
               >
-                {validating ? (
-                  <>
-                    <div className="h-4 w-4 mr-1 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    Validating...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 mr-1" />
-                    Validate
-                  </>
-                )}
+                <Plus className="h-4 w-4 mr-1" />
+                Add Address
               </Button>
             </div>
+
+            {addresses.map((addr, index) => (
+              <div key={index} className="flex gap-2 items-start border rounded-md p-3">
+                <div className="flex-1 space-y-2">
+                  <AddressAutocomplete
+                    value={addr.formattedValue}
+                    onChange={(value) => updateAddress(index, "formattedValue", value)}
+                    placeholder="Start typing address..."
+                  />
+                  <div className="flex gap-2 items-center">
+                    <select
+                      value={addr.type}
+                      onChange={(e) => updateAddress(index, "type", e.target.value)}
+                      className="px-3 py-2 border rounded-md text-sm"
+                    >
+                      <option value="home">🏠 Home</option>
+                      <option value="work">🏢 Work</option>
+                      <option value="other">📍 Other</option>
+                    </select>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={addr.isPrimary}
+                        onChange={(e) => updateAddress(index, "isPrimary", e.target.checked)}
+                        className="rounded"
+                      />
+                      <span className="text-muted-foreground">Primary</span>
+                    </label>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeAddress(index)}
+                  className="shrink-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+
+            {addresses.length === 0 && (
+              <p className="text-sm text-muted-foreground">No addresses added</p>
+            )}
           </div>
 
           <div className="space-y-2">
