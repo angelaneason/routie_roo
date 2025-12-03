@@ -2498,3 +2498,23 @@
   - [x] Add "Export Contacts" button to Kangaroo Crew header
   - [x] Implement CSV download on frontend
   - [x] Test export functionality with vitest (5/5 tests passing)
+
+## Notification Settings Save Bug - Dec 3, 2025
+
+- [ ] Fix notification settings not saving when editing
+- [ ] Add save button or auto-save functionality for notification edits
+- [ ] Ensure edited notifications persist when navigating away
+- [ ] Test that changes are saved to database correctly
+
+## Notification Settings Save Bug - Dec 3, 2025
+
+- [x] Fix notification settings not saving when editing
+  - [x] Added email template fields to updatePreferences input schema
+  - [x] Added update logic for all 12 email template fields
+- [x] Add save button functionality for notification edits
+  - [x] Replaced onBlur with controlled inputs and explicit Save button
+  - [x] Added change tracking to show "Save Changes" when edited
+  - [x] Added visual feedback ("Saved" confirmation)
+- [x] Ensure edited notifications persist when navigating away
+  - [x] Save button triggers immediate database update
+  - [x] State management prevents loss of changes

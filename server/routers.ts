@@ -2604,6 +2604,19 @@ export const appRouter = router({
         defaultStopType: z.string().optional(), // Default stop type for new routes
         defaultStopTypeColor: z.string().optional(), // Default stop type color
         allowMultipleVisits: z.number().optional(), // 0 = prevent duplicates, 1 = allow multiple visits
+        // Email template fields
+        reminderEmail30DaysSubject: z.string().nullable().optional(),
+        reminderEmail30DaysBodyContact: z.string().nullable().optional(),
+        reminderEmail30DaysBodyTeam: z.string().nullable().optional(),
+        reminderEmail10DaysSubject: z.string().nullable().optional(),
+        reminderEmail10DaysBodyContact: z.string().nullable().optional(),
+        reminderEmail10DaysBodyTeam: z.string().nullable().optional(),
+        reminderEmail5DaysSubject: z.string().nullable().optional(),
+        reminderEmail5DaysBodyContact: z.string().nullable().optional(),
+        reminderEmail5DaysBodyTeam: z.string().nullable().optional(),
+        reminderEmailPastDueSubject: z.string().nullable().optional(),
+        reminderEmailPastDueBodyContact: z.string().nullable().optional(),
+        reminderEmailPastDueBodyTeam: z.string().nullable().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -2623,6 +2636,19 @@ export const appRouter = router({
         if (input.defaultStopType !== undefined) updateData.defaultStopType = input.defaultStopType;
         if (input.allowMultipleVisits !== undefined) updateData.allowMultipleVisits = input.allowMultipleVisits;
         if (input.defaultStopTypeColor !== undefined) updateData.defaultStopTypeColor = input.defaultStopTypeColor;
+        // Email template fields
+        if (input.reminderEmail30DaysSubject !== undefined) updateData.reminderEmail30DaysSubject = input.reminderEmail30DaysSubject;
+        if (input.reminderEmail30DaysBodyContact !== undefined) updateData.reminderEmail30DaysBodyContact = input.reminderEmail30DaysBodyContact;
+        if (input.reminderEmail30DaysBodyTeam !== undefined) updateData.reminderEmail30DaysBodyTeam = input.reminderEmail30DaysBodyTeam;
+        if (input.reminderEmail10DaysSubject !== undefined) updateData.reminderEmail10DaysSubject = input.reminderEmail10DaysSubject;
+        if (input.reminderEmail10DaysBodyContact !== undefined) updateData.reminderEmail10DaysBodyContact = input.reminderEmail10DaysBodyContact;
+        if (input.reminderEmail10DaysBodyTeam !== undefined) updateData.reminderEmail10DaysBodyTeam = input.reminderEmail10DaysBodyTeam;
+        if (input.reminderEmail5DaysSubject !== undefined) updateData.reminderEmail5DaysSubject = input.reminderEmail5DaysSubject;
+        if (input.reminderEmail5DaysBodyContact !== undefined) updateData.reminderEmail5DaysBodyContact = input.reminderEmail5DaysBodyContact;
+        if (input.reminderEmail5DaysBodyTeam !== undefined) updateData.reminderEmail5DaysBodyTeam = input.reminderEmail5DaysBodyTeam;
+        if (input.reminderEmailPastDueSubject !== undefined) updateData.reminderEmailPastDueSubject = input.reminderEmailPastDueSubject;
+        if (input.reminderEmailPastDueBodyContact !== undefined) updateData.reminderEmailPastDueBodyContact = input.reminderEmailPastDueBodyContact;
+        if (input.reminderEmailPastDueBodyTeam !== undefined) updateData.reminderEmailPastDueBodyTeam = input.reminderEmailPastDueBodyTeam;
 
         await db.update(users)
           .set(updateData)

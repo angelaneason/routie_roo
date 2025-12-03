@@ -1,7 +1,10 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { EmojiPickerButton } from "./EmojiPickerButton";
+import { useState, useEffect } from "react";
+import { Check, Save } from "lucide-react";
 
 interface StageEmailTemplateEditorProps {
   stage: "30days" | "10days" | "5days" | "pastdue";
@@ -50,23 +53,88 @@ export function StageEmailTemplateEditor({
   const contactBodyFieldId = `email-body-contact-${stage}`;
   const teamBodyFieldId = `email-body-team-${stage}`;
 
+  // Track local state for unsaved changes
+  const [subject, setSubject] = useState(subjectValue || defaults.subject);
+  const [contactBody, setContactBody] = useState(contactBodyValue || defaults.contactBody);
+  const [teamBody, setTeamBody] = useState(teamBodyValue || defaults.teamBody);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+
+  // Update local state when props change (e.g., after save)
+  useEffect(() => {
+    setSubject(subjectValue || defaults.subject);
+    setContactBody(contactBodyValue || defaults.contactBody);
+    setTeamBody(teamBodyValue || defaults.teamBody);
+    setHasChanges(false);
+  }, [subjectValue, contactBodyValue, teamBodyValue, defaults]);
+
+  const handleSave = () => {
+    const stagePrefix = stage === "30days" ? "30Days" : stage === "10days" ? "10Days" : stage === "5days" ? "5Days" : "PastDue";
+    
+    // Save all three fields
+    if (subject !== subjectValue) {
+      onUpdate(`reminderEmail${stagePrefix}Subject`, subject || null);
+    }
+    if (contactBody !== contactBodyValue) {
+      onUpdate(`reminderEmail${stagePrefix}BodyContact`, contactBody || null);
+    }
+    if (teamBody !== teamBodyValue) {
+      onUpdate(`reminderEmail${stagePrefix}BodyTeam`, teamBody || null);
+    }
+
+    setHasChanges(false);
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2000);
+  };
+
+  const handleSubjectChange = (value: string) => {
+    setSubject(value);
+    setHasChanges(true);
+  };
+
+  const handleContactBodyChange = (value: string) => {
+    setContactBody(value);
+    setHasChanges(true);
+  };
+
+  const handleTeamBodyChange = (value: string) => {
+    setTeamBody(value);
+    setHasChanges(true);
+  };
+
   return (
     <div className="space-y-4 p-4 border rounded-lg">
-      <div>
-        <h4 className="font-semibold">{stageLabel}</h4>
-        <p className="text-sm text-muted-foreground">{stageDescription}</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h4 className="font-semibold">{stageLabel}</h4>
+          <p className="text-sm text-muted-foreground">{stageDescription}</p>
+        </div>
+        <Button
+          size="sm"
+          onClick={handleSave}
+          disabled={!hasChanges}
+          variant={justSaved ? "outline" : "default"}
+        >
+          {justSaved ? (
+            <>
+              <Check className="h-4 w-4 mr-1" />
+              Saved
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-1" />
+              {hasChanges ? "Save Changes" : "No Changes"}
+            </>
+          )}
+        </Button>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor={subjectFieldId}>Email Subject</Label>
         <Input
           id={subjectFieldId}
-          defaultValue={subjectValue || defaults.subject}
-          onBlur={(e) => {
-            if (e.target.value !== subjectValue) {
-              onUpdate(`reminderEmail${stage === "30days" ? "30Days" : stage === "10days" ? "10Days" : stage === "5days" ? "5Days" : "PastDue"}Subject`, e.target.value || null);
-            }
-          }}
+          value={subject}
+          onChange={(e) => handleSubjectChange(e.target.value)}
         />
       </div>
 
@@ -76,12 +144,8 @@ export function StageEmailTemplateEditor({
           <Textarea
             id={contactBodyFieldId}
             rows={8}
-            defaultValue={contactBodyValue || defaults.contactBody}
-            onBlur={(e) => {
-              if (e.target.value !== contactBodyValue) {
-                onUpdate(`reminderEmail${stage === "30days" ? "30Days" : stage === "10days" ? "10Days" : stage === "5days" ? "5Days" : "PastDue"}BodyContact`, e.target.value || null);
-              }
-            }}
+            value={contactBody}
+            onChange={(e) => handleContactBodyChange(e.target.value)}
             className="font-mono text-sm pr-10"
           />
           <div className="absolute bottom-2 right-2">
@@ -92,10 +156,14 @@ export function StageEmailTemplateEditor({
                   const cursorPos = textarea.selectionStart;
                   const textBefore = textarea.value.substring(0, cursorPos);
                   const textAfter = textarea.value.substring(cursorPos);
-                  textarea.value = textBefore + emoji + textAfter;
-                  textarea.focus();
-                  textarea.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
-                  textarea.dispatchEvent(new Event('blur', { bubbles: true }));
+                  const newValue = textBefore + emoji + textAfter;
+                  setContactBody(newValue);
+                  setHasChanges(true);
+                  // Update textarea and cursor position
+                  setTimeout(() => {
+                    textarea.focus();
+                    textarea.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
+                  }, 0);
                 }
               }}
             />
@@ -109,12 +177,8 @@ export function StageEmailTemplateEditor({
           <Textarea
             id={teamBodyFieldId}
             rows={6}
-            defaultValue={teamBodyValue || defaults.teamBody}
-            onBlur={(e) => {
-              if (e.target.value !== teamBodyValue) {
-                onUpdate(`reminderEmail${stage === "30days" ? "30Days" : stage === "10days" ? "10Days" : stage === "5days" ? "5Days" : "PastDue"}BodyTeam`, e.target.value || null);
-              }
-            }}
+            value={teamBody}
+            onChange={(e) => handleTeamBodyChange(e.target.value)}
             className="font-mono text-sm pr-10"
           />
           <div className="absolute bottom-2 right-2">
@@ -125,10 +189,14 @@ export function StageEmailTemplateEditor({
                   const cursorPos = textarea.selectionStart;
                   const textBefore = textarea.value.substring(0, cursorPos);
                   const textAfter = textarea.value.substring(cursorPos);
-                  textarea.value = textBefore + emoji + textAfter;
-                  textarea.focus();
-                  textarea.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
-                  textarea.dispatchEvent(new Event('blur', { bubbles: true }));
+                  const newValue = textBefore + emoji + textAfter;
+                  setTeamBody(newValue);
+                  setHasChanges(true);
+                  // Update textarea and cursor position
+                  setTimeout(() => {
+                    textarea.focus();
+                    textarea.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
+                  }, 0);
                 }
               }}
             />
