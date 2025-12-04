@@ -2704,3 +2704,13 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 - [x] Update SharedRouteExecution to lookup colors from label_colors dynamically
 - [x] Write tests for shared route label color logic (5/5 passing)
 - [x] Test shared route with label colors (ready for publish)
+
+
+## Dashboard Sidebar Toggle - Dec 2024
+
+- [x] Add state management for sidebar visibility in DashboardLayout
+- [x] Add toggle button to hide/show sidebar
+- [x] Persist sidebar state in localStorage
+- [x] Ensure content adjusts when sidebar is hidden
+- [x] Add floating show button when sidebar is hidden
+- [x] Test TypeScript compilation (no errors)

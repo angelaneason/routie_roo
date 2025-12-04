@@ -33,6 +33,7 @@ const menuItems = [
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
+const SIDEBAR_HIDDEN_KEY = "sidebar-hidden";
 const DEFAULT_WIDTH = 280;
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 480;
@@ -46,11 +47,19 @@ export default function DashboardLayout({
     const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
+  const [sidebarHidden, setSidebarHidden] = useState(() => {
+    const saved = localStorage.getItem(SIDEBAR_HIDDEN_KEY);
+    return saved === "true";
+  });
   const { loading, user } = useAuth();
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
   }, [sidebarWidth]);
+
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_HIDDEN_KEY, sidebarHidden.toString());
+  }, [sidebarHidden]);
 
   if (loading) {
     return <DashboardLayoutSkeleton />
@@ -99,7 +108,11 @@ export default function DashboardLayout({
         } as CSSProperties
       }
     >
-      <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
+      <DashboardLayoutContent 
+        setSidebarWidth={setSidebarWidth}
+        sidebarHidden={sidebarHidden}
+        setSidebarHidden={setSidebarHidden}
+      >
         {children}
       </DashboardLayoutContent>
     </SidebarProvider>
@@ -109,11 +122,15 @@ export default function DashboardLayout({
 type DashboardLayoutContentProps = {
   children: React.ReactNode;
   setSidebarWidth: (width: number) => void;
+  sidebarHidden: boolean;
+  setSidebarHidden: (hidden: boolean) => void;
 };
 
 function DashboardLayoutContent({
   children,
   setSidebarWidth,
+  sidebarHidden,
+  setSidebarHidden,
 }: DashboardLayoutContentProps) {
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
@@ -162,8 +179,9 @@ function DashboardLayoutContent({
 
   return (
     <>
-      <div className="relative" ref={sidebarRef}>
-        <Sidebar
+      {!sidebarHidden && (
+        <div className="relative" ref={sidebarRef}>
+          <Sidebar
           collapsible="icon"
           className="border-r-0"
           disableTransition={isResizing}
@@ -196,12 +214,22 @@ function DashboardLayoutContent({
                       {APP_TITLE}
                     </span>
                   </div>
-                  <button
-                    onClick={toggleSidebar}
-                    className="ml-auto h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
-                  >
-                    <PanelLeft className="h-4 w-4 text-muted-foreground" />
-                  </button>
+                  <div className="flex items-center gap-1 ml-auto shrink-0">
+                    <button
+                      onClick={toggleSidebar}
+                      className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      title="Collapse sidebar"
+                    >
+                      <PanelLeft className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                    <button
+                      onClick={() => setSidebarHidden(true)}
+                      className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      title="Hide sidebar"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><path d="M3 12h18"/><path d="m15 18 6-6-6-6"/></svg>
+                    </button>
+                  </div>
                 </>
               )}
             </div>
@@ -269,7 +297,19 @@ function DashboardLayoutContent({
           }}
           style={{ zIndex: 50 }}
         />
-      </div>
+        </div>
+      )}
+
+      {/* Floating button to show sidebar when hidden */}
+      {sidebarHidden && (
+        <button
+          onClick={() => setSidebarHidden(false)}
+          className="fixed top-4 left-4 z-50 h-10 w-10 flex items-center justify-center bg-primary text-primary-foreground rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          title="Show sidebar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h18"/><path d="m9 6-6 6 6 6"/></svg>
+        </button>
+      )}
 
       <SidebarInset>
         {isMobile && (
