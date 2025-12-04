@@ -21,15 +21,35 @@ import {
 } from "@/components/ui/sidebar";
 import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  LogOut, 
+  PanelLeft, 
+  Users, 
+  MapPin, 
+  Calendar, 
+  AlertTriangle, 
+  Clock, 
+  Archive, 
+  FileText, 
+  Settings as SettingsIcon,
+  UserCog
+} from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Page 1", path: "/" },
-  { icon: Users, label: "Page 2", path: "/some-path" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: MapPin, label: "Plan Routes", path: "/workspace" },
+  { icon: Calendar, label: "Calendar", path: "/calendar" },
+  { icon: AlertTriangle, label: "Mis-Hops", path: "/missed-stops" },
+  { icon: Clock, label: "Reschedule", path: "/reschedule-history" },
+  { icon: Archive, label: "Archive", path: "/archive" },
+  { icon: FileText, label: "Changed Addresses", path: "/changed-addresses" },
+  { icon: SettingsIcon, label: "Settings", path: "/settings" },
+  { icon: UserCog, label: "Admin", path: "/admin/users" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

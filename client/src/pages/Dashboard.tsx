@@ -1,5 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Header } from "@/components/Header";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
@@ -172,9 +172,8 @@ export default function Dashboard() {
   }
 
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 mobile-content-padding">
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="container py-8">
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
@@ -413,6 +412,6 @@ export default function Dashboard() {
         onOpenChange={setShowCustomization}
         onSave={() => refetchPreferences()}
       />
-    </>
+    </DashboardLayout>
   );
 }

@@ -2714,3 +2714,10 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 - [x] Ensure content adjusts when sidebar is hidden
 - [x] Add floating show button when sidebar is hidden
 - [x] Test TypeScript compilation (no errors)
+
+
+## Add Sidebar to Dashboard Page - Dec 2024
+
+- [x] Update Dashboard page to use DashboardLayout component
+- [x] Update DashboardLayout menu items with actual navigation links
+- [x] Test sidebar hide/show toggle on Dashboard page
