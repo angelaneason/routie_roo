@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { EmojiPickerButton } from "@/components/EmojiPickerButton";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -21,21 +22,30 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { APP_TITLE, APP_LOGO, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Calendar as CalendarIcon, Archive } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Download, Calendar as CalendarIcon, Archive, FileText, Paperclip, Info, History, Users, Copy } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { ContactEditDialog } from "@/components/ContactEditDialog";
 import { ContactImportDialog } from "@/components/ContactImportDialog";
-import { StopTypeSelector, getStopTypeConfig, type StopType } from "@/components/StopTypeSelector";
+import { DocumentUploadDialog } from "@/components/DocumentUploadDialog";
+import { BulkDocumentUploadDialog } from "@/components/BulkDocumentUploadDialog";
+import { ContactDetailDialog } from "@/components/ContactDetailDialog";
+import { AddressSelector } from "@/components/AddressSelector";
+import { SchedulerNotes } from "@/components/SchedulerNotes";
+// StopTypeSelector removed - stop types now set via default in Settings and editable in route details
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Link, useLocation } from "wouter";
+import { getPrimaryAddress, hasMultipleAddresses, getAddressTypeIcon, getAddressTypeLabel } from "@/lib/addressHelpers";
 
 export default function Home() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
   const [contactStopTypes, setContactStopTypes] = useState<Map<number, { type: string; color: string }>>(new Map());
+  const [selectedAddresses, setSelectedAddresses] = useState<Map<number, { addressType: string; formattedValue: string }>>(new Map());
+  const [addressSelectorOpen, setAddressSelectorOpen] = useState(false);
+  const [addressSelectorContact, setAddressSelectorContact] = useState<{ id: number; name: string; addresses: string | null } | null>(null);
   const [routeName, setRouteName] = useState("");
   const [routeNotes, setRouteNotes] = useState("");
   const [startingPoint, setStartingPoint] = useState("");
@@ -60,13 +70,19 @@ export default function Home() {
   const [showCalendarSelectionDialog, setShowCalendarSelectionDialog] = useState(false);
   const [calendarData, setCalendarData] = useState<any>(null);
   const [selectedCalendar, setSelectedCalendar] = useState<string>("");
+  const [showDocumentUpload, setShowDocumentUpload] = useState(false);
+  const [uploadContactId, setUploadContactId] = useState<number | null>(null);
+  const [uploadContactName, setUploadContactName] = useState<string>("");
+  const [showBulkDocumentUpload, setShowBulkDocumentUpload] = useState(false);
+  const [viewingContact, setViewingContact] = useState<any | null>(null);
 
-  // Check for OAuth callback status
+  // Check for OAuth callback status and route creation from waypoints
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const syncStatus = params.get("sync");
     const calendarAuth = params.get("calendar_auth");
     const data = params.get("data");
+    const createFromWaypoints = params.get("createRouteFromWaypoints");
     
     if (syncStatus === "success") {
       toast.success("Contacts synced! Routie's ready to help 🦘");
@@ -85,6 +101,20 @@ export default function Home() {
         toast.error("Failed to process calendar data");
         window.history.replaceState({}, "", "/");
       }
+    } else if (createFromWaypoints) {
+      // Handle route creation from rescheduled waypoints
+      const waypointIds = createFromWaypoints.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+      if (waypointIds.length > 0) {
+        toast.info(`Creating route from ${waypointIds.length} rescheduled stop(s)...`);
+        // Scroll to route creation form
+        setTimeout(() => {
+          const routeForm = document.getElementById('route-creation-form');
+          if (routeForm) {
+            routeForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+      window.history.replaceState({}, "", "/");
     }
   }, []);
 
@@ -113,6 +143,16 @@ export default function Home() {
     enabled: isAuthenticated,
   });
 
+  // Fetch user's stop types
+  const stopTypesQuery = trpc.stopTypes.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  // Fetch label colors
+  const labelColorsQuery = trpc.labelColors.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
   // Get Google Auth URL
   const googleAuthQuery = trpc.contacts.getGoogleAuthUrl.useQuery(undefined, {
     enabled: false,
@@ -122,6 +162,14 @@ export default function Home() {
   const createRouteMutation = trpc.routes.create.useMutation({
     onSuccess: (data) => {
       toast.success("Route planned! Let's hop to it 🦘");
+      
+      // Show warning if any coordinates are missing
+      if (data.missingCoordinatesWarning) {
+        toast.warning(data.missingCoordinatesWarning, {
+          duration: 6000,
+        });
+      }
+      
       setSelectedContacts(new Set());
       setContactStopTypes(new Map());
       setRouteName("");
@@ -159,6 +207,18 @@ export default function Home() {
     onError: (error) => {
       toast.error(error.message || "Couldn't delete route");
       setDeleteRouteId(null);
+    },
+  });
+
+  // Copy route mutation
+  const copyRouteMutation = trpc.routes.copyRoute.useMutation({
+    onSuccess: (data) => {
+      toast.success("Route copied successfully!");
+      routesQuery.refetch();
+      navigate(`/route/${data.routeId}`);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to copy route");
     },
   });
 
@@ -217,22 +277,140 @@ export default function Home() {
     }
   };
 
+  const handleExportContacts = async () => {
+    try {
+      // Fetch contacts for export
+      const contacts = contactsQuery.data || [];
+      
+      if (contacts.length === 0) {
+        toast.info("No contacts to export");
+        return;
+      }
+
+      // Convert to CSV format
+      const headers = ['Name', 'Email', 'Address', 'Phone Numbers', 'Labels', 'Important Dates', 'Comments', 'Active'];
+      const csvRows = [
+        headers.join(','),
+        ...contacts.map((contact: any) => [
+          `"${contact.name || ''}"`,
+          `"${contact.email || ''}"`,
+          `"${contact.address || ''}"`,
+          `"${contact.phoneNumbers || ''}"`,
+          `"${contact.labels || ''}"`,
+          `"${contact.importantDates || ''}"`,
+          `"${contact.comments || ''}"`,
+          contact.isActive ? 'Yes' : 'No',
+        ].join(','))
+      ];
+
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `routieroo-contacts-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success(`Exported ${contacts.length} contact${contacts.length !== 1 ? 's' : ''} to CSV`);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export contacts');
+    }
+  };
+
   const handleContactToggle = (contactId: number) => {
+    const allowMultiple = userQuery.data?.allowMultipleVisits === 1;
     const newSelected = new Set(selectedContacts);
     const newStopTypes = new Map(contactStopTypes);
+    const newSelectedAddresses = new Map(selectedAddresses);
     
     if (newSelected.has(contactId)) {
-      newSelected.delete(contactId);
-      newStopTypes.delete(contactId);
+      // If multiple visits not allowed, deselect the contact
+      if (!allowMultiple) {
+        newSelected.delete(contactId);
+        newStopTypes.delete(contactId);
+        newSelectedAddresses.delete(contactId);
+      } else {
+        // If multiple visits allowed, show warning that they can't unselect this way
+        toast.info("To remove a specific visit, use the route creation panel below");
+        return;
+      }
     } else {
+      // Find the contact to check if it has multiple addresses
+      const contact = contactsQuery.data?.find(c => c.id === contactId);
+      if (contact && hasMultipleAddresses(contact.addresses)) {
+        // Show address selector dialog
+        setAddressSelectorContact({
+          id: contact.id,
+          name: contact.name || 'Contact',
+          addresses: contact.addresses
+        });
+        setAddressSelectorOpen(true);
+        return; // Don't select yet, wait for address selection
+      }
+      
+      // Single address or no addresses - select immediately
       newSelected.add(contactId);
-      // Initialize with default stop type
-      const defaultConfig = getStopTypeConfig("visit");
-      newStopTypes.set(contactId, { type: defaultConfig.type, color: defaultConfig.color });
+      // Initialize with user's default stop type from settings, or "visit" as fallback
+      const userDefaultStopType = userQuery.data?.defaultStopType || "visit";
+      const userDefaultStopTypeColor = userQuery.data?.defaultStopTypeColor || "#3b82f6";
+      newStopTypes.set(contactId, { type: userDefaultStopType, color: userDefaultStopTypeColor });
+      
+      // Store primary address for single-address contacts
+      if (contact) {
+        const primaryAddr = getPrimaryAddress(contact.addresses);
+        if (primaryAddr) {
+          newSelectedAddresses.set(contactId, {
+            addressType: primaryAddr.type,
+            formattedValue: primaryAddr.formattedValue
+          });
+        }
+      }
     }
     
     setSelectedContacts(newSelected);
     setContactStopTypes(newStopTypes);
+    setSelectedAddresses(newSelectedAddresses);
+  };
+
+  const handleAddressSelected = (address: any) => {
+    if (!addressSelectorContact) return;
+    
+    const contactId = addressSelectorContact.id;
+    const newSelected = new Set(selectedContacts);
+    const newStopTypes = new Map(contactStopTypes);
+    const newSelectedAddresses = new Map(selectedAddresses);
+    
+    // Add contact to selection
+    newSelected.add(contactId);
+    
+    // Initialize with user's default stop type
+    const userDefaultStopType = userQuery.data?.defaultStopType || "visit";
+    const userDefaultStopTypeColor = userQuery.data?.defaultStopTypeColor || "#3b82f6";
+    newStopTypes.set(contactId, { type: userDefaultStopType, color: userDefaultStopTypeColor });
+    
+    // Store selected address
+    newSelectedAddresses.set(contactId, {
+      addressType: address.type,
+      formattedValue: address.formattedValue
+    });
+    
+    setSelectedContacts(newSelected);
+    setContactStopTypes(newStopTypes);
+    setSelectedAddresses(newSelectedAddresses);
+    setAddressSelectorOpen(false);
+    setAddressSelectorContact(null);
+    
+    toast.success(`Added ${addressSelectorContact.name} (${address.type} address)`);
+  };
+
+  const handleAddressSelectorCancel = () => {
+    setAddressSelectorOpen(false);
+    setAddressSelectorContact(null);
   };
 
   const handleCreateRoute = () => {
@@ -249,24 +427,62 @@ export default function Home() {
     const contacts = contactsQuery.data || [];
     const selectedContactsList = Array.from(selectedContacts)
       .map(id => contacts.find(c => c.id === id))
-      .filter(c => c);
+      .filter((c): c is NonNullable<typeof c> => c !== undefined && c !== null);
 
     // Check for contacts without addresses
-    const contactsWithoutAddress = selectedContactsList.filter(c => !c!.address || c!.address.trim() === "");
+    const contactsWithoutAddress = selectedContactsList.filter(c => {
+      // Check both new addresses array and legacy address field
+      const primaryAddr = getPrimaryAddress(c.addresses);
+      const hasAddress = primaryAddr?.formattedValue || c.address;
+      return !hasAddress || hasAddress.trim() === "";
+    });
     if (contactsWithoutAddress.length > 0) {
-      const names = contactsWithoutAddress.map(c => c!.name || "Unknown").join(", ");
+      const names = contactsWithoutAddress.map(c => c.name || "Unknown").join(", ");
       toast.error(`The following contact${contactsWithoutAddress.length > 1 ? 's have' : ' has'} no address: ${names}`);
       return;
     }
 
-    let waypoints = selectedContactsList.map(c => {
-      const stopTypeInfo = contactStopTypes.get(c!.id) || { type: "visit", color: "#3b82f6" };
+    let waypoints: Array<{
+      contactId?: number;
+      contactName?: string;
+      address: string;
+      addressType?: string;
+      phoneNumbers?: string;
+      photoUrl?: string;
+      contactLabels?: string;
+      importantDates?: string;
+      comments?: string;
+      stopType: string;
+      stopColor: string;
+    }> = selectedContactsList.map(c => {
+      // Get stop type from contactStopTypes map, or use user's custom "visit" type as default
+      let stopTypeInfo = contactStopTypes.get(c.id);
+      if (!stopTypeInfo) {
+        // Find user's "visit" stop type or use blue as final fallback
+        const visitStopType = stopTypesQuery.data?.find(st => st.name.toLowerCase() === "visit");
+        stopTypeInfo = {
+          type: "visit",
+          color: visitStopType?.color || "#3b82f6"
+        };
+      }
+      // Get address from selectedAddresses map (user's choice for multi-address contacts)
+      // or fall back to primary address for single-address contacts
+      const selectedAddr = selectedAddresses.get(c.id);
+      const primaryAddr = getPrimaryAddress(c.addresses);
+      const addressToUse = selectedAddr?.formattedValue || primaryAddr?.formattedValue || c.address || "";
+      const addressType = selectedAddr?.addressType || primaryAddr?.type || undefined;
+      
       return {
-        contactName: c!.name || undefined,
-        address: c!.address!,
-        phoneNumbers: c!.phoneNumbers || undefined,
-        contactLabels: c!.labels || undefined,
-        stopType: stopTypeInfo.type as "pickup" | "delivery" | "meeting" | "visit" | "other",
+        contactId: c.id, // Store contact ID for Google sync
+        contactName: c.name || undefined,
+        address: addressToUse,
+        addressType: addressType, // Track which address type was used
+        phoneNumbers: c.phoneNumbers || undefined,
+        photoUrl: c.photoUrl || undefined,
+        contactLabels: c.labels || undefined,
+        importantDates: c.importantDates || undefined,
+        comments: c.comments || undefined,
+        stopType: stopTypeInfo.type,
         stopColor: stopTypeInfo.color,
       };
     });
@@ -286,10 +502,14 @@ export default function Home() {
     if (finalStartingPoint) {
       waypoints = [
         {
+          contactId: undefined, // Starting point is not a contact
           contactName: "Starting Point",
           address: finalStartingPoint,
           phoneNumbers: undefined,
+          photoUrl: undefined,
           contactLabels: undefined,
+          importantDates: undefined,
+          comments: undefined,
           stopType: "other" as const,
           stopColor: "#10b981",
         },
@@ -409,12 +629,18 @@ export default function Home() {
       try {
         const labels = JSON.parse(contact.labels);
         return labels
+          .map((label: string) => {
+            // Extract name from contactGroups/xxx format
+            if (label.startsWith('contactGroups/')) {
+              return label.split('/').pop() || '';
+            }
+            return label;
+          })
           .filter((label: string) => {
             const lower = label.toLowerCase();
-            // Exclude myContacts, starred, and ALL contactGroups/*
-            return lower !== 'mycontacts' && 
-                   lower !== 'starred' && 
-                   !label.startsWith('contactGroups/');
+            // Filter out system labels and hex IDs (Google's internal group IDs)
+            const isHexId = /^[0-9a-f]{12,}$/i.test(label);
+            return lower !== 'mycontacts' && lower !== 'starred' && label.trim() !== '' && !isHexId;
           });
       } catch {
         return [];
@@ -480,6 +706,9 @@ export default function Home() {
     ? routes.filter(r => r.folderId === null)
     : routes.filter(r => r.folderId === parseInt(selectedFolderFilter));
   
+  // Filter out archived routes from main library (they only appear in Archive section)
+  filteredRoutes = filteredRoutes.filter(route => !route.archivedAt);
+  
   // Filter out completed routes if checkbox is checked
   if (hideCompletedRoutes) {
     filteredRoutes = filteredRoutes.filter(route => {
@@ -499,87 +728,303 @@ export default function Home() {
       />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <header className="bg-white border-b">
-        <div className="container py-4 flex items-center justify-between">
+        <div className="container py-4 px-2 md:px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <img src={APP_LOGO} alt="RoutieRoo" className="h-24" />
+            <img src={APP_LOGO} alt="RoutieRoo" className="h-16 md:h-24" />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
             <span className="text-sm text-muted-foreground">
               {user?.name || user?.email}
             </span>
             <Link href="/calendar">
               <Button variant="outline" size="sm">
-                <CalendarIcon className="h-4 w-4 mr-2" />
-                Calendar
+                <CalendarIcon className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Calendar</span>
               </Button>
             </Link>
             <Link href="/missed-stops">
               <Button variant="outline" size="sm">
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                Missed Stops
+                <AlertTriangle className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Missed Stops</span>
+              </Button>
+            </Link>
+            <Link href="/reschedule-history">
+              <Button variant="outline" size="sm">
+                <History className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Reschedule History</span>
               </Button>
             </Link>
             <Link href="/archived-routes">
               <Button variant="outline" size="sm">
-                <Archive className="h-4 w-4 mr-2" />
-                Archive
+                <Archive className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Archive</span>
+              </Button>
+            </Link>
+            <Link href="/changed-addresses">
+              <Button variant="outline" size="sm">
+                <FileText className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Changed Addresses</span>
               </Button>
             </Link>
             <Link href="/settings">
               <Button variant="outline" size="sm">
-                <SettingsIcon className="h-4 w-4 mr-2" />
-                Settings
+                <SettingsIcon className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Settings</span>
               </Button>
             </Link>
+            {user?.role === 'admin' && (
+              <Link href="/admin/users">
+                <Button variant="outline" size="sm">
+                  <Users className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Admin Users</span>
+                </Button>
+              </Link>
+            )}
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => logoutMutation.mutate()}
             >
-              <LogOut className="h-4 w-4 mr-2" />
-              Log Out
+              <LogOut className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Log Out</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container py-8">
-        <div className="grid lg:grid-cols-2 gap-6">
+      <main className="container py-4 md:py-8 px-2 md:px-4">
+        {/* Scheduler Sticky Notes - Fixed position, draggable */}
+        <SchedulerNotes />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {/* Contacts Section */}
           <div className="space-y-6">
+            {/* Create Route Section */}
+            {hasContacts && (
+              <Card id="route-creation-form">
+              <CardHeader>
+                <CardTitle className="font-bold">Plan Your Next Hop</CardTitle>
+                <CardDescription>
+                  Set up the route Roo will guide you through.
+                </CardDescription>
+              </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="routeName" className="text-sm !font-bold">Route Name</Label>
+                    <Input
+                      id="routeName"
+                      placeholder="e.g., Client Visits - Monday"
+                      value={routeName}
+                      onChange={(e) => setRouteName(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="routeNotes" className="text-sm !font-bold">Notes (Optional)</Label>
+                    <div className="relative">
+                      <Textarea
+                        id="routeNotes"
+                        placeholder="Add any notes or details about this route..."
+                        value={routeNotes}
+                        onChange={(e) => setRouteNotes(e.target.value)}
+                        rows={5}
+                        className="pr-10"
+                      />
+                      <div className="absolute bottom-2 right-2">
+                        <EmojiPickerButton
+                          onEmojiSelect={(emoji) => setRouteNotes(routeNotes + emoji)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="scheduledDate" className="text-sm !font-bold">Scheduled Date (Optional)</Label>
+                    <Input
+                      id="scheduledDate"
+                      type="date"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Schedule this route for a specific date
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="startingPoint" className="text-sm !font-bold">Starting Point (Optional)</Label>
+                    <Select value={startingPoint} onValueChange={(val) => {
+                      setStartingPoint(val);
+                      if (val !== "custom") setCustomStartingPoint("");
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select or enter starting point" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="custom">Enter custom address...</SelectItem>
+                        {startingPointsQuery.data?.map((point) => (
+                          <SelectItem key={point.id} value={point.address}>
+                            {point.name} - {point.address}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {startingPoint === "custom" && (
+                      <Input
+                        placeholder="Enter custom starting address"
+                        value={customStartingPoint}
+                        onChange={(e) => setCustomStartingPoint(e.target.value)}
+                        className="mt-2"
+                      />
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Choose a saved location or enter a custom address
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="folder" className="text-sm !font-bold">Folder (Optional)</Label>
+                    <div className="flex gap-2">
+                      <Select value={selectedFolderId} onValueChange={setSelectedFolderId}>
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="No folder" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No folder</SelectItem>
+                          {folders.map((folder) => (
+                            <SelectItem key={folder.id} value={folder.id.toString()}>
+                              <div className="flex items-center gap-2">
+                                <Folder className="h-4 w-4" />
+                                {folder.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setShowNewFolderInput(!showNewFolderInput)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {showNewFolderInput && (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="New folder name"
+                        value={newFolderName}
+                        onChange={(e) => setNewFolderName(e.target.value)}
+                      />
+                      <Button onClick={handleCreateFolder} disabled={createFolderMutation.isPending}>
+                        {createFolderMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Add"
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="optimize" className="text-sm !font-bold">Optimize Route Order</Label>
+                    <Switch
+                      id="optimize"
+                      checked={optimizeRoute}
+                      onCheckedChange={setOptimizeRoute}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {optimizeRoute 
+                      ? "Waypoints will be reordered for the shortest route"
+                      : "Waypoints will be visited in the order you selected them"}
+                  </p>
+                  
+                  <div className="text-sm text-muted-foreground">
+                    {selectedContacts.size} contact{selectedContacts.size !== 1 ? 's' : ''} selected
+                  </div>
+
+
+
+                  <Button
+                    className="w-full"
+                    onClick={handleCreateRoute}
+                    disabled={selectedContacts.size < 2 || !routeName.trim() || isCreatingRoute}
+                  >
+                    {isCreatingRoute ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Creating Route...
+                      </>
+                    ) : (
+                      <>
+                        <RouteIcon className="h-4 w-4 mr-2" />
+                        Plan My Route
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Your Contacts</CardTitle>
-                    <CardDescription>
-                      {hasContacts 
-                        ? `${contacts.length} contacts with addresses`
-                        : "Sync your Gmail contacts to get started"}
+                <div className="flex flex-col gap-3">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <CardTitle className="font-bold">Your Kangaroo Crew</CardTitle>
+                    </div>
+                    <CardDescription className="italic">
+                      Everyone you connect with along the journey.
                     </CardDescription>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSyncContacts}
-                      disabled={googleAuthQuery.isFetching}
-                    >
-                      {googleAuthQuery.isFetching ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-4 w-4" />
-                      )}
-                      <span className="ml-2">{hasContacts ? "Refresh" : "Sync Your Contacts"}</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowImportDialog(true)}
-                    >
-                      <Upload className="h-4 w-4" />
-                      <span className="ml-2">Import CSV</span>
-                    </Button>
+                  <div className="flex items-start gap-4">
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSyncContacts}
+                        disabled={googleAuthQuery.isFetching}
+                        className="whitespace-nowrap"
+                      >
+                        {googleAuthQuery.isFetching ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4" />
+                        )}
+                        <span className="ml-2">{hasContacts ? "Refresh" : "Sync Your Contacts"}</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowImportDialog(true)}
+                        className="whitespace-nowrap"
+                      >
+                        <Upload className="h-4 w-4" />
+                        <span className="ml-2">Import CSV</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowBulkDocumentUpload(true)}
+                        className="whitespace-nowrap"
+                      >
+                        <Paperclip className="h-4 w-4" />
+                        <span className="ml-2">Bulk Upload Doc</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExportContacts}
+                        className="whitespace-nowrap"
+                      >
+                        <Download className="h-4 w-4" />
+                        <span className="ml-2">Export Contacts</span>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
@@ -689,7 +1134,7 @@ export default function Home() {
                             </span>
                           </div>
                         )}
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <p className="font-medium">{contact.name}</p>
                             {(!contact.address || contact.address.trim() === "") && (
@@ -706,23 +1151,49 @@ export default function Home() {
                           {contact.labels && (() => {
                             try {
                               const labels = JSON.parse(contact.labels);
-              // Filter out myContacts, starred, and ALL contactGroups/*
-              const userFriendlyLabels = labels.filter((label: string) => {
-                const lower = label.toLowerCase();
-                return lower !== 'mycontacts' && 
-                       lower !== 'starred' && 
-                       !label.startsWith('contactGroups/');
-              });
+              // Extract label names from contactGroups/ format and filter out system labels
+              const userFriendlyLabels = labels
+                .map((label: string) => {
+                  // Extract name from contactGroups/xxx format
+                  if (label.startsWith('contactGroups/')) {
+                    return label.split('/').pop() || '';
+                  }
+                  return label;
+                })
+                .filter((label: string) => {
+                  const lower = label.toLowerCase();
+                  // Filter out system labels and hex IDs (Google's internal group IDs)
+                  const isHexId = /^[0-9a-f]{12,}$/i.test(label);
+                  return lower !== 'mycontacts' && lower !== 'starred' && label.trim() !== '' && !isHexId;
+                                });
                               if (userFriendlyLabels.length > 0) {
                                 return (
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {userFriendlyLabels.slice(0, 3).map((label: string, idx: number) => (
-                                      <span key={idx} className="inline-block px-2 py-0.5 text-sm font-bold bg-primary/10 text-primary rounded">
-                                        {label}
-                                      </span>
-                                    ))}
+                                   <div className="flex flex-wrap gap-1 mt-1">
+                                    {userFriendlyLabels.slice(0, 3).map((label: string, idx: number) => {
+                                      // Find custom color for this label
+                                      const labelColor = labelColorsQuery.data?.find(lc => lc.labelName === label);
+                                      const bgColor = labelColor ? labelColor.color : '#e0e7ff'; // default light blue
+                                      const textColor = labelColor ? '#ffffff' : '#4f46e5'; // white for custom colors, dark blue for default
+                                      
+                                      return (
+                                        <span 
+                                          key={idx} 
+                                          style={{ 
+                                            whiteSpace: 'nowrap', 
+                                            wordBreak: 'keep-all', 
+                                            hyphens: 'none', 
+                                            overflowWrap: 'normal',
+                                            backgroundColor: bgColor,
+                                            color: textColor
+                                          }} 
+                                          className="inline-block px-2 py-0.5 text-sm font-bold rounded"
+                                        >
+                                          {label}
+                                        </span>
+                                      );
+                                    })}
                                     {userFriendlyLabels.length > 3 && (
-                                      <span className="inline-block px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded">
+                                      <span className="inline-block px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded whitespace-nowrap">
                                         +{userFriendlyLabels.length - 3}
                                       </span>
                                     )}
@@ -732,9 +1203,27 @@ export default function Home() {
                             } catch (e) {}
                             return null;
                           })()}
-                          <p className="text-sm text-muted-foreground truncate mt-1">
-                            {contact.address || "No address"}
-                          </p>
+                          <div className="mt-1">
+                            {(() => {
+                              // Try to get address from new addresses array first, fall back to legacy address field
+                              const primaryAddr = getPrimaryAddress(contact.addresses);
+                              const displayAddress = primaryAddr?.formattedValue || contact.address || "No address";
+                              const hasMultiple = hasMultipleAddresses(contact.addresses);
+                              
+                              return (
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm text-muted-foreground truncate flex-1">
+                                    {displayAddress}
+                                  </p>
+                                  {hasMultiple && (
+                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded whitespace-nowrap">
+                                      {getAddressTypeIcon(primaryAddr?.type || 'other')} +{hasMultipleAddresses(contact.addresses) ? 'more' : ''}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </div>
                           {contact.phoneNumbers && (() => {
                             try {
                               const phones = JSON.parse(contact.phoneNumbers);
@@ -760,6 +1249,46 @@ export default function Home() {
                             }
                             return null;
                           })()}
+                          
+                          {/* Important Dates */}
+                          {contact.importantDates && (() => {
+                            try {
+                              const dates = JSON.parse(contact.importantDates);
+                              if (dates.length > 0) {
+                                return (
+                                  <div className="mt-2 space-y-1">
+                                    <p className="text-xs font-semibold text-muted-foreground">Important Dates:</p>
+                                    {dates.map((date: any, idx: number) => (
+                                      <div key={idx} className="text-xs text-muted-foreground">
+                                        <span className="font-medium">{date.type}:</span> {new Date(date.date).toLocaleDateString()}
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              }
+                            } catch (e) {}
+                            return null;
+                          })()}
+                          
+                          {/* Comments */}
+                          {contact.comments && (() => {
+                            try {
+                              const comments = JSON.parse(contact.comments);
+                              if (comments.length > 0) {
+                                return (
+                                  <div className="mt-2 space-y-1">
+                                    <p className="text-xs font-semibold text-muted-foreground">Comments:</p>
+                                    {comments.map((comment: any, idx: number) => (
+                                      <div key={idx} className="text-xs text-muted-foreground">
+                                        {comment.option === "Other" ? comment.customText : comment.option}
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              }
+                            } catch (e) {}
+                            return null;
+                          })()}
                         </div>
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                           {(!contact.address || contact.address.trim() === "") && (
@@ -772,6 +1301,28 @@ export default function Home() {
                               Add Address
                             </Button>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setViewingContact(contact)}
+                            title="View Details"
+                          >
+                            <Info className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => {
+                              setUploadContactId(contact.id);
+                              setUploadContactName(contact.name || "Contact");
+                              setShowDocumentUpload(true);
+                            }}
+                            title="Upload Document"
+                          >
+                            <Paperclip className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -800,197 +1351,6 @@ export default function Home() {
                 )}
               </CardContent>
             </Card>
-
-            {/* Create Route Section */}
-            {hasContacts && (
-              <Card>
-              <CardHeader>
-                <CardTitle>Route Setup Screen</CardTitle>
-                <CardDescription>
-                  Create a new route by selecting contacts and configuring options
-                </CardDescription>
-              </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="routeName" className="font-bold">Route Name</Label>
-                    <Input
-                      id="routeName"
-                      placeholder="e.g., Client Visits - Monday"
-                      value={routeName}
-                      onChange={(e) => setRouteName(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="routeNotes" className="font-bold">Notes (Optional)</Label>
-                    <Textarea
-                      id="routeNotes"
-                      placeholder="Add any notes or details about this route..."
-                      value={routeNotes}
-                      onChange={(e) => setRouteNotes(e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="scheduledDate" className="font-bold">Scheduled Date (Optional)</Label>
-                    <Input
-                      id="scheduledDate"
-                      type="date"
-                      value={scheduledDate}
-                      onChange={(e) => setScheduledDate(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Schedule this route for a specific date
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="startingPoint" className="font-bold">Starting Point (Optional)</Label>
-                    <Select value={startingPoint} onValueChange={(val) => {
-                      setStartingPoint(val);
-                      if (val !== "custom") setCustomStartingPoint("");
-                    }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select or enter starting point" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="custom">Enter custom address...</SelectItem>
-                        {startingPointsQuery.data?.map((point) => (
-                          <SelectItem key={point.id} value={point.address}>
-                            {point.name} - {point.address}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {startingPoint === "custom" && (
-                      <Input
-                        placeholder="Enter custom starting address"
-                        value={customStartingPoint}
-                        onChange={(e) => setCustomStartingPoint(e.target.value)}
-                        className="mt-2"
-                      />
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      Choose a saved location or enter a custom address
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="folder" className="font-bold">Folder (Optional)</Label>
-                    <div className="flex gap-2">
-                      <Select value={selectedFolderId} onValueChange={setSelectedFolderId}>
-                        <SelectTrigger className="flex-1">
-                          <SelectValue placeholder="No folder" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">No folder</SelectItem>
-                          {folders.map((folder) => (
-                            <SelectItem key={folder.id} value={folder.id.toString()}>
-                              <div className="flex items-center gap-2">
-                                <Folder className="h-4 w-4" />
-                                {folder.name}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setShowNewFolderInput(!showNewFolderInput)}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {showNewFolderInput && (
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="New folder name"
-                        value={newFolderName}
-                        onChange={(e) => setNewFolderName(e.target.value)}
-                      />
-                      <Button onClick={handleCreateFolder} disabled={createFolderMutation.isPending}>
-                        {createFolderMutation.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Add"
-                        )}
-                      </Button>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="optimize" className="font-bold">Optimize Route Order</Label>
-                    <Switch
-                      id="optimize"
-                      checked={optimizeRoute}
-                      onCheckedChange={setOptimizeRoute}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {optimizeRoute 
-                      ? "Waypoints will be reordered for the shortest route"
-                      : "Waypoints will be visited in the order you selected them"}
-                  </p>
-                  
-                  <div className="text-sm text-muted-foreground">
-                    {selectedContacts.size} contact{selectedContacts.size !== 1 ? 's' : ''} selected
-                  </div>
-
-                  {selectedContacts.size > 0 && (
-                    <div className="space-y-2">
-                      <Label>Stop Types</Label>
-                      <div className="space-y-2 max-h-60 overflow-y-auto">
-                        {Array.from(selectedContacts).map(contactId => {
-                          const contact = contacts.find(c => c.id === contactId);
-                          if (!contact) return null;
-                          const stopTypeInfo = contactStopTypes.get(contactId) || { type: "visit", color: "#3b82f6" };
-                          return (
-                            <div key={contactId} className="flex items-center gap-2 p-2 bg-muted rounded">
-                              <span className="text-sm flex-1 truncate">{contact.name}</span>
-                              <div className="w-32">
-                                <StopTypeSelector
-                                  value={stopTypeInfo.type as StopType}
-                                  onChange={(newType) => {
-                                    const config = getStopTypeConfig(newType);
-                                    const newStopTypes = new Map(contactStopTypes);
-                                    newStopTypes.set(contactId, { type: config.type, color: config.color });
-                                    setContactStopTypes(newStopTypes);
-                                  }}
-                                  size="sm"
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  <Button
-                    className="w-full"
-                    onClick={handleCreateRoute}
-                    disabled={selectedContacts.size < 2 || !routeName.trim() || isCreatingRoute}
-                  >
-                    {isCreatingRoute ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Creating Route...
-                      </>
-                    ) : (
-                      <>
-                        <RouteIcon className="h-4 w-4 mr-2" />
-                        Plan My Route
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
           </div>
 
           {/* Routes Section */}
@@ -999,17 +1359,15 @@ export default function Home() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Your Routes</CardTitle>
-                    <CardDescription>
-                      {routes.length > 0 
-                        ? `${routes.length} saved route${routes.length !== 1 ? 's' : ''}`
-                        : "No routes created yet"}
+                    <CardTitle className="font-bold">Your Hop Library</CardTitle>
+                    <CardDescription className="italic">
+                      A clear, hop-by-hop look at your route.
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-3">
                     {folders.length > 0 && (
                       <Select value={selectedFolderFilter} onValueChange={setSelectedFolderFilter}>
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-full md:w-[180px]">
                           <SelectValue placeholder="All Folders" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1051,7 +1409,7 @@ export default function Home() {
                     <p className="text-sm mt-2">Create your first route above to get started</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                  <div className="space-y-3 overflow-y-auto">
                     {filteredRoutes.map((route) => (
                       <div key={route.id} className="p-4 rounded-lg border hover:bg-accent transition-colors group">
                         <div className="flex items-start justify-between">
@@ -1075,10 +1433,27 @@ export default function Home() {
                                     {(route as any).completedWaypointCount || 0}/{(route as any).waypointCount} stops
                                   </span>
                                 )}
+                                {route.calendarId && (
+                                  <span className="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                                    📅 On Calendar
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </Link>
                           <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                copyRouteMutation.mutate({ routeId: route.id });
+                              }}
+                              title="Copy route"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -1145,6 +1520,52 @@ export default function Home() {
             });
             setEditingContact(null);
           }}
+        />
+      )}
+      
+      {/* Document Upload Dialog */}
+      {uploadContactId && (
+        <DocumentUploadDialog
+          open={showDocumentUpload}
+          onOpenChange={setShowDocumentUpload}
+          contactId={uploadContactId}
+          contactName={uploadContactName}
+          onUploadComplete={() => {
+            // Refresh contacts if needed
+            contactsQuery.refetch();
+          }}
+        />
+      )}
+      
+      {/* Bulk Document Upload Dialog */}
+      <BulkDocumentUploadDialog
+        open={showBulkDocumentUpload}
+        onOpenChange={setShowBulkDocumentUpload}
+        onUploadComplete={() => {
+          // Refresh contacts if needed
+          contactsQuery.refetch();
+        }}
+      />
+      
+      {/* Contact Detail Dialog */}
+      <ContactDetailDialog
+        contact={viewingContact}
+        open={!!viewingContact}
+        onOpenChange={(open) => !open && setViewingContact(null)}
+        onEdit={() => {
+          setEditingContact(viewingContact);
+          setViewingContact(null);
+        }}
+      />
+
+      {/* Address Selector Dialog */}
+      {addressSelectorContact && (
+        <AddressSelector
+          contactName={addressSelectorContact.name}
+          addressesJson={addressSelectorContact.addresses}
+          open={addressSelectorOpen}
+          onSelect={handleAddressSelected}
+          onCancel={handleAddressSelectorCancel}
         />
       )}
 

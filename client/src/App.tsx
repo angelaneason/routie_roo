@@ -5,6 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import LandingPage from "./pages/LandingPage";
+import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Settings from "./pages/Settings";
 import RouteDetail from "./pages/RouteDetail";
@@ -45,7 +46,10 @@ function Router() {
   // Authenticated routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
+      <Route path={"/"} component={Dashboard} />
+      <Route path={"/workspace"} component={Home} />
+      <Route path={"/plan-route"} component={Home} />
+      <Route path={"/contacts"} component={Home} />
       <Route path="/settings" component={Settings} />
       <Route path="/calendar" component={Calendar} />
       <Route path="/route/:id" component={RouteDetail} />

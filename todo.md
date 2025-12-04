@@ -2620,3 +2620,16 @@
 - [x] Add "Set as Primary" option for addresses
 - [x] Show which address type is being used in route waypoints
 - [ ] Test address selection flow end-to-end
+
+
+## Dashboard-First Navigation Implementation
+- [x] Create Dashboard page component with real metrics (total routes, active routes, completed stops, total contacts)
+- [x] Add Chart.js visualizations (routes by status pie chart, weekly activity bar chart)
+- [x] Add upcoming scheduled routes list to dashboard
+- [x] Add quick action buttons (Plan Routes, Manage Contacts, View All Routes, Calendar)
+- [x] Keep existing Home page as /workspace (route creation + contacts together)
+- [x] Update App.tsx routing (/ = Dashboard, /workspace = Home)
+- [x] Create shared Header component with navigation
+- [x] Update header navigation links
+- [x] Update OAuth callback redirects to /workspace
+- [x] Test navigation flow on desktop and mobile
