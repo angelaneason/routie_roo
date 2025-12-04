@@ -619,3 +619,131 @@ export async function refreshAccessToken(refreshToken: string): Promise<{
     expires_in: data.expires_in,
   };
 }
+
+
+/**
+ * Get all contact groups (labels) for a user
+ */
+export async function getAllContactGroups(
+  accessToken: string
+): Promise<Array<{ resourceName: string; name: string; memberCount?: number }>> {
+  const response = await fetch(
+    'https://people.googleapis.com/v1/contactGroups',
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to fetch contact groups: ${error}`);
+  }
+
+  const data = await response.json();
+  
+  // Filter out system groups and return user-created groups
+  const groups = (data.contactGroups || [])
+    .filter((group: any) => {
+      // Only include user-created groups (not system groups like myContacts, starred, etc.)
+      return group.groupType === 'USER_CONTACT_GROUP';
+    })
+    .map((group: any) => ({
+      resourceName: group.resourceName,
+      name: group.name,
+      memberCount: group.memberCount || 0,
+    }));
+
+  return groups;
+}
+
+/**
+ * Create a new contact group (label)
+ */
+export async function createContactGroup(
+  accessToken: string,
+  name: string
+): Promise<{ resourceName: string; name: string }> {
+  const response = await fetch(
+    'https://people.googleapis.com/v1/contactGroups',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contactGroup: {
+          name,
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to create contact group: ${error}`);
+  }
+
+  const data = await response.json();
+  return {
+    resourceName: data.resourceName,
+    name: data.name,
+  };
+}
+
+/**
+ * Update contact labels (memberships) in Google Contacts
+ */
+export async function updateContactLabels(
+  accessToken: string,
+  resourceName: string,
+  labelResourceNames: string[]
+): Promise<void> {
+  // First, fetch the current contact to get the etag
+  const getResponse = await fetch(
+    `https://people.googleapis.com/v1/${resourceName}?personFields=names,memberships`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (!getResponse.ok) {
+    const error = await getResponse.text();
+    throw new Error(`Failed to fetch contact for label update: ${error}`);
+  }
+
+  const currentContact = await getResponse.json();
+  const etag = currentContact.etag;
+
+  // Build memberships array from label resource names
+  const memberships = labelResourceNames.map(labelResourceName => ({
+    contactGroupMembership: {
+      contactGroupResourceName: labelResourceName,
+    },
+  }));
+
+  // Update the contact with new memberships
+  const updateResponse = await fetch(
+    `https://people.googleapis.com/v1/${resourceName}:updateContact?updatePersonFields=memberships`,
+    {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        etag,
+        memberships,
+      }),
+    }
+  );
+
+  if (!updateResponse.ok) {
+    const error = await updateResponse.text();
+    throw new Error(`Failed to update contact labels: ${error}`);
+  }
+}

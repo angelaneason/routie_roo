@@ -41,7 +41,10 @@ import {
   createCalendarEvent,
   updateCalendarEvent,
   deleteCalendarEvent,
-  getCalendarList
+  getCalendarList,
+  getAllContactGroups,
+  createContactGroup,
+  updateContactLabels
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
 import { validateAddress } from "./addressValidation";
@@ -565,6 +568,161 @@ export const appRouter = router({
           fileBuffer,
           mimeType: input.mimeType,
         });
+      }),
+
+    // Get all available labels (contact groups)
+    getAllLabels: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      // Get user's Google Contacts access token
+      const user = await db.select().from(users)
+        .where(eq(users.id, ctx.user.id))
+        .limit(1);
+      
+      if (!user.length || !user[0].googleContactsAccessToken) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Google Contacts not connected" });
+      }
+
+      // Check if token is expired and refresh if needed
+      let accessToken = user[0].googleContactsAccessToken;
+      if (user[0].googleContactsTokenExpiry && new Date(user[0].googleContactsTokenExpiry) < new Date()) {
+        if (!user[0].googleContactsRefreshToken) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Token expired, please reconnect Google Contacts" });
+        }
+        const { refreshAccessToken } = await import("./googleAuth");
+        const refreshed = await refreshAccessToken(user[0].googleContactsRefreshToken);
+        accessToken = refreshed.access_token;
+        
+        // Update stored token
+        const expiryDate = new Date(Date.now() + refreshed.expires_in * 1000);
+        await db.update(users)
+          .set({
+            googleContactsAccessToken: accessToken,
+            googleContactsTokenExpiry: expiryDate,
+          } as any)
+          .where(eq(users.id, ctx.user.id));
+      }
+
+      // Fetch all contact groups from Google
+      const groups = await getAllContactGroups(accessToken);
+      return groups;
+    }),
+
+    // Create a new label (contact group)
+    createLabel: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Get user's Google Contacts access token
+        const user = await db.select().from(users)
+          .where(eq(users.id, ctx.user.id))
+          .limit(1);
+        
+        if (!user.length || !user[0].googleContactsAccessToken) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Google Contacts not connected" });
+        }
+
+        // Check if token is expired and refresh if needed
+        let accessToken = user[0].googleContactsAccessToken;
+        if (user[0].googleContactsTokenExpiry && new Date(user[0].googleContactsTokenExpiry) < new Date()) {
+          if (!user[0].googleContactsRefreshToken) {
+            throw new TRPCError({ code: "UNAUTHORIZED", message: "Token expired, please reconnect Google Contacts" });
+          }
+          const { refreshAccessToken } = await import("./googleAuth");
+          const refreshed = await refreshAccessToken(user[0].googleContactsRefreshToken);
+          accessToken = refreshed.access_token;
+          
+          // Update stored token
+          const expiryDate = new Date(Date.now() + refreshed.expires_in * 1000);
+          await db.update(users)
+            .set({
+              googleContactsAccessToken: accessToken,
+              googleContactsTokenExpiry: expiryDate,
+            } as any)
+            .where(eq(users.id, ctx.user.id));
+        }
+
+        // Create new contact group in Google
+        const group = await createContactGroup(accessToken, input.name);
+        return group;
+      }),
+
+    // Update contact labels
+    updateLabels: protectedProcedure
+      .input(z.object({
+        contactId: z.number(),
+        labelResourceNames: z.array(z.string()),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Get contact
+        const contact = await db.select().from(cachedContacts)
+          .where(eq(cachedContacts.id, input.contactId))
+          .limit(1);
+        
+        if (!contact.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Contact not found" });
+        }
+
+        if (!contact[0].googleResourceName) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Contact not synced with Google" });
+        }
+
+        // Get user's Google Contacts access token
+        const user = await db.select().from(users)
+          .where(eq(users.id, ctx.user.id))
+          .limit(1);
+        
+        if (!user.length || !user[0].googleContactsAccessToken) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Google Contacts not connected" });
+        }
+
+        // Check if token is expired and refresh if needed
+        let accessToken = user[0].googleContactsAccessToken;
+        if (user[0].googleContactsTokenExpiry && new Date(user[0].googleContactsTokenExpiry) < new Date()) {
+          if (!user[0].googleContactsRefreshToken) {
+            throw new TRPCError({ code: "UNAUTHORIZED", message: "Token expired, please reconnect Google Contacts" });
+          }
+          const { refreshAccessToken } = await import("./googleAuth");
+          const refreshed = await refreshAccessToken(user[0].googleContactsRefreshToken);
+          accessToken = refreshed.access_token;
+          
+          // Update stored token
+          const expiryDate = new Date(Date.now() + refreshed.expires_in * 1000);
+          await db.update(users)
+            .set({
+              googleContactsAccessToken: accessToken,
+              googleContactsTokenExpiry: expiryDate,
+            } as any)
+            .where(eq(users.id, ctx.user.id));
+        }
+
+        // Update labels in Google Contacts
+        await updateContactLabels(accessToken, contact[0].googleResourceName, input.labelResourceNames);
+
+        // Fetch updated contact group names
+        const groupNameMap = await fetchContactGroupNames(accessToken);
+        
+        // Resolve label resource names to readable names
+        const labelNames = input.labelResourceNames
+          .map(resourceName => groupNameMap.get(resourceName) || resourceName);
+
+        // Update local database
+        await db.update(cachedContacts)
+          .set({
+            labels: JSON.stringify(labelNames),
+            updatedAt: new Date(),
+          })
+          .where(eq(cachedContacts.id, input.contactId));
+
+        return { success: true, labels: labelNames };
       }),
   }),
 

@@ -23,7 +23,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { APP_TITLE, APP_LOGO, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Download, Calendar as CalendarIcon, Archive, FileText, Paperclip, Info, History, Users, Copy } from "lucide-react";
+import { Loader2, MapPin, Route as RouteIcon, Share2, RefreshCw, Trash2, Folder, Plus, Search, Filter, Settings as SettingsIcon, Edit, EyeOff, Eye, AlertTriangle, AlertCircle, LogOut, Upload, Download, Calendar as CalendarIcon, Archive, FileText, Paperclip, Info, History, Users, Copy, Tags } from "lucide-react";
 import { formatDistance } from "@shared/distance";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { ContactEditDialog } from "@/components/ContactEditDialog";
@@ -33,6 +33,7 @@ import { BulkDocumentUploadDialog } from "@/components/BulkDocumentUploadDialog"
 import { ContactDetailDialog } from "@/components/ContactDetailDialog";
 import { AddressSelector } from "@/components/AddressSelector";
 import { SchedulerNotes } from "@/components/SchedulerNotes";
+import { EditLabelsDialog } from "@/components/EditLabelsDialog";
 // StopTypeSelector removed - stop types now set via default in Settings and editable in route details
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -76,6 +77,7 @@ export default function Home() {
   const [uploadContactName, setUploadContactName] = useState<string>("");
   const [showBulkDocumentUpload, setShowBulkDocumentUpload] = useState(false);
   const [viewingContact, setViewingContact] = useState<any | null>(null);
+  const [editLabelsContact, setEditLabelsContact] = useState<{ id: number; name: string; labels: string[] } | null>(null);
 
   // Check for OAuth callback status and route creation from waypoints
   useEffect(() => {
@@ -1265,7 +1267,43 @@ export default function Home() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
+                            onClick={() => {
+                              // Parse current labels
+                              let currentLabels: string[] = [];
+                              try {
+                                if (contact.labels) {
+                                  const labels = JSON.parse(contact.labels);
+                                  currentLabels = labels
+                                    .map((label: string) => {
+                                      if (label.startsWith('contactGroups/')) {
+                                        return label.split('/').pop() || '';
+                                      }
+                                      return label;
+                                    })
+                                    .filter((label: string) => {
+                                      const lower = label.toLowerCase();
+                                      const isHexId = /^[0-9a-f]{12,}$/i.test(label);
+                                      return lower !== 'mycontacts' && lower !== 'starred' && label.trim() !== '' && !isHexId;
+                                    });
+                                }
+                              } catch (e) {}
+                              
+                              setEditLabelsContact({
+                                id: contact.id,
+                                name: contact.name || "Contact",
+                                labels: currentLabels,
+                              });
+                            }}
+                            title="Edit Labels"
+                          >
+                            <Tags className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
                             onClick={() => setEditingContact(contact)}
+                            title="Edit Contact"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -1279,6 +1317,7 @@ export default function Home() {
                                 isActive: contact.isActive !== 1,
                               });
                             }}
+                            title={contact.isActive === 1 ? "Mark Inactive" : "Mark Active"}
                           >
                             {contact.isActive === 1 ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </Button>
@@ -1563,6 +1602,23 @@ export default function Home() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Labels Dialog */}
+      {editLabelsContact && (
+        <EditLabelsDialog
+          open={!!editLabelsContact}
+          onOpenChange={(open) => {
+            if (!open) setEditLabelsContact(null);
+          }}
+          contactId={editLabelsContact.id}
+          contactName={editLabelsContact.name}
+          currentLabels={editLabelsContact.labels}
+          onSuccess={() => {
+            // Refresh contacts to show updated labels
+            contactsQuery.refetch();
+          }}
+        />
+      )}
     </div>
     </>
   );

@@ -2647,3 +2647,15 @@
 - [x] Load and apply saved preferences on Dashboard mount
 - [x] Add "Reset to Default" button in customization dialog
 - [x] Test customization persistence across sessions
+
+## Label Management Feature
+
+- [x] Backend: Create getAllLabels procedure to fetch all Google Contact groups
+- [x] Backend: Create updateContactLabels procedure with Google Contacts API sync
+- [x] Backend: Create createLabel procedure to create new Google Contact groups
+- [x] Frontend: Add "Edit Labels" button to contact cards
+- [x] Frontend: Create EditLabelsDialog component with checkbox list
+- [x] Frontend: Add "Create New Label" functionality in dialog
+- [x] Frontend: Update contact card labels display after changes
+- [x] Testing: Write vitest tests for label management
+- [x] Testing: Verify two-way sync with Google Contacts
