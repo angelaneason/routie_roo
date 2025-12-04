@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Loader2, Plus } from "lucide-react";
+import { sortLabelsSmartly } from "@/lib/labelHelpers";
 
 interface EditLabelsDialogProps {
   open: boolean;
@@ -112,7 +113,10 @@ export function EditLabelsDialog({
             </div>
           ) : allLabels && allLabels.length > 0 ? (
             <div className="space-y-3 max-h-[400px] overflow-y-auto">
-              {allLabels.map(label => (
+              {/* Sort labels with emoji labels first */}
+              {sortLabelsSmartly(allLabels.map(l => l.name))
+                .map(labelName => allLabels.find(l => l.name === labelName)!)
+                .map(label => (
                 <div key={label.resourceName} className="flex items-center space-x-3">
                   <Checkbox
                     id={label.resourceName}

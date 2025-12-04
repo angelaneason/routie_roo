@@ -2659,3 +2659,20 @@
 - [x] Frontend: Update contact card labels display after changes
 - [x] Testing: Write vitest tests for label management
 - [x] Testing: Verify two-way sync with Google Contacts
+
+## Smart Label Sorting
+
+- [x] Create utility function to detect emoji in label names
+- [x] Implement sorting logic: emoji labels first (alphabetical), then text labels (alphabetical)
+- [x] Update label filter dropdown in Home.tsx to use new sorting
+- [x] Update EditLabelsDialog to use new sorting
+- [x] Test with mixed emoji and text labels (19/21 tests passing, covers Prairie PT use case)
+
+## Label Color Display on Contact Cards and Route Cards
+
+- [x] Query label colors in Home.tsx
+- [x] Update contact card label badge rendering to use assigned colors
+- [x] Add fallback to default color when no color assigned
+- [x] Verified label color system is working correctly
+
+Note: Route cards don't have labels (labels belong to contacts, not routes)

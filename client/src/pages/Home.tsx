@@ -39,6 +39,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Link, useLocation } from "wouter";
 import { getPrimaryAddress, hasMultipleAddresses, getAddressTypeIcon, getAddressTypeLabel } from "@/lib/addressHelpers";
+import { extractAndSortLabels } from "@/lib/labelHelpers";
 
 export default function Home() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
@@ -626,30 +627,8 @@ export default function Home() {
   const hasContacts = contacts.length > 0;
   
   // Get all unique labels from contacts (excluding default labels)
-  const allLabels = Array.from(new Set(
-    contacts.flatMap(contact => {
-      if (!contact.labels) return [];
-      try {
-        const labels = JSON.parse(contact.labels);
-        return labels
-          .map((label: string) => {
-            // Extract name from contactGroups/xxx format
-            if (label.startsWith('contactGroups/')) {
-              return label.split('/').pop() || '';
-            }
-            return label;
-          })
-          .filter((label: string) => {
-            const lower = label.toLowerCase();
-            // Filter out system labels and hex IDs (Google's internal group IDs)
-            const isHexId = /^[0-9a-f]{12,}$/i.test(label);
-            return lower !== 'mycontacts' && lower !== 'starred' && label.trim() !== '' && !isHexId;
-          });
-      } catch {
-        return [];
-      }
-    })
-  )).sort();
+  // Extract and sort labels with emoji labels first
+  const allLabels = extractAndSortLabels(contacts);
 
   // Filter contacts based on search query, active status, and labels
   const filteredContacts = contacts.filter(contact => {
@@ -990,7 +969,7 @@ export default function Home() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Labels</SelectItem>
-                            {allLabels.map((label) => (
+                            {allLabels.map((label: string) => (
                               <SelectItem key={label} value={label}>
                                 {label}
                               </SelectItem>
