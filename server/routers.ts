@@ -1515,7 +1515,13 @@ export const appRouter = router({
         const route = result[0];
         const waypoints = await getRouteWaypoints(route.id);
 
-        return { route, waypoints };
+        // Get label colors for the route owner
+        const userLabelColors = await db
+          .select()
+          .from(labelColors)
+          .where(eq(labelColors.userId, route.userId));
+
+        return { route, waypoints, labelColors: userLabelColors };
       }),
 
     // Update waypoint status via share token (public access)

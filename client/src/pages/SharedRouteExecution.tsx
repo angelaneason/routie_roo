@@ -81,6 +81,7 @@ export default function SharedRouteExecution() {
 
   const route = routeQuery.data?.route;
   const allWaypoints = routeQuery.data?.waypoints || [];
+  const labelColors = routeQuery.data?.labelColors || [];
   
   // Filter waypoints that have valid coordinates for map rendering
   const validWaypoints = allWaypoints.filter(wp => wp.latitude && wp.longitude);
@@ -129,6 +130,32 @@ export default function SharedRouteExecution() {
             // Add numbered markers for each valid waypoint
             const newMarkers: google.maps.Marker[] = [];
             validWaypoints.forEach((waypoint, index) => {
+              // Apply label color logic: if contact has exactly ONE label with color, use it
+              let fillColor = waypoint.stopColor || "#4F46E5";
+              let strokeColor = "white";
+              let strokeWeight = 2;
+              
+              try {
+                if (waypoint.contactLabels) {
+                  const labels = JSON.parse(waypoint.contactLabels);
+                  const labelsWithColors = labels.filter((label: string) => 
+                    labelColors.some((lc: any) => lc.labelName === label)
+                  );
+                  
+                  if (labelsWithColors.length === 1) {
+                    // Use label color as center, stop color as border
+                    const labelColor = labelColors.find((lc: any) => lc.labelName === labelsWithColors[0]);
+                    if (labelColor) {
+                      fillColor = labelColor.color;
+                      strokeColor = waypoint.stopColor || "#4F46E5";
+                      strokeWeight = 4;
+                    }
+                  }
+                }
+              } catch (e) {
+                // Invalid JSON, use default colors
+              }
+              
               const marker = new google.maps.Marker({
               position: new google.maps.LatLng(
                 parseFloat(waypoint.latitude!),
@@ -144,10 +171,10 @@ export default function SharedRouteExecution() {
               icon: {
                 path: google.maps.SymbolPath.CIRCLE,
                 scale: 20,
-                fillColor: waypoint.stopColor || "#4F46E5",
+                fillColor,
                 fillOpacity: 1,
-                strokeColor: "white",
-                strokeWeight: 2,
+                strokeColor,
+                strokeWeight,
               },
               });
               newMarkers.push(marker);
