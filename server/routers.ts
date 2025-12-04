@@ -31,6 +31,7 @@ import {
   updateCommentOption,
   deleteCommentOption
 } from "./db";
+import { getDashboardPreferences, upsertDashboardPreferences } from "./dashboardPreferences";
 import { 
   getGoogleAuthUrl, 
   exchangeCodeForToken, 
@@ -3674,6 +3675,55 @@ export const appRouter = router({
               eq(labelColors.userId, ctx.user.id)
             )
           );
+
+        return { success: true };
+      }),
+  }),
+
+  dashboardPreferences: router({
+    get: protectedProcedure.query(async ({ ctx }) => {
+      const prefs = await getDashboardPreferences(ctx.user.id);
+      
+      // Return defaults if no preferences exist
+      if (!prefs) {
+        return {
+          widgetVisibility: {
+            metrics: true,
+            charts: true,
+            upcomingRoutes: true,
+            quickActions: true,
+          },
+          widgetOrder: ["metrics", "charts", "upcomingRoutes", "quickActions"],
+        };
+      }
+
+      return {
+        widgetVisibility: prefs.widgetVisibility ? JSON.parse(prefs.widgetVisibility) : {
+          metrics: true,
+          charts: true,
+          upcomingRoutes: true,
+          quickActions: true,
+        },
+        widgetOrder: prefs.widgetOrder ? JSON.parse(prefs.widgetOrder) : ["metrics", "charts", "upcomingRoutes", "quickActions"],
+      };
+    }),
+
+    update: protectedProcedure
+      .input(z.object({
+        widgetVisibility: z.object({
+          metrics: z.boolean(),
+          charts: z.boolean(),
+          upcomingRoutes: z.boolean(),
+          quickActions: z.boolean(),
+        }),
+        widgetOrder: z.array(z.string()),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await upsertDashboardPreferences(
+          ctx.user.id,
+          JSON.stringify(input.widgetVisibility),
+          JSON.stringify(input.widgetOrder)
+        );
 
         return { success: true };
       }),

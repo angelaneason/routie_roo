@@ -13,8 +13,10 @@ import {
   ArrowUp,
   ArrowRight
 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { DashboardCustomization } from "@/components/DashboardCustomization";
 import { Link } from "wouter";
+import { Settings } from "lucide-react";
 import Chart from "chart.js/auto";
 
 export default function Dashboard() {
@@ -23,10 +25,21 @@ export default function Dashboard() {
   const activityChartRef = useRef<HTMLCanvasElement>(null);
   const statusChartInstance = useRef<Chart | null>(null);
   const activityChartInstance = useRef<Chart | null>(null);
+  const [showCustomization, setShowCustomization] = useState(false);
 
   // Fetch dashboard data
   const { data: routes } = trpc.routes.list.useQuery(undefined, { enabled: !!user });
   const { data: contacts } = trpc.contacts.list.useQuery(undefined, { enabled: !!user });
+  const { data: preferences, refetch: refetchPreferences } = trpc.dashboardPreferences.get.useQuery(undefined, { enabled: !!user });
+
+  // Widget visibility from preferences
+  const widgetVisibility = preferences?.widgetVisibility || {
+    metrics: true,
+    charts: true,
+    upcomingRoutes: true,
+    quickActions: true,
+  };
+  const widgetOrder = preferences?.widgetOrder || ["metrics", "charts", "upcomingRoutes", "quickActions"];
 
   // Calculate metrics
   const totalRoutes = routes?.length || 0;
@@ -164,17 +177,34 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 mobile-content-padding">
         <div className="container py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Welcome back, {user?.name || 'there'}! 🦘
-          </h1>
-          <p className="text-slate-600">
-            Here's what's hopping in your route planning world
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              Welcome back, {user?.name || 'there'}! 🦘
+            </h1>
+            <p className="text-slate-600">
+              Here's what's hopping in your route planning world
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCustomization(true)}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Customize Dashboard
+          </Button>
         </div>
 
-        {/* Metrics Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Render widgets in custom order */}
+        <div className="space-y-8">
+          {widgetOrder.map((widgetId: string) => {
+            if (!widgetVisibility[widgetId as keyof typeof widgetVisibility]) return null;
+
+            switch (widgetId) {
+              case 'metrics':
+                return (
+                  <div key="metrics" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Routes</CardTitle>
@@ -227,10 +257,12 @@ export default function Dashboard() {
               </p>
             </CardContent>
           </Card>
-        </div>
+                  </div>
+                );
 
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              case 'charts':
+                return (
+                  <div key="charts" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
               <CardTitle>Routes by Status</CardTitle>
@@ -252,10 +284,12 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
+                  </div>
+                );
 
-        {/* Bottom Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              case 'upcomingRoutes':
+                return (
+                  <div key="upcomingRoutes" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Upcoming Routes */}
           <Card className="lg:col-span-2">
             <CardHeader>
@@ -297,8 +331,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
-          <Card>
+                  <Card>
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
@@ -328,10 +361,58 @@ export default function Dashboard() {
                 </Button>
               </Link>
             </CardContent>
-          </Card>
+                  </Card>
+                  </div>
+                );
+
+              case 'quickActions':
+                return (
+                  <Card key="quickActions">
+                    <CardHeader>
+                      <CardTitle>Quick Actions</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <Link href="/workspace">
+                        <Button className="w-full justify-start" size="lg">
+                          <MapPin className="mr-2 h-4 w-4" />
+                          Plan New Route
+                        </Button>
+                      </Link>
+                      <Link href="/workspace">
+                        <Button variant="outline" className="w-full justify-start" size="lg">
+                          <Users className="mr-2 h-4 w-4" />
+                          Manage Contacts
+                        </Button>
+                      </Link>
+                      <Link href="/calendar">
+                        <Button variant="outline" className="w-full justify-start" size="lg">
+                          <Calendar className="mr-2 h-4 w-4" />
+                          View Calendar
+                        </Button>
+                      </Link>
+                      <Link href="/missed-stops">
+                        <Button variant="outline" className="w-full justify-start" size="lg">
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          View Mis-Hops
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                );
+
+              default:
+                return null;
+            }
+          })}
         </div>
         </div>
       </div>
+
+      <DashboardCustomization
+        open={showCustomization}
+        onOpenChange={setShowCustomization}
+        onSave={() => refetchPreferences()}
+      />
     </>
   );
 }

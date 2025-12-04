@@ -347,3 +347,19 @@ export const labelColors = mysqlTable("label_colors", {
 
 export type LabelColor = typeof labelColors.$inferSelect;
 export type InsertLabelColor = typeof labelColors.$inferInsert;
+
+
+/**
+ * Dashboard preferences for customizing widget visibility and order
+ */
+export const dashboardPreferences = mysqlTable("dashboard_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(), // One preference record per user
+  widgetVisibility: text("widgetVisibility"), // JSON: { metrics: boolean, charts: boolean, upcomingRoutes: boolean, quickActions: boolean }
+  widgetOrder: text("widgetOrder"), // JSON: Array of widget IDs in display order (e.g., ["metrics", "charts", "upcomingRoutes", "quickActions"])
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type DashboardPreference = typeof dashboardPreferences.$inferSelect;
+export type InsertDashboardPreference = typeof dashboardPreferences.$inferInsert;

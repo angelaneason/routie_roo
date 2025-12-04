@@ -2633,3 +2633,17 @@
 - [x] Update header navigation links
 - [x] Update OAuth callback redirects to /workspace
 - [x] Test navigation flow on desktop and mobile
+
+
+## Dashboard Widgets Customization
+- [x] Add dashboard_preferences table to database schema (userId, widgetVisibility JSON, widgetOrder JSON)
+- [x] Create dashboardPreferences.get procedure to fetch user preferences
+- [x] Create dashboardPreferences.update procedure to save preferences
+- [x] Add "Customize Dashboard" button to Dashboard page
+- [x] Create DashboardCustomization dialog component
+- [x] Add show/hide toggles for each widget (metrics cards, charts, upcoming routes, quick actions)
+- [x] Implement drag-and-drop reordering for dashboard sections using @dnd-kit
+- [x] Save preferences to database when user makes changes
+- [x] Load and apply saved preferences on Dashboard mount
+- [x] Add "Reset to Default" button in customization dialog
+- [x] Test customization persistence across sessions
