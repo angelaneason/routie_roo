@@ -2721,3 +2721,9 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 - [x] Update Dashboard page to use DashboardLayout component
 - [x] Update DashboardLayout menu items with actual navigation links
 - [x] Test sidebar hide/show toggle on Dashboard page
+
+
+## Replace Dashboard Kangaroo Emoji - Dec 2024
+
+- [x] Copy routiestanding.png to client/public directory
+- [x] Update Dashboard welcome message to use image instead of emoji

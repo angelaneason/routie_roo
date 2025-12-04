@@ -177,13 +177,16 @@ export default function Dashboard() {
         <div className="container py-8">
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
-          <div>
+          <div className="flex items-center gap-4">
+            <img src="/routiestanding.png" alt="Routie Roo" className="h-16 w-16 object-contain" />
+            <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">
-              Welcome back, {user?.name || 'there'}! 🦘
+              Welcome back, {user?.name || 'there'}!
             </h1>
             <p className="text-slate-600">
               Here's what's hopping in your route planning world
             </p>
+            </div>
           </div>
           <Button
             variant="outline"
@@ -194,6 +197,7 @@ export default function Dashboard() {
             Customize Dashboard
           </Button>
         </div>
+
 
         {/* Render widgets in custom order */}
         <div className="space-y-8">
