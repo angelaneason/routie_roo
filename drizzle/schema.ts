@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, decimal } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -110,6 +110,9 @@ export const routeWaypoints = mysqlTable("route_waypoints", {
   isGapStop: boolean("isGapStop").default(false).notNull(), // Whether this is a time gap (not a contact)
   gapDuration: int("gapDuration"), // Duration of gap in minutes
   gapDescription: text("gapDescription"), // Description of what the gap is for (lunch, meeting, etc.)
+  gapStopAddress: text("gapStopAddress"), // Optional address for off-route location during gap
+  gapStopMiles: decimal("gapStopMiles", { precision: 10, scale: 2 }), // Calculated miles for off-route trip
+  gapStopTripType: mysqlEnum("gapStopTripType", ["round_trip", "one_way"]), // Round trip or one way
   // Execution workflow fields
   status: mysqlEnum("status", ["pending", "in_progress", "complete", "missed"]).default("pending"), // Stop completion status
   executionOrder: int("executionOrder"), // Order during execution (can differ from waypoint_order)

@@ -1755,6 +1755,8 @@ export const appRouter = router({
         gapDuration: z.number(), // Duration in minutes
         gapDescription: z.string().optional(),
         insertAfterPosition: z.number().optional(), // Stop number to insert after (defaults to end)
+        gapStopAddress: z.string().optional(), // Optional off-route address
+        gapStopTripType: z.enum(["round_trip", "one_way"]).optional(), // Trip type for mileage calculation
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -1771,6 +1773,48 @@ export const appRouter = router({
         // insertAfterPosition is the stop number (position), so the new gap stop goes at position + 1
         const insertPosition = input.insertAfterPosition !== undefined ? input.insertAfterPosition + 1 : existingWaypoints.length;
 
+        // Calculate distance if address provided
+        let calculatedMiles: number | null = null;
+        if (input.gapStopAddress && input.insertAfterPosition !== undefined) {
+          try {
+            // Get the waypoint before the gap stop
+            const previousWaypoint = existingWaypoints.find(w => w.position === input.insertAfterPosition);
+            if (previousWaypoint && previousWaypoint.address) {
+              const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+              if (!GOOGLE_MAPS_API_KEY) {
+                throw new Error("Google Maps API key not configured");
+              }
+
+              // Determine destinations based on trip type
+              const destinations = input.gapStopTripType === "one_way" 
+                ? [input.gapStopAddress] // One way: just to the gap stop address
+                : [input.gapStopAddress, previousWaypoint.address]; // Round trip: to gap stop and back
+
+              // Use Distance Matrix API to calculate distance
+              const response = await fetch(
+                `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(previousWaypoint.address)}&destinations=${destinations.map(d => encodeURIComponent(d)).join('|')}&key=${GOOGLE_MAPS_API_KEY}`
+              );
+
+              if (response.ok) {
+                const data = await response.json();
+                if (data.rows && data.rows[0] && data.rows[0].elements) {
+                  let totalMeters = 0;
+                  for (const element of data.rows[0].elements) {
+                    if (element.status === "OK" && element.distance) {
+                      totalMeters += element.distance.value;
+                    }
+                  }
+                  // Convert meters to miles
+                  calculatedMiles = totalMeters / 1609.34;
+                }
+              }
+            }
+          } catch (error) {
+            console.error("Error calculating gap stop distance:", error);
+            // Continue without distance if calculation fails
+          }
+        }
+
         // Insert gap stop waypoint
         const insertResult = await db.insert(routeWaypoints).values({
           routeId: input.routeId,
@@ -1779,6 +1823,9 @@ export const appRouter = router({
           isGapStop: true,
           gapDuration: input.gapDuration,
           gapDescription: input.gapDescription || null,
+          gapStopAddress: input.gapStopAddress || null,
+          gapStopMiles: calculatedMiles !== null ? calculatedMiles.toFixed(2) : null,
+          gapStopTripType: input.gapStopTripType || null,
           position: insertPosition,
           executionOrder: insertPosition,
           status: "pending",

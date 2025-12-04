@@ -2727,3 +2727,18 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 
 - [x] Copy routiestanding.png to client/public directory
 - [x] Update Dashboard welcome message to use image instead of emoji
+
+
+## Mileage Tracking Enhancement
+
+### Gap Stop Mileage Tracking
+- [x] Add address field to gap stops for off-route location tracking
+- [x] Add trip type selector (Round Trip vs One Way) to gap stops
+- [x] Update database schema to add gapStopAddress, gapStopMiles, gapStopTripType fields
+- [x] Implement Google Maps Distance Matrix API for automatic distance calculation
+- [x] Calculate round-trip distance (stop → off-route location → back to stop)
+- [x] Calculate one-way distance (stop → off-route location → next stop)
+- [x] Update Gap Stop dialog UI with new fields
+- [x] Display calculated mileage in gap stop details
+- [ ] Include gap stop mileage in total route distance for reports
+- [ ] Test gap stop mileage calculation with both trip types

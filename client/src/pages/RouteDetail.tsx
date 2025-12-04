@@ -65,6 +65,8 @@ export default function RouteDetail() {
   const [gapStopDuration, setGapStopDuration] = useState("30");
   const [gapStopDescription, setGapStopDescription] = useState("");
   const [gapStopInsertAfter, setGapStopInsertAfter] = useState("");
+  const [gapStopAddress, setGapStopAddress] = useState("");
+  const [gapStopTripType, setGapStopTripType] = useState<"round_trip" | "one_way">("round_trip");
   const [showArchiveConfirmDialog, setShowArchiveConfirmDialog] = useState(false);
 
   const routeQuery = trpc.routes.get.useQuery(
@@ -181,6 +183,8 @@ export default function RouteDetail() {
       setGapStopDuration("30");
       setGapStopDescription("");
       setGapStopInsertAfter("");
+      setGapStopAddress("");
+      setGapStopTripType("round_trip");
       routeQuery.refetch();
     },
     onError: (error) => {
@@ -1799,6 +1803,45 @@ export default function RouteDetail() {
               <p className="text-xs text-muted-foreground">Enter a stop number to insert the gap stop after that position. Leave blank to add at the end.</p>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="gap-address" className="!font-bold">Off-Route Address (Optional)</Label>
+              <Input
+                id="gap-address"
+                value={gapStopAddress}
+                onChange={(e) => setGapStopAddress(e.target.value)}
+                placeholder="e.g., Home Depot, 456 Store Rd"
+              />
+              <p className="text-xs text-muted-foreground">Enter an address if you need to travel off-route during this gap. Distance will be calculated automatically.</p>
+            </div>
+            {gapStopAddress && (
+              <div className="space-y-2">
+                <Label className="!font-bold">Trip Type</Label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="trip-type"
+                      value="round_trip"
+                      checked={gapStopTripType === "round_trip"}
+                      onChange={(e) => setGapStopTripType(e.target.value as "round_trip" | "one_way")}
+                      className="h-4 w-4"
+                    />
+                    <span className="text-sm">Round Trip (there and back)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="trip-type"
+                      value="one_way"
+                      checked={gapStopTripType === "one_way"}
+                      onChange={(e) => setGapStopTripType(e.target.value as "round_trip" | "one_way")}
+                      className="h-4 w-4"
+                    />
+                    <span className="text-sm">One Way (continuing to next stop)</span>
+                  </label>
+                </div>
+              </div>
+            )}
+            <div className="space-y-2">
               <Label htmlFor="gap-description" className="!font-bold">Description (Optional)</Label>
               <textarea
                 id="gap-description"
@@ -1836,6 +1879,8 @@ export default function RouteDetail() {
                   gapDuration: duration,
                   gapDescription: gapStopDescription || undefined,
                   insertAfterPosition: insertAfter,
+                  gapStopAddress: gapStopAddress || undefined,
+                  gapStopTripType: gapStopAddress ? gapStopTripType : undefined,
                 });
               }}
               disabled={addGapStopMutation.isPending}

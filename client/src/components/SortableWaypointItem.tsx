@@ -163,6 +163,21 @@ export function SortableWaypointItem({
               <p className="text-sm font-medium text-gray-700">
                 Duration: {waypoint.gapDuration} minutes
               </p>
+              {waypoint.gapStopAddress && (
+                <div className="flex items-start gap-2 mt-1">
+                  <MapPin className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-blue-600 font-medium">
+                      Off-Route: {waypoint.gapStopAddress}
+                    </p>
+                    {waypoint.gapStopMiles && (
+                      <p className="text-xs text-muted-foreground">
+                        {parseFloat(waypoint.gapStopMiles).toFixed(1)} miles ({waypoint.gapStopTripType === "round_trip" ? "Round Trip" : "One Way"})
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
               {waypoint.gapDescription && (
                 <p className="text-sm text-muted-foreground">
                   {waypoint.gapDescription}
