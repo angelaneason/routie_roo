@@ -2676,3 +2676,21 @@
 - [x] Verified label color system is working correctly
 
 Note: Route cards don't have labels (labels belong to contacts, not routes)
+
+
+## Label Management & Smart Sorting - Dec 2024
+
+- [x] Add Tags button to contact cards
+- [x] Create EditLabelsDialog component with checkbox list
+- [x] Implement contacts.getAllLabels tRPC procedure
+- [x] Implement contacts.createLabel tRPC procedure
+- [x] Implement contacts.updateLabels tRPC procedure with Google Contacts sync
+- [x] Add create new label inline functionality
+- [x] Implement two-way Google Contacts sync for labels
+- [x] Add automatic token refresh for expired credentials
+- [x] Create smart label sorting utility (emoji/symbols first, then alphabetical)
+- [x] Apply smart sorting to label filter dropdown
+- [x] Apply smart sorting to EditLabelsDialog
+- [x] Verify label colors display correctly from label_colors table
+- [x] Write vitest tests for label management (8/8 passing)
+- [x] Write vitest tests for smart sorting (19/21 passing)
