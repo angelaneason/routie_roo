@@ -40,7 +40,7 @@ export default function Dashboard() {
     upcomingRoutes: true,
     quickActions: true,
   };
-  const widgetOrder = preferences?.widgetOrder || ["metrics", "charts", "upcomingRoutes", "quickActions"];
+  const widgetOrder = preferences?.widgetOrder || ["charts", "metrics", "upcomingRoutes", "quickActions"];
 
   // Calculate metrics
   const totalRoutes = routes?.length || 0;

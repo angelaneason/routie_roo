@@ -2742,3 +2742,7 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 - [x] Display calculated mileage in gap stop details
 - [ ] Include gap stop mileage in total route distance for reports
 - [ ] Test gap stop mileage calculation with both trip types
+
+## Dashboard Layout Redesign
+
+- [x] Reorganize dashboard layout: move charts to top, metrics below (match RoadRunner design)
