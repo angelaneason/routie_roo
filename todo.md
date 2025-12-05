@@ -2779,3 +2779,12 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 - [x] Add geocoding during contact sync to populate coordinates
 - [x] Deployed fix - contacts synced from Google now automatically have coordinates
 - [x] User needs to refresh contacts from Google to apply fix to existing contacts
+
+## Re-Optimize Route Bug Fix
+
+- [x] Investigate why re-optimize fails with "No route found for the given waypoints"
+- [x] Root cause: Stop gap waypoints (manually added addresses) aren't being geocoded when created
+- [x] Find where stop gaps are added to routes (addWaypoint procedure)
+- [x] Add geocoding when waypoints are added to routes
+- [x] Deployed fix - manually-added waypoints now get coordinates automatically
+- [x] User needs to delete and re-add or edit existing waypoints without coordinates

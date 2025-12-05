@@ -1763,11 +1763,41 @@ export const appRouter = router({
         const existingWaypoints = await getRouteWaypoints(input.routeId);
         const nextOrder = existingWaypoints.length;
 
-        // Insert new waypoint
+        // Geocode the address to get coordinates
+        let latitude: string | null = null;
+        let longitude: string | null = null;
+        
+        try {
+          const { makeRequest } = await import("./_core/map");
+          type GeocodingResult = {
+            status: string;
+            results: Array<{
+              geometry: { location: { lat: number; lng: number } };
+            }>;
+          };
+          
+          const geocodeResult = await makeRequest<GeocodingResult>(
+            'https://maps.googleapis.com/maps/api/geocode/json',
+            { address: input.address }
+          );
+          
+          if (geocodeResult.status === "OK" && geocodeResult.results.length > 0) {
+            const location = geocodeResult.results[0].geometry.location;
+            latitude = location.lat.toString();
+            longitude = location.lng.toString();
+          }
+        } catch (error) {
+          console.error("Failed to geocode waypoint address:", error);
+          // Continue without coordinates - user can try again
+        }
+
+        // Insert new waypoint with coordinates
         const insertResult = await db.insert(routeWaypoints).values({
           routeId: input.routeId,
           contactName: input.contactName || null,
           address: input.address,
+          latitude,
+          longitude,
           phoneNumbers: input.phoneNumbers || null,
           stopType: input.stopType || "visit",
           stopColor: input.stopColor || "#3b82f6",
