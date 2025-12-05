@@ -178,7 +178,7 @@ export default function Dashboard() {
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <img src="/routiestanding.png" alt="Routie Roo" className="h-16 w-16 object-contain" />
+            <img src="/routie-dashboard.png" alt="Routie Roo" className="h-48 w-48 object-contain" />
             <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">
               Welcome back, {user?.name || 'there'}!
