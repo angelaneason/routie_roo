@@ -2746,3 +2746,8 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 ## Dashboard Layout Redesign
 
 - [x] Reorganize dashboard layout: move charts to top, metrics below (match RoadRunner design)
+
+## Logo and Mascot Size Increase
+
+- [x] Increase header logo size for better visibility (h-20 → h-28 in sidebar header, h-8 → h-12 in nav)
+- [x] Increase dashboard Routie Roo mascot size (h-48 → h-64, 192px → 256px)
