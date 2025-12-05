@@ -1,0 +1,36 @@
+{
+  "query": "SELECT * FROM routes WHERE id = 1500001",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT * FROM routes WHERE id = 1500001",
+  "rows": [
+    {
+      "id": "1500001",
+      "userId": "38",
+      "name": "Randy 12/5 Friday",
+      "shareId": "aIXRq73VTrW1",
+      "isPublic": "0",
+      "totalDistance": "167262",
+      "totalDuration": "11954",
+      "optimized": "1",
+      "hasManualOrder": "1",
+      "createdAt": "2025-12-04 18:26:19",
+      "updatedAt": "2025-12-04 20:09:25",
+      "folderId": "NULL",
+      "notes": "NULL",
+      "shareToken": "7eecac49-2649-4963-acb8-889fcf172473",
+      "isPubliclyAccessible": "1",
+      "sharedAt": "2025-12-04 19:20:48",
+      "completedAt": "NULL",
+      "startingPointAddress": "4960 Shady Oak Trail, Grand Prairie, TX 75052",
+      "distanceUnit": "miles",
+      "scheduledDate": "NULL",
+      "calendarId": "NULL",
+      "isArchived": "0",
+      "archivedAt": "NULL",
+      "googleCalendarId": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tname\tshareId\tisPublic\ttotalDistance\ttotalDuration\toptimized\thasManualOrder\tcreatedAt\tupdatedAt\tfolderId\tnotes\tshareToken\tisPubliclyAccessible\tsharedAt\tcompletedAt\tstartingPointAddress\tdistanceUnit\tscheduledDate\tcalendarId\tisArchived\tarchivedAt\tgoogleCalendarId\n1500001\t38\tRandy 12/5 Friday\taIXRq73VTrW1\t0\t167262\t11954\t1\t1\t2025-12-04 18:26:19\t2025-12-04 20:09:25\tNULL\tNULL\t7eecac49-2649-4963-acb8-889fcf172473\t1\t2025-12-04 19:20:48\tNULL\t4960 Shady Oak Trail, Grand Prairie, TX 75052\tmiles\tNULL\tNULL\t0\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 53
+}

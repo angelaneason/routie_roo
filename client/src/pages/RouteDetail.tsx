@@ -71,7 +71,7 @@ export default function RouteDetail() {
 
   const routeQuery = trpc.routes.get.useQuery(
     { routeId: parseInt(routeId!) },
-    { enabled: !!routeId && isAuthenticated }
+    { enabled: !!routeId }
   );
 
   const googleMapsUrlQuery = trpc.routes.getGoogleMapsUrl.useQuery(

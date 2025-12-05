@@ -899,16 +899,21 @@ export const appRouter = router({
     get: protectedProcedure
       .input(z.object({ routeId: z.number() }))
       .query(async ({ ctx, input }) => {
+        console.log('[Route Get] Attempting to fetch route:', input.routeId, 'for user:', ctx.user.id);
         const route = await getRouteById(input.routeId);
         
         if (!route) {
+          console.log('[Route Get] Route not found in database:', input.routeId);
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Route not found",
           });
         }
 
+        console.log('[Route Get] Route found. RouteUserId:', route.userId, 'CurrentUserId:', ctx.user.id, 'IsPublic:', route.isPublic);
+        
         if (route.userId !== ctx.user.id && !route.isPublic) {
+          console.log('[Route Get] Access denied - user mismatch');
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "Access denied",

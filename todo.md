@@ -2751,3 +2751,10 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 
 - [x] Increase header logo size for better visibility (h-20 → h-28 in sidebar header, h-8 → h-12 in nav)
 - [x] Increase dashboard Routie Roo mascot size (h-48 → h-64, 192px → 256px)
+
+## Bug Fix - Route Not Found Error
+
+- [ ] Fix "Route Not Found" error when accessing routes created on production (routieroo.cc)
+- [ ] Routes exist in database but return "Route not found" error
+- [ ] Investigate authentication or query filtering issue
+- [ ] Test route access after fix

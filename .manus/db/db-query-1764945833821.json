@@ -1,0 +1,17 @@
+{
+  "query": "SELECT r.id, r.name, r.userId, u.name as userName, u.email FROM routes r LEFT JOIN users u ON r.userId = u.id WHERE r.id = 1500001",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT r.id, r.name, r.userId, u.name as userName, u.email FROM routes r LEFT JOIN users u ON r.userId = u.id WHERE r.id = 1500001",
+  "rows": [
+    {
+      "id": "1500001",
+      "name": "Randy 12/5 Friday",
+      "userId": "38",
+      "userName": "Scheduling Prairie PT",
+      "email": "scheduling@prairiept.com"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tuserId\tuserName\temail\n1500001\tRandy 12/5 Friday\t38\tScheduling Prairie PT\tscheduling@prairiept.com\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}
