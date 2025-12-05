@@ -15,6 +15,18 @@ export async function createContext(
 
   try {
     user = await sdk.authenticateRequest(opts.req);
+    
+    // Check for impersonation header (admin only)
+    const impersonateUserId = opts.req.headers['x-impersonate-user-id'];
+    if (impersonateUserId && user && user.role === 'admin') {
+      // Admin is impersonating another user
+      const { getUserById } = await import('../db');
+      const targetUser = await getUserById(Number(impersonateUserId));
+      if (targetUser) {
+        console.log(`[Context] Admin ${user.id} impersonating user ${targetUser.id}`);
+        user = targetUser;
+      }
+    }
   } catch (error) {
     // Authentication is optional for public procedures.
     user = null;

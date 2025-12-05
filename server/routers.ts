@@ -3949,6 +3949,159 @@ export const appRouter = router({
 
       return { updated };
     }),
+    
+    // Get all users (admin only)
+    getAllUsers: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== 'admin') {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+      }
+      
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+      
+      const { desc } = await import('drizzle-orm');
+      const allUsers = await db.select().from(users).orderBy(desc(users.lastSignedIn));
+      
+      return allUsers;
+    }),
+    
+    // Get user activity stats
+    getUserActivity: protectedProcedure
+      .input(z.object({ userId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+        }
+        
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        // Get route count
+        const routeCount = await db.select({ count: sql<number>`count(*)` })
+          .from(routes)
+          .where(eq(routes.userId, input.userId));
+        
+        // Get contact count
+        const contactCount = await db.select({ count: sql<number>`count(*)` })
+          .from(cachedContacts)
+          .where(eq(cachedContacts.userId, input.userId));
+        
+        // Get completed stops count
+        const completedStops = await db.select({ count: sql<number>`count(*)` })
+          .from(routeWaypoints)
+          .innerJoin(routes, eq(routeWaypoints.routeId, routes.id))
+          .where(and(
+            eq(routes.userId, input.userId),
+            eq(routeWaypoints.status, 'completed')
+          ));
+        
+        return {
+          routeCount: routeCount[0]?.count || 0,
+          contactCount: contactCount[0]?.count || 0,
+          completedStops: completedStops[0]?.count || 0,
+        };
+      }),
+    
+    // Get all login attempts
+    getLoginAttempts: protectedProcedure
+      .input(z.object({
+        limit: z.number().default(100),
+        offset: z.number().default(0),
+        successOnly: z.boolean().optional(),
+        failedOnly: z.boolean().optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+        }
+        
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        const { loginAttempts } = await import('../drizzle/schema');
+        const { desc } = await import('drizzle-orm');
+        
+        let query = db.select().from(loginAttempts).orderBy(desc(loginAttempts.attemptedAt));
+        
+        if (input.successOnly) {
+          query = query.where(eq(loginAttempts.success, true)) as any;
+        } else if (input.failedOnly) {
+          query = query.where(eq(loginAttempts.success, false)) as any;
+        }
+        
+        const attempts = await query.limit(input.limit).offset(input.offset);
+        
+        return attempts;
+      }),
+    
+    // Get system stats
+    getSystemStats: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== 'admin') {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+      }
+      
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+      
+      // Total users
+      const totalUsers = await db.select({ count: sql<number>`count(*)` }).from(users);
+      
+      // Total routes
+      const totalRoutes = await db.select({ count: sql<number>`count(*)` }).from(routes);
+      
+      // Total contacts
+      const totalContacts = await db.select({ count: sql<number>`count(*)` }).from(cachedContacts);
+      
+      // Total completed stops
+      const totalCompletedStops = await db.select({ count: sql<number>`count(*)` })
+        .from(routeWaypoints)
+        .where(eq(routeWaypoints.status, 'completed'));
+      
+      // Active users (logged in within last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const activeUsers = await db.select({ count: sql<number>`count(*)` })
+        .from(users)
+        .where(sql`${users.lastSignedIn} > ${thirtyDaysAgo}`);
+      
+      return {
+        totalUsers: totalUsers[0]?.count || 0,
+        totalRoutes: totalRoutes[0]?.count || 0,
+        totalContacts: totalContacts[0]?.count || 0,
+        totalCompletedStops: totalCompletedStops[0]?.count || 0,
+        activeUsers: activeUsers[0]?.count || 0,
+      };
+    }),
+    
+    // Start impersonating a user
+    startImpersonation: protectedProcedure
+      .input(z.object({ targetUserId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+        }
+        
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        // Get target user
+        const targetUser = await db.select().from(users).where(eq(users.id, input.targetUserId)).limit(1);
+        if (!targetUser || targetUser.length === 0) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Target user not found' });
+        }
+        
+        // Store admin ID in session for later restoration
+        return {
+          targetUser: targetUser[0],
+          adminUserId: ctx.user.id,
+        };
+      }),
+    
+    // Stop impersonation and return to admin
+    stopImpersonation: protectedProcedure.mutation(async ({ ctx }) => {
+      // This will be handled by frontend clearing impersonation state
+      return { success: true };
+    }),
   }),
 
   labelColors: router({    // Get user's label colors

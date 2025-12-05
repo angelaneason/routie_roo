@@ -7,6 +7,7 @@ import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
+import { ImpersonationProvider } from "./contexts/ImpersonationContext";
 
 const queryClient = new QueryClient();
 
@@ -43,9 +44,25 @@ const trpcClient = trpc.createClient({
       url: "/api/trpc",
       transformer: superjson,
       fetch(input, init) {
+        // Check for impersonation in localStorage
+        const impersonationData = localStorage.getItem("impersonation");
+        let headers = { ...(init?.headers || {}) };
+        
+        if (impersonationData) {
+          try {
+            const { impersonatedUser } = JSON.parse(impersonationData);
+            if (impersonatedUser?.id) {
+              headers['x-impersonate-user-id'] = impersonatedUser.id.toString();
+            }
+          } catch (error) {
+            console.error("Failed to parse impersonation data:", error);
+          }
+        }
+        
         return globalThis.fetch(input, {
           ...(init ?? {}),
           credentials: "include",
+          headers,
         });
       },
     }),
@@ -55,7 +72,9 @@ const trpcClient = trpc.createClient({
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <ImpersonationProvider>
+        <App />
+      </ImpersonationProvider>
     </QueryClientProvider>
   </trpc.Provider>
 );

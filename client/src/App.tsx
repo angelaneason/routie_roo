@@ -19,6 +19,7 @@ import RescheduleHistory from "./pages/RescheduleHistory";
 import AdminUsers from "./pages/AdminUsers";
 import { useAuth } from "./_core/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import { ImpersonationBanner } from "./components/ImpersonationBanner";
 
 function Router() {
   const { user, loading } = useAuth();
@@ -45,7 +46,9 @@ function Router() {
 
   // Authenticated routes
   return (
-    <Switch>
+    <>
+      <ImpersonationBanner />
+      <Switch>
       <Route path={"/"} component={Dashboard} />
       <Route path={"/workspace"} component={Home} />
       <Route path={"/plan-route"} component={Home} />
@@ -64,6 +67,7 @@ function Router() {
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
+    </>
   );
 }
 

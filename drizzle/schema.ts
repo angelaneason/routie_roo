@@ -366,3 +366,21 @@ export const dashboardPreferences = mysqlTable("dashboard_preferences", {
 
 export type DashboardPreference = typeof dashboardPreferences.$inferSelect;
 export type InsertDashboardPreference = typeof dashboardPreferences.$inferInsert;
+
+/**
+ * Login attempts table - tracks all authentication attempts for security monitoring
+ */
+export const loginAttempts = mysqlTable("login_attempts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"), // User ID if login was successful or user exists
+  email: varchar("email", { length: 320 }), // Email used for login attempt
+  success: boolean("success").notNull(), // Whether login was successful
+  failureReason: varchar("failureReason", { length: 255 }), // Reason for failure (e.g., "invalid_credentials", "oauth_error", "token_expired")
+  ipAddress: varchar("ipAddress", { length: 45 }), // IP address of the login attempt (supports IPv6)
+  userAgent: text("userAgent"), // Browser/device user agent string
+  loginMethod: varchar("loginMethod", { length: 64 }), // Method used (e.g., "google", "manus")
+  attemptedAt: timestamp("attemptedAt").defaultNow().notNull(),
+});
+
+export type LoginAttempt = typeof loginAttempts.$inferSelect;
+export type InsertLoginAttempt = typeof loginAttempts.$inferInsert;

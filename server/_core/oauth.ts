@@ -51,9 +51,42 @@ export function registerOAuthRoutes(app: Express) {
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     console.log("[OAuth] Callback received");
     const code = getQueryParam(req, "code");
+    
+    // Helper to log login attempts
+    const logLoginAttempt = async (data: {
+      userId?: number;
+      email?: string;
+      success: boolean;
+      failureReason?: string;
+      loginMethod: string;
+    }) => {
+      try {
+        const { getDb } = await import("../db");
+        const { loginAttempts } = await import("../../drizzle/schema");
+        const database = await getDb();
+        if (database) {
+          await database.insert(loginAttempts).values({
+            userId: data.userId || null,
+            email: data.email || null,
+            success: data.success,
+            failureReason: data.failureReason || null,
+            ipAddress: (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.socket.remoteAddress || null,
+            userAgent: req.headers['user-agent'] || null,
+            loginMethod: data.loginMethod,
+          });
+        }
+      } catch (error) {
+        console.error("[OAuth] Failed to log login attempt:", error);
+      }
+    };
 
     if (!code) {
       console.log("[OAuth] No code provided");
+      await logLoginAttempt({
+        success: false,
+        failureReason: "missing_authorization_code",
+        loginMethod: "google",
+      });
       res.status(400).json({ error: "code is required" });
       return;
     }
@@ -77,6 +110,12 @@ export function registerOAuthRoutes(app: Express) {
       console.log("[OAuth] User info received:", { id: userInfo.id, email: userInfo.email, name: userInfo.name });
 
       if (!userInfo.id) {
+        await logLoginAttempt({
+          email: userInfo.email || undefined,
+          success: false,
+          failureReason: "missing_user_id_from_google",
+          loginMethod: "google",
+        });
         res.status(400).json({ error: "User ID missing from Google response" });
         return;
       }
@@ -91,6 +130,18 @@ export function registerOAuthRoutes(app: Express) {
         lastSignedIn: new Date(),
       });
       console.log("[OAuth] User upserted successfully");
+      
+      // Get user ID for login tracking
+      const { getUserByOpenId } = await import("../db");
+      const user = await getUserByOpenId(`google_${userInfo.id}`);
+      
+      // Log successful login
+      await logLoginAttempt({
+        userId: user?.id,
+        email: userInfo.email || undefined,
+        success: true,
+        loginMethod: "google",
+      });
 
       // Create session token (JWT)
       console.log("[OAuth] Creating session token...");
@@ -122,6 +173,14 @@ export function registerOAuthRoutes(app: Express) {
     } catch (error) {
       console.error("[OAuth] Callback failed with error:", error);
       console.error("[OAuth] Error details:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      
+      // Log failed login attempt
+      await logLoginAttempt({
+        success: false,
+        failureReason: error instanceof Error ? error.message : "unknown_error",
+        loginMethod: "google",
+      });
+      
       res.status(500).json({ error: "OAuth callback failed", details: error instanceof Error ? error.message : String(error) });
     }
   });

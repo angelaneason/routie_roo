@@ -2798,3 +2798,57 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 - [x] Show existing labels as removable tags
 - [x] Add input field for adding new labels
 - [x] Feature complete and ready for testing
+
+## Admin Panel Development
+
+### Database Schema
+- [x] Create login_attempts table (timestamp, userId, email, success, failureReason, ipAddress, userAgent)
+- [x] Push database schema changes
+
+### Login Tracking
+- [x] Add login attempt logging to OAuth callback
+- [x] Log successful logins
+- [x] Log failed login attempts with reasons
+- [x] Capture IP address and user agent
+
+### Backend Procedures
+- [x] Create admin.getAllUsers procedure
+- [x] Create admin.getUserActivity procedure (routes, contacts, stops)
+- [x] Create admin.getLoginAttempts procedure (with success/failed filters)
+- [x] Create admin.getSystemStats procedure
+- [ ] Create admin.impersonateUser procedure (for View As feature)
+- [ ] Create admin.exportData procedure (will add in UI phase)
+
+### Admin Panel UI
+- [x] Create Admin page component with tabs
+- [x] Build user list with search and filters
+- [x] Add user activity details view
+- [x] Create system stats dashboard
+- [x] Build login attempts report
+- [x] Add failed logins monitoring section
+- [ ] Implement data export functionality (can add later if needed)
+
+### View As Feature
+- [ ] Add "View As" button next to each user
+- [ ] Create impersonation session management
+- [ ] Add banner showing current impersonated user
+- [ ] Add "Exit View As" button
+- [ ] Ensure admin can switch between users seamlessly
+
+### Testing
+- [ ] Test login tracking
+- [ ] Test View As impersonation
+- [ ] Test all admin reports
+- [ ] Verify only admins can access admin panel
+
+## Admin Impersonation Feature
+
+- [x] Add impersonation procedures to admin router (startImpersonation, stopImpersonation)
+- [x] Create ImpersonationContext for managing impersonation state
+- [x] Create ImpersonationBanner component to show when viewing as another user
+- [x] Update tRPC client to inject impersonation headers
+- [x] Update server context to handle impersonation via x-impersonate-user-id header
+- [x] Add getUserById function to db.ts
+- [x] Integrate "View As" button in Admin Users page
+- [x] Write and pass impersonation tests
+- [x] Fix duplicate admin router issue
