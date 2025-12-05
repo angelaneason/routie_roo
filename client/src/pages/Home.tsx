@@ -79,6 +79,8 @@ export default function Home() {
   const [showBulkDocumentUpload, setShowBulkDocumentUpload] = useState(false);
   const [viewingContact, setViewingContact] = useState<any | null>(null);
   const [editLabelsContact, setEditLabelsContact] = useState<{ id: number; name: string; labels: string[] } | null>(null);
+  const [selectedRoutes, setSelectedRoutes] = useState<Set<number>>(new Set());
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
 
   // Check for OAuth callback status and route creation from waypoints
   useEffect(() => {
@@ -211,6 +213,19 @@ export default function Home() {
     onError: (error) => {
       toast.error(error.message || "Couldn't delete route");
       setDeleteRouteId(null);
+    },
+  });
+
+  const bulkDeleteMutation = trpc.routes.bulkDelete.useMutation({
+    onSuccess: (data) => {
+      toast.success(`${data.deletedCount} route${data.deletedCount > 1 ? 's' : ''} deleted successfully!`);
+      setSelectedRoutes(new Set());
+      setShowBulkDeleteDialog(false);
+      routesQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete routes");
+      setShowBulkDeleteDialog(false);
     },
   });
 
@@ -537,6 +552,34 @@ export default function Home() {
 
   const handleDeleteRoute = (routeId: number) => {
     setDeleteRouteId(routeId);
+  };
+
+  const handleToggleRouteSelection = (routeId: number) => {
+    setSelectedRoutes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(routeId)) {
+        newSet.delete(routeId);
+      } else {
+        newSet.add(routeId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAllRoutes = () => {
+    if (selectedRoutes.size === filteredRoutes.length) {
+      setSelectedRoutes(new Set());
+    } else {
+      setSelectedRoutes(new Set(filteredRoutes.map(r => r.id)));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    setShowBulkDeleteDialog(true);
+  };
+
+  const confirmBulkDelete = () => {
+    bulkDeleteMutation.mutate({ routeIds: Array.from(selectedRoutes) });
   };
 
   const confirmDeleteRoute = () => {
@@ -1314,40 +1357,53 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="font-bold">Your Hop Library</CardTitle>
-                    <CardDescription className="italic">
-                      A clear, hop-by-hop look at your route.
-                    </CardDescription>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="font-bold">Routes</CardTitle>
+                    <Select value={selectedFolderFilter} onValueChange={setSelectedFolderFilter}>
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="All folders" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All folders</SelectItem>
+                        <SelectItem value="none">No folder</SelectItem>
+                        {folders.map((folder) => (
+                          <SelectItem key={folder.id} value={folder.id.toString()}>
+                            {folder.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="flex items-center gap-3">
-                    {folders.length > 0 && (
-                      <Select value={selectedFolderFilter} onValueChange={setSelectedFolderFilter}>
-                        <SelectTrigger className="w-full md:w-[180px]">
-                          <SelectValue placeholder="All Folders" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Folders</SelectItem>
-                          {folders.map((folder) => (
-                            <SelectItem key={folder.id} value={folder.id.toString()}>
-                              <Folder className="h-4 w-4 inline mr-2" />
-                              {folder.name}
-                            </SelectItem>
-                          ))}
-                          <SelectItem value="none">No Folder</SelectItem>
-                        </SelectContent>
-                      </Select>
+                  <div className="flex items-center gap-2">
+                    {filteredRoutes.length > 0 && (
+                      <>
+                        <Checkbox
+                          id="select-all-routes"
+                          checked={selectedRoutes.size === filteredRoutes.length && filteredRoutes.length > 0}
+                          onCheckedChange={handleSelectAllRoutes}
+                        />
+                        <label htmlFor="select-all-routes" className="text-sm cursor-pointer">
+                          Select all
+                        </label>
+                      </>
+                    )}
+                    {selectedRoutes.size > 0 && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleBulkDelete}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete {selectedRoutes.size} route{selectedRoutes.size > 1 ? 's' : ''}
+                      </Button>
                     )}
                     <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="hide-completed" 
+                      <Checkbox
+                        id="hide-completed"
                         checked={hideCompletedRoutes}
                         onCheckedChange={(checked) => setHideCompletedRoutes(checked as boolean)}
                       />
-                      <label 
-                        htmlFor="hide-completed" 
-                        className="text-sm cursor-pointer select-none"
-                      >
+                      <label htmlFor="hide-completed" className="text-sm cursor-pointer">
                         Hide completed
                       </label>
                     </div>
@@ -1368,7 +1424,13 @@ export default function Home() {
                   <div className="space-y-3 overflow-y-auto">
                     {filteredRoutes.map((route) => (
                       <div key={route.id} className="p-4 rounded-lg border hover:bg-accent transition-colors group">
-                        <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            checked={selectedRoutes.has(route.id)}
+                            onCheckedChange={() => handleToggleRouteSelection(route.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="mt-1"
+                          />
                           <Link href={`/route/${route.id}`} className="flex-1 min-w-0">
                             <div className="cursor-pointer">
                               <h3 className="font-medium truncate">{route.name}</h3>
@@ -1458,6 +1520,24 @@ export default function Home() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeleteRoute} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedRoutes.size} Route{selectedRoutes.size > 1 ? 's' : ''}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Routie will permanently remove {selectedRoutes.size} route{selectedRoutes.size > 1 ? 's' : ''} and all their stops. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete {selectedRoutes.size} Route{selectedRoutes.size > 1 ? 's' : ''}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

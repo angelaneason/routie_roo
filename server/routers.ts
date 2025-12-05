@@ -1003,6 +1003,44 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Bulk delete routes
+    bulkDelete: protectedProcedure
+      .input(z.object({ routeIds: z.array(z.number()) }))
+      .mutation(async ({ ctx, input }) => {
+        // Handle empty array case
+        if (input.routeIds.length === 0) {
+          return { success: true, deletedCount: 0 };
+        }
+
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify all routes belong to the user
+        const routesToDelete = await db
+          .select()
+          .from(routes)
+          .where(
+            and(
+              sql`${routes.id} IN (${sql.join(input.routeIds.map(id => sql`${id}`), sql`, `)})`,
+              eq(routes.userId, ctx.user.id)
+            )
+          );
+
+        if (routesToDelete.length !== input.routeIds.length) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Some routes do not exist or you don't have access to them",
+          });
+        }
+
+        // Delete all routes
+        for (const routeId of input.routeIds) {
+          await deleteRoute(routeId);
+        }
+
+        return { success: true, deletedCount: input.routeIds.length };
+      }),
+
     // Move route to folder
     moveToFolder: protectedProcedure
       .input(z.object({

@@ -2762,3 +2762,11 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 ## Database Column Name Casing Fix
 
 - [x] Fix route_waypoints table column names - database was missing gapStopAddress, gapStopMiles, and gapStopTripType columns (causing "Route Not Found" error on production)
+
+## Bulk Route Delete Feature
+
+- [x] Add bulk delete backend procedure (routes.bulkDelete)
+- [x] Add checkboxes to route list for multi-selection
+- [x] Add "Delete Selected" button that appears when routes are selected
+- [x] Add confirmation dialog showing count of routes to be deleted
+- [x] Test bulk delete with multiple routes
