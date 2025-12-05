@@ -2788,3 +2788,13 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 - [x] Add geocoding when waypoints are added to routes
 - [x] Deployed fix - manually-added waypoints now get coordinates automatically
 - [x] User needs to delete and re-add or edit existing waypoints without coordinates
+
+## Label Editing from Waypoint Dialog
+
+- [x] Update updateWaypointDetails backend procedure to accept labels parameter
+- [x] When labels change, update cached contact in database
+- [x] Sync label changes to Google Contact via Google People API
+- [x] Update frontend EditWaypointDialog to support adding/removing labels
+- [x] Show existing labels as removable tags
+- [x] Add input field for adding new labels
+- [x] Feature complete and ready for testing

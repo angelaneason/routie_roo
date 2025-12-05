@@ -186,18 +186,46 @@ export async function syncToGoogleContact(params: {
     if (params.contactLabels) {
       try {
         const labels = JSON.parse(params.contactLabels);
-        // Convert label names to contact group resource names
-        // For now, we'll skip this as it requires fetching contact groups
-        // TODO: Implement label name to resource name mapping
-        console.log("[Google Sync] Label sync not yet implemented:", labels);
+        
+        // Fetch all contact groups to map label names to resource names
+        const { getAllContactGroups } = await import("./googleAuth");
+        const contactGroups = await getAllContactGroups(accessToken);
+        
+        // Create a map of label name to resource name
+        const labelMap = new Map<string, string>();
+        contactGroups.forEach(group => {
+          labelMap.set(group.name, group.resourceName);
+        });
+        
+        // Convert label names to contact group memberships
+        updatePayload.memberships = labels
+          .map((labelName: string) => {
+            const resourceName = labelMap.get(labelName);
+            if (resourceName) {
+              return {
+                contactGroupMembership: {
+                  contactGroupResourceName: resourceName,
+                },
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+        
+        console.log("[Google Sync] Syncing labels to Google:", labels, "-> memberships:", updatePayload.memberships.length);
       } catch (e) {
-        console.warn("[Google Sync] Failed to parse labels:", e);
+        console.warn("[Google Sync] Failed to parse or sync labels:", e);
       }
     }
 
     // Update contact in Google
+    const updateFields = ["addresses", "phoneNumbers"];
+    if (updatePayload.memberships && updatePayload.memberships.length > 0) {
+      updateFields.push("memberships");
+    }
+    
     const updateResponse = await fetch(
-      `https://people.googleapis.com/v1/${googleResourceName}:updateContact?updatePersonFields=addresses,phoneNumbers`,
+      `https://people.googleapis.com/v1/${googleResourceName}:updateContact?updatePersonFields=${updateFields.join(',')}`,
       {
         method: "PATCH",
         headers: {

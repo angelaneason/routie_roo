@@ -2172,10 +2172,15 @@ export const appRouter = router({
             console.warn("[Google Sync] Failed to sync waypoint changes:", syncResult.error);
             // Don't fail the mutation - waypoint update succeeded
           } else {
-            // Update cached_contacts table with new address
-            if (input.address) {
+            // Update cached_contacts table with new data
+            const contactUpdateData: any = {};
+            if (input.address) contactUpdateData.address = input.address;
+            if (input.phoneNumbers) contactUpdateData.phoneNumbers = input.phoneNumbers;
+            if (input.contactLabels) contactUpdateData.labels = input.contactLabels;
+            
+            if (Object.keys(contactUpdateData).length > 0) {
               await db.update(cachedContacts)
-                .set({ address: input.address })
+                .set(contactUpdateData)
                 .where(eq(cachedContacts.id, contactIdToSync));
             }
           }
