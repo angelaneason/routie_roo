@@ -1,3 +1,4 @@
+// Dashboard with professional Routie Roo mascot and metrics
 import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
