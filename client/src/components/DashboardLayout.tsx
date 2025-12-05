@@ -95,7 +95,7 @@ export default function DashboardLayout({
                 <img
                   src={APP_LOGO}
                   alt={APP_TITLE}
-                  className="h-28 w-28 rounded-xl object-cover shadow"
+                  className="h-40 w-40 rounded-xl object-cover shadow"
                 />
               </div>
             </div>
@@ -212,7 +212,7 @@ function DashboardLayoutContent({
                 <div className="relative h-8 w-8 shrink-0 group">
                   <img
                     src={APP_LOGO}
-                    className="h-12 w-12 rounded-md object-cover ring-1 ring-border"
+                    className="h-16 w-16 rounded-md object-cover ring-1 ring-border"
                     alt="Logo"
                   />
                   <button
@@ -227,7 +227,7 @@ function DashboardLayoutContent({
                   <div className="flex items-center gap-3 min-w-0">
                     <img
                       src={APP_LOGO}
-                      className="h-12 w-12 rounded-md object-cover ring-1 ring-border shrink-0"
+                      className="h-16 w-16 rounded-md object-cover ring-1 ring-border shrink-0"
                       alt="Logo"
                     />
                     <span className="font-semibold tracking-tight truncate">
