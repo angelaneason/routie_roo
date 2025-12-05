@@ -1,0 +1,26 @@
+{
+  "query": "SHOW COLUMNS FROM route_waypoints WHERE Field LIKE '%gap%'",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SHOW COLUMNS FROM route_waypoints WHERE Field LIKE '%gap%'",
+  "rows": [
+    {
+      "Field": "gapDuration",
+      "Type": "int(11)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "gapDescription",
+      "Type": "text",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\ngapDuration\tint(11)\tYES\t\tNULL\t\ngapDescription\ttext\tYES\t\tNULL\t\n",
+  "stderr": "",
+  "execution_time_ms": 50
+}

@@ -1,0 +1,94 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'route_waypoints' AND TABLE_SCHEMA = DATABASE() ORDER BY ORDINAL_POSITION",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'route_waypoints' AND TABLE_SCHEMA = DATABASE() ORDER BY ORDINAL_POSITION",
+  "rows": [
+    {
+      "COLUMN_NAME": "id"
+    },
+    {
+      "COLUMN_NAME": "routeId"
+    },
+    {
+      "COLUMN_NAME": "contactId"
+    },
+    {
+      "COLUMN_NAME": "position"
+    },
+    {
+      "COLUMN_NAME": "contactName"
+    },
+    {
+      "COLUMN_NAME": "address"
+    },
+    {
+      "COLUMN_NAME": "latitude"
+    },
+    {
+      "COLUMN_NAME": "longitude"
+    },
+    {
+      "COLUMN_NAME": "createdAt"
+    },
+    {
+      "COLUMN_NAME": "phoneNumbers"
+    },
+    {
+      "COLUMN_NAME": "photoUrl"
+    },
+    {
+      "COLUMN_NAME": "stopType"
+    },
+    {
+      "COLUMN_NAME": "stopColor"
+    },
+    {
+      "COLUMN_NAME": "isGapStop"
+    },
+    {
+      "COLUMN_NAME": "gapDuration"
+    },
+    {
+      "COLUMN_NAME": "gapDescription"
+    },
+    {
+      "COLUMN_NAME": "status"
+    },
+    {
+      "COLUMN_NAME": "executionOrder"
+    },
+    {
+      "COLUMN_NAME": "completedAt"
+    },
+    {
+      "COLUMN_NAME": "missedReason"
+    },
+    {
+      "COLUMN_NAME": "executionNotes"
+    },
+    {
+      "COLUMN_NAME": "rescheduledDate"
+    },
+    {
+      "COLUMN_NAME": "needsReschedule"
+    },
+    {
+      "COLUMN_NAME": "contactLabels"
+    },
+    {
+      "COLUMN_NAME": "importantDates"
+    },
+    {
+      "COLUMN_NAME": "comments"
+    },
+    {
+      "COLUMN_NAME": "calendarEventId"
+    },
+    {
+      "COLUMN_NAME": "addressType"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nid\nrouteId\ncontactId\nposition\ncontactName\naddress\nlatitude\nlongitude\ncreatedAt\nphoneNumbers\nphotoUrl\nstopType\nstopColor\nisGapStop\ngapDuration\ngapDescription\nstatus\nexecutionOrder\ncompletedAt\nmissedReason\nexecutionNotes\nrescheduledDate\nneedsReschedule\ncontactLabels\nimportantDates\ncomments\ncalendarEventId\naddressType\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

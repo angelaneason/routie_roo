@@ -1,0 +1,64 @@
+{
+  "query": "SHOW TABLES",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SHOW TABLES",
+  "rows": [
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "cached_contacts"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "calendars"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "comment_options"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "contact_documents"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "dashboard_preferences"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "folders"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "important_date_types"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "label_colors"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "reminder_history"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "reschedule_history"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "route_notes"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "route_waypoints"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "routes"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "saved_starting_points"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "scheduler_notes"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "stop_types"
+    },
+    {
+      "Tables_in_gdFesFzxMsSKJbuPWiaC7y": "users"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_gdFesFzxMsSKJbuPWiaC7y\n__drizzle_migrations\ncached_contacts\ncalendars\ncomment_options\ncontact_documents\ndashboard_preferences\nfolders\nimportant_date_types\nlabel_colors\nreminder_history\nreschedule_history\nroute_notes\nroute_waypoints\nroutes\nsaved_starting_points\nscheduler_notes\nstop_types\nusers\n",
+  "stderr": "",
+  "execution_time_ms": 52
+}

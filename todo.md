@@ -2758,3 +2758,7 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 - [ ] Routes exist in database but return "Route not found" error
 - [ ] Investigate authentication or query filtering issue
 - [ ] Test route access after fix
+
+## Database Column Name Casing Fix
+
+- [x] Fix route_waypoints table column names - database was missing gapStopAddress, gapStopMiles, and gapStopTripType columns (causing "Route Not Found" error on production)
