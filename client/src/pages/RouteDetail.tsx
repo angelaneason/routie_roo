@@ -718,6 +718,14 @@ export default function RouteDetail() {
   }
 
   if (routeQuery.error || !route) {
+    console.log('[RouteDetail] Error state:', {
+      hasError: !!routeQuery.error,
+      error: routeQuery.error,
+      hasRoute: !!route,
+      routeId,
+      isAuthenticated,
+      user: user?.id
+    });
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="max-w-md">
@@ -728,6 +736,11 @@ export default function RouteDetail() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {routeQuery.error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-800">
+                <strong>Error:</strong> {routeQuery.error.message}
+              </div>
+            )}
             <Link href="/">
               <Button className="w-full">
                 <ArrowLeft className="h-4 w-4 mr-2" />
