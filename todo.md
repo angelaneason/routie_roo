@@ -2770,3 +2770,12 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 - [x] Add "Delete Selected" button that appears when routes are selected
 - [x] Add confirmation dialog showing count of routes to be deleted
 - [x] Test bulk delete with multiple routes
+
+## Address Validation Bug Fix
+
+- [x] Investigate why Google-synced contacts show as invalid addresses when adding to routes
+- [x] Check contact sync process to see if coordinates are being saved
+- [x] Root cause: parseGoogleContacts sets latitude/longitude to null with comment "will be geocoded later" but this never happens
+- [x] Add geocoding during contact sync to populate coordinates
+- [x] Deployed fix - contacts synced from Google now automatically have coordinates
+- [x] User needs to refresh contacts from Google to apply fix to existing contacts

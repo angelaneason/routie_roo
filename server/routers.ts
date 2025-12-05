@@ -182,17 +182,72 @@ export const appRouter = router({
           // Parse all contacts (including those without addresses), resolving group IDs to names
           const parsedContacts = parseGoogleContacts(googleContacts, groupNameMap);
           
+          // Geocode addresses to get coordinates
+          const { makeRequest } = await import("./_core/map");
+          const contactsWithCoords = await Promise.all(
+            parsedContacts.map(async (contact) => {
+              // Parse addresses array
+              const addresses = JSON.parse(contact.addresses || '[]');
+              
+              // Geocode each address
+              const geocodedAddresses = await Promise.all(
+                addresses.map(async (addr: any) => {
+                  if (!addr.formattedValue) return addr;
+                  
+                  try {
+                    type GeocodingResult = {
+                      status: string;
+                      results: Array<{
+                        geometry: { location: { lat: number; lng: number } };
+                      }>;
+                    };
+                    
+                    const geocodeResult = await makeRequest<GeocodingResult>(
+                      'https://maps.googleapis.com/maps/api/geocode/json',
+                      { address: addr.formattedValue }
+                    );
+                    
+                    if (geocodeResult.status === "OK" && geocodeResult.results.length > 0) {
+                      const location = geocodeResult.results[0].geometry.location;
+                      return {
+                        ...addr,
+                        latitude: location.lat.toString(),
+                        longitude: location.lng.toString(),
+                      };
+                    }
+                  } catch (error) {
+                    console.error(`Failed to geocode address for ${contact.name}:`, error);
+                  }
+                  
+                  return addr;
+                })
+              );
+              
+              // Find primary address for legacy field
+              const primaryAddr = geocodedAddresses.find((a: any) => a.isPrimary) || geocodedAddresses[0];
+              
+              return {
+                ...contact,
+                addresses: JSON.stringify(geocodedAddresses),
+                latitude: primaryAddr?.latitude || null,
+                longitude: primaryAddr?.longitude || null,
+              };
+            })
+          );
+          
           // Clear old cached contacts
           await clearUserCachedContacts(input.userId);
           
-          // Cache new contacts
-          const contactsToCache = parsedContacts.map(contact => ({
+          // Cache new contacts with coordinates
+          const contactsToCache = contactsWithCoords.map(contact => ({
             userId: input.userId,
             googleResourceName: contact.resourceName,
             name: contact.name,
             email: contact.email,
             address: contact.address, // Legacy field
-            addresses: contact.addresses, // New array field
+            addresses: contact.addresses, // New array field with coordinates
+            latitude: contact.latitude,
+            longitude: contact.longitude,
             phoneNumbers: contact.phoneNumbers,
             photoUrl: contact.photoUrl,
             labels: contact.labels,
