@@ -1,0 +1,42 @@
+{
+  "query": "SELECT id, email, name, role, loginMethod, lastSignedIn FROM users ORDER BY lastSignedIn DESC LIMIT 10",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, email, name, role, loginMethod, lastSignedIn FROM users ORDER BY lastSignedIn DESC LIMIT 10",
+  "rows": [
+    {
+      "id": "38",
+      "email": "scheduling@prairiept.com",
+      "name": "Scheduling Prairie PT",
+      "role": "admin",
+      "loginMethod": "google",
+      "lastSignedIn": "2025-12-06 00:56:08"
+    },
+    {
+      "id": "14400003",
+      "email": "neasonangela@gmail.com",
+      "name": "Angie Neason",
+      "role": "user",
+      "loginMethod": "google",
+      "lastSignedIn": "2025-12-06 00:55:21"
+    },
+    {
+      "id": "1",
+      "email": "angelaneason@gmail.com",
+      "name": "Angela Neason",
+      "role": "admin",
+      "loginMethod": "google",
+      "lastSignedIn": "2025-12-06 00:52:50"
+    },
+    {
+      "id": "14310070",
+      "email": "angelaneason@gmail.com",
+      "name": "Angela Neason",
+      "role": "admin",
+      "loginMethod": "google",
+      "lastSignedIn": "2025-12-06 00:03:42"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tname\trole\tloginMethod\tlastSignedIn\n38\tscheduling@prairiept.com\tScheduling Prairie PT\tadmin\tgoogle\t2025-12-06 00:56:08\n14400003\tneasonangela@gmail.com\tAngie Neason\tuser\tgoogle\t2025-12-06 00:55:21\n1\tangelaneason@gmail.com\tAngela Neason\tadmin\tgoogle\t2025-12-06 00:52:50\n14310070\tangelaneason@gmail.com\tAngela Neason\tadmin\tgoogle\t2025-12-06 00:03:42\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

@@ -34,6 +34,7 @@ import { ContactDetailDialog } from "@/components/ContactDetailDialog";
 import { AddressSelector } from "@/components/AddressSelector";
 import { SchedulerNotes } from "@/components/SchedulerNotes";
 import { EditLabelsDialog } from "@/components/EditLabelsDialog";
+import { ScheduleDaysDialog } from "@/components/ScheduleDaysDialog";
 // StopTypeSelector removed - stop types now set via default in Settings and editable in route details
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -81,6 +82,8 @@ export default function Home() {
   const [editLabelsContact, setEditLabelsContact] = useState<{ id: number; name: string; labels: string[] } | null>(null);
   const [selectedRoutes, setSelectedRoutes] = useState<Set<number>>(new Set());
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [scheduleDialogContact, setScheduleDialogContact] = useState<{ id: number; name: string; scheduledDays: string[] } | null>(null);
 
   // Check for OAuth callback status and route creation from waypoints
   useEffect(() => {
@@ -259,6 +262,17 @@ export default function Home() {
   const toggleContactActiveMutation = trpc.contacts.toggleActive.useMutation({
     onSuccess: () => {
       contactsQuery.refetch();
+    },
+  });
+
+  // Update scheduled days mutation
+  const updateScheduledDaysMutation = trpc.contacts.updateScheduledDays.useMutation({
+    onSuccess: () => {
+      contactsQuery.refetch();
+      toast.success("Schedule updated! 🦘");
+    },
+    onError: (error) => {
+      toast.error(`Failed to update schedule: ${error.message}`);
     },
   });
 
@@ -1252,7 +1266,41 @@ export default function Home() {
                             return null;
                           })()}
                         </div>
+                        
+                        {/* Scheduled Days Badge (only show when Smart Routing enabled) */}
+                        {user?.enableSmartRouting === 1 && contact.scheduledDays && (() => {
+                          try {
+                            const days = JSON.parse(contact.scheduledDays);
+                            if (days.length > 0) {
+                              const dayAbbr = days.map((d: string) => d.substring(0, 3)).join(", ");
+                              return (
+                                <div className="mt-2 flex items-center gap-2">
+                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
+                                    📅 {dayAbbr}
+                                  </span>
+                                </div>
+                              );
+                            }
+                          } catch (e) {}
+                          return null;
+                        })()}
+                        
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                          {/* Schedule Button (only show when Smart Routing enabled) */}
+                          {user?.enableSmartRouting === 1 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs"
+                              onClick={() => {
+                                const currentDays = contact.scheduledDays ? JSON.parse(contact.scheduledDays) : [];
+                                setScheduleDialogContact({ id: contact.id, name: contact.name || "Contact", scheduledDays: currentDays });
+                                setScheduleDialogOpen(true);
+                              }}
+                            >
+                              📅 Schedule
+                            </Button>
+                          )}
                           {(!contact.address || contact.address.trim() === "") && (
                             <Button
                               variant="outline"
@@ -1675,6 +1723,22 @@ export default function Home() {
           onSuccess={() => {
             // Refresh contacts to show updated labels
             contactsQuery.refetch();
+          }}
+        />
+      )}
+
+      {/* Schedule Days Dialog */}
+      {scheduleDialogContact && (
+        <ScheduleDaysDialog
+          open={scheduleDialogOpen}
+          onOpenChange={setScheduleDialogOpen}
+          contactName={scheduleDialogContact.name}
+          currentScheduledDays={scheduleDialogContact.scheduledDays}
+          onSave={(scheduledDays) => {
+            updateScheduledDaysMutation.mutate({
+              contactId: scheduleDialogContact.id,
+              scheduledDays,
+            });
           }}
         />
       )}

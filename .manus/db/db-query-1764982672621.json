@@ -1,0 +1,34 @@
+{
+  "query": "SELECT id, email, role, openId FROM users ORDER BY id",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, email, role, openId FROM users ORDER BY id",
+  "rows": [
+    {
+      "id": "1",
+      "email": "angelaneason@gmail.com",
+      "role": "admin",
+      "openId": "RDmGkc9MK28myjC85C9iU5"
+    },
+    {
+      "id": "38",
+      "email": "scheduling@prairiept.com",
+      "role": "admin",
+      "openId": "google_103092384275679964414"
+    },
+    {
+      "id": "14310070",
+      "email": "angelaneason@gmail.com",
+      "role": "admin",
+      "openId": "google_113630323491727347002"
+    },
+    {
+      "id": "14400003",
+      "email": "neasonangela@gmail.com",
+      "role": "user",
+      "openId": "google_117637759668341139554"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\trole\topenId\n1\tangelaneason@gmail.com\tadmin\tRDmGkc9MK28myjC85C9iU5\n38\tscheduling@prairiept.com\tadmin\tgoogle_103092384275679964414\n14310070\tangelaneason@gmail.com\tadmin\tgoogle_113630323491727347002\n14400003\tneasonangela@gmail.com\tuser\tgoogle_117637759668341139554\n",
+  "stderr": "",
+  "execution_time_ms": 65
+}

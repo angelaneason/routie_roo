@@ -9,6 +9,7 @@ import { StageEmailTemplateEditor } from "@/components/StageEmailTemplateEditor"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { APP_TITLE } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -56,6 +57,7 @@ export default function Settings() {
   const startingPointsQuery = trpc.settings.listStartingPoints.useQuery();
   const dateTypesQuery = trpc.settings.listImportantDateTypes.useQuery();
   const stopTypesQuery = trpc.stopTypes.list.useQuery();
+  const foldersQuery = trpc.folders.list.useQuery();
   
   const createStartingPointMutation = trpc.settings.createStartingPoint.useMutation({
     onSuccess: () => {
@@ -512,6 +514,117 @@ export default function Settings() {
 
               {/* ========== ROUTES TAB ========== */}
               <TabsContent value="routes" className="space-y-4 mt-6">
+                {/* Smart Auto-Routing */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Smart Auto-Routing</CardTitle>
+                    <CardDescription>
+                      Automatically create weekly routes for contacts based on their scheduled visit days
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Enable/Disable Toggle */}
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="space-y-1">
+                        <Label htmlFor="enable-smart-routing" className="text-base font-medium">
+                          Enable Smart Auto-Routing
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Automatically generate routes when you schedule contacts for specific days
+                        </p>
+                      </div>
+                      <Switch
+                        id="enable-smart-routing"
+                        checked={currentUser?.enableSmartRouting === 1}
+                        onCheckedChange={(checked) => {
+                          updateSettingsMutation.mutate({
+                            enableSmartRouting: checked ? 1 : 0
+                          });
+                        }}
+                      />
+                    </div>
+
+                    {/* Smart Routing Preferences (only visible when enabled) */}
+                    {currentUser?.enableSmartRouting === 1 && (
+                      <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                        <div className="space-y-2">
+                          <Label htmlFor="smart-routing-folder">Default Folder for Auto-Routes</Label>
+                          <Select
+                            value={currentUser?.smartRoutingFolder || "none"}
+                            onValueChange={(value) => {
+                              updateSettingsMutation.mutate({
+                                smartRoutingFolder: value === "none" ? null : value
+                              });
+                            }}
+                          >
+                            <SelectTrigger id="smart-routing-folder">
+                              <SelectValue placeholder="Select folder" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">No folder (root level)</SelectItem>
+                              {foldersQuery.data?.map((folder) => (
+                                <SelectItem key={folder.id} value={folder.name}>
+                                  {folder.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-sm text-muted-foreground">
+                            Auto-generated routes will be saved to this folder
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="smart-routing-starting-point">Default Starting Point</Label>
+                          <Select
+                            value={currentUser?.smartRoutingStartingPoint || "default"}
+                            onValueChange={(value) => {
+                              updateSettingsMutation.mutate({
+                                smartRoutingStartingPoint: value === "default" ? null : value
+                              });
+                            }}
+                          >
+                            <SelectTrigger id="smart-routing-starting-point">
+                              <SelectValue placeholder="Select starting point" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="default">Use default starting point</SelectItem>
+                              {startingPointsQuery.data?.map((point) => (
+                                <SelectItem key={point.id} value={point.address}>
+                                  {point.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-sm text-muted-foreground">
+                            All auto-routes will start from this location
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-1">
+                            <Label htmlFor="auto-optimize" className="text-sm font-medium">
+                              Auto-Optimize Routes
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              Automatically optimize stop order for efficiency
+                            </p>
+                          </div>
+                          <Switch
+                            id="auto-optimize"
+                            checked={currentUser?.autoOptimizeRoutes === 1}
+                            onCheckedChange={(checked) => {
+                              updateSettingsMutation.mutate({
+                                autoOptimizeRoutes: checked ? 1 : 0
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
                 {/* Starting Points */}
                 <Card>
                   <CardHeader>

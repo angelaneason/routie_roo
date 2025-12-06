@@ -17,6 +17,7 @@ import ChangedAddresses from "./pages/ChangedAddresses";
 import ReminderHistory from "./pages/ReminderHistory";
 import RescheduleHistory from "./pages/RescheduleHistory";
 import AdminUsers from "./pages/AdminUsers";
+import SmartRoutingDashboard from "./pages/SmartRoutingDashboard";
 import { useAuth } from "./_core/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 import { ImpersonationBanner } from "./components/ImpersonationBanner";
@@ -63,6 +64,7 @@ function Router() {
       <Route path={"/reminder-history"} component={ReminderHistory} />
       <Route path={"/reschedule-history"} component={RescheduleHistory} />
       <Route path={"/admin/users"} component={AdminUsers} />
+      <Route path={"/smart-routing"} component={SmartRoutingDashboard} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
