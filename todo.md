@@ -82,3 +82,5 @@
 - [x] Fix schedule information overlapping with Schedule button on contact cards
 
 - [x] Fix Smart Auto-Routing scheduledDate - all routes get Monday's date instead of correct day (Wed, Fri)
+- [x] Fix calendar connection OAuth redirect_uri_mismatch error (Error 400)
+- [ ] Implement Route Holders feature (staff assignment with calendar integration)

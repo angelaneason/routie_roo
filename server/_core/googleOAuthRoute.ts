@@ -67,6 +67,34 @@ googleOAuthRouter.get("/api/oauth/google/callback", async (req, res) => {
 
       // Redirect back to settings with success message
       res.redirect("/settings?calendar_connected=true");
+    } else if (action === 'addToCalendar') {
+      // Add route to calendar flow
+      const { routeId, startTime } = stateData;
+      const { exchangeCodeForToken, getCalendarList } = await import("../googleAuth");
+      const { getRouteById } = await import("../db");
+
+      // Exchange code for token
+      const tokenData = await exchangeCodeForToken(code, redirectUri);
+      
+      // Get route details
+      const route = await getRouteById(routeId);
+      if (!route || route.userId !== userId) {
+        return res.status(404).send("Route not found");
+      }
+
+      // Fetch user's calendar list
+      const calendars = await getCalendarList(tokenData.access_token);
+
+      // Store token and calendar data temporarily
+      const calendarData = encodeURIComponent(JSON.stringify({
+        calendars,
+        routeId,
+        startTime,
+        accessToken: tokenData.access_token,
+      }));
+
+      // Redirect back to app with calendar selection dialog
+      res.redirect(`/?calendar_auth=success&data=${calendarData}`);
     } else {
       // Contacts sync flow (original behavior)
       console.log('[OAuth] Starting contacts sync for userId:', userId);
@@ -98,6 +126,8 @@ googleOAuthRouter.get("/api/oauth/google/callback", async (req, res) => {
       const stateData = JSON.parse(state);
       if (stateData.action === 'calendar') {
         res.redirect("/settings?calendar_connected=false");
+      } else if (stateData.action === 'addToCalendar') {
+        res.redirect("/?calendar_auth=error");
       } else {
         res.redirect("/?sync=error");
       }

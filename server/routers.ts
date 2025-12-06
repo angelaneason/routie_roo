@@ -1768,12 +1768,13 @@ export const appRouter = router({
         // Store route info in state for callback
         const state = JSON.stringify({
           userId: ctx.user.id,
+          action: 'addToCalendar',
           routeId: input.routeId,
           startTime: input.startTime,
         });
 
         // Use public URL from ENV to avoid internal Azure container address
-        const redirectUri = `${ENV.publicUrl}/api/oauth/google/calendar-callback`;
+        const redirectUri = `${ENV.publicUrl}/api/oauth/google/callback`;
         return { url: getGoogleAuthUrl(redirectUri, state) };
       }),
 
