@@ -1277,30 +1277,33 @@ export default function Home() {
                           })()}
                         </div>
                         
-                        {/* Scheduled Days Badge (only show when Smart Routing enabled) */}
-                        {user?.enableSmartRouting === 1 && (contact.scheduledDays || contact.repeatDays) && (() => {
-                          try {
-                            const scheduleText = formatRecurringSchedule({
-                              repeatInterval: contact.repeatInterval,
-                              repeatDays: contact.repeatDays || contact.scheduledDays,
-                              scheduleEndType: contact.scheduleEndType,
-                              scheduleEndDate: contact.scheduleEndDate,
-                              scheduleEndOccurrences: contact.scheduleEndOccurrences,
-                            });
-                            if (scheduleText && scheduleText !== "No schedule") {
-                              return (
-                                <div className="mt-2 flex items-center gap-2">
-                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium" title={scheduleText}>
-                                    📅 {scheduleText}
-                                  </span>
-                                </div>
-                              );
-                            }
-                          } catch (e) {}
-                          return null;
-                        })()}
-                        
-                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                        {/* Action buttons and schedule info row */}
+                        <div className="mt-2 flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
+                          {/* Scheduled Days Badge (only show when Smart Routing enabled) */}
+                          <div className="flex-1 min-w-0">
+                            {user?.enableSmartRouting === 1 && (contact.scheduledDays || contact.repeatDays) && (() => {
+                              try {
+                                const scheduleText = formatRecurringSchedule({
+                                  repeatInterval: contact.repeatInterval,
+                                  repeatDays: contact.repeatDays || contact.scheduledDays,
+                                  scheduleEndType: contact.scheduleEndType,
+                                  scheduleEndDate: contact.scheduleEndDate,
+                                  scheduleEndOccurrences: contact.scheduleEndOccurrences,
+                                });
+                                if (scheduleText && scheduleText !== "No schedule") {
+                                  return (
+                                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium truncate inline-block max-w-full" title={scheduleText}>
+                                      📅 {scheduleText}
+                                    </span>
+                                  );
+                                }
+                              } catch (e) {}
+                              return null;
+                            })()}
+                          </div>
+                          
+                          {/* Action buttons */}
+                          <div className="flex gap-1 flex-shrink-0">
                           {/* Schedule Button (only show when Smart Routing enabled) */}
                           {user?.enableSmartRouting === 1 && (
                             <Button
@@ -1416,6 +1419,7 @@ export default function Home() {
                           >
                             {contact.isActive === 1 ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </Button>
+                          </div>
                         </div>
                       </div>
                     ))}

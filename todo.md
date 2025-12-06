@@ -76,3 +76,6 @@
 
 - TypeScript errors in route_waypoints status field (pre-existing, not related to Smart Routing)
 - Integration tests require test data fixtures (expected behavior)
+
+## Layout Fixes
+- [x] Fix schedule information overlapping with Schedule button on contact cards
