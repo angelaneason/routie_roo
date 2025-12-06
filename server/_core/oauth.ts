@@ -24,20 +24,9 @@ export function registerOAuthRoutes(app: Express) {
   // Initiate Google OAuth flow
   app.get("/api/oauth/google", async (req: Request, res: Response) => {
     try {
-      // Dynamically determine the redirect URI based on the request
-      const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
-      const host = req.headers['x-forwarded-host'] || req.headers.host || 'routieroo.cc';
-      const redirectUri = `${protocol}://${host}/api/oauth/callback`;
-      console.log('[OAuth] ===== OAUTH INITIATION DEBUG =====');
-      console.log('[OAuth] Headers:', JSON.stringify({
-        'x-forwarded-proto': req.headers['x-forwarded-proto'],
-        'x-forwarded-host': req.headers['x-forwarded-host'],
-        'host': req.headers.host,
-        'protocol': req.protocol
-      }, null, 2));
-      console.log('[OAuth] Computed values:', { protocol, host });
-      console.log('[OAuth] Final redirect URI:', redirectUri);
-      console.log('[OAuth] =====================================');
+      // Use PUBLIC_URL from environment for consistent redirect URI
+      const redirectUri = `${ENV.publicUrl}/api/oauth/callback`;
+      console.log('[OAuth] Using redirect URI from PUBLIC_URL:', redirectUri);
       const oauth2Client = getOAuth2Client(redirectUri);
 
       const authUrl = oauth2Client.generateAuthUrl({
@@ -105,10 +94,8 @@ export function registerOAuthRoutes(app: Express) {
 
     console.log("[OAuth] Code received, starting token exchange");
     try {
-      // Dynamically determine the redirect URI based on the request
-      const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
-      const host = req.headers['x-forwarded-host'] || req.headers.host || 'routieroo.cc';
-      const redirectUri = `${protocol}://${host}/api/oauth/callback`;
+      // Use PUBLIC_URL from environment for consistent redirect URI
+      const redirectUri = `${ENV.publicUrl}/api/oauth/callback`;
       console.log('[OAuth] Using redirect URI for token exchange:', redirectUri);
       const oauth2Client = getOAuth2Client(redirectUri);
 
