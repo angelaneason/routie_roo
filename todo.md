@@ -80,3 +80,5 @@
 
 ## Layout Fixes
 - [x] Fix schedule information overlapping with Schedule button on contact cards
+
+- [x] Fix Smart Auto-Routing scheduledDate - all routes get Monday's date instead of correct day (Wed, Fri)
