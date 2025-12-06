@@ -72,6 +72,7 @@
 - [x] Fix "getPrimaryAddress is not defined" error in recurring schedule dialog
 - [x] Fix dialog state not refreshing when switching between contacts
 - [x] Fix TypeScript compilation errors in route_waypoints status field (BLOCKING DEPLOYMENT)
+- [x] Fix Smart Auto-Routing creating routes with missing coordinates (contacts not geocoded)
 
 ## Known Issues (Non-Blocking)
 

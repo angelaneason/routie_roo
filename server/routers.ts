@@ -888,6 +888,8 @@ export const appRouter = router({
                   contactName: contactData.name || "Unknown",
                   address,
                   addressType: primaryAddr?.type || "other",
+                  latitude: primaryAddr?.latitude || null,
+                  longitude: primaryAddr?.longitude || null,
                   phoneNumbers: contactData.phoneNumbers,
                   photoUrl: contactData.photoUrl,
                   contactLabels: contactData.labels,
