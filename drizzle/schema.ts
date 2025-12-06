@@ -151,6 +151,14 @@ export const cachedContacts = mysqlTable("cached_contacts", {
   importantDates: text("importantDates"), // JSON array of {type: string, date: string} - user-defined important dates
   comments: text("comments"), // JSON array of {option: string, customText?: string} - user-defined comments
   scheduledDays: text("scheduledDays"), // JSON array of day names ["Monday", "Tuesday", ...] for auto-routing
+  // Enhanced recurring schedule fields
+  repeatInterval: int("repeatInterval").default(1), // Number of weeks between visits (1 = weekly, 2 = bi-weekly, etc.)
+  repeatDays: text("repeatDays"), // JSON array of selected days ["Monday", "Wednesday"] for recurrence
+  scheduleEndType: mysqlEnum("scheduleEndType", ["never", "date", "occurrences"]).default("never"), // How the schedule ends
+  scheduleEndDate: timestamp("scheduleEndDate"), // End date for "date" type
+  scheduleEndOccurrences: int("scheduleEndOccurrences"), // Total occurrences for "occurrences" type
+  currentOccurrenceCount: int("currentOccurrenceCount").default(0), // Track completed occurrences
+  scheduleStartDate: timestamp("scheduleStartDate"), // When the recurring schedule started (for calculating intervals)
   // Legacy fields - kept for backward compatibility during migration
   address: text("address"), // Deprecated: use addresses array instead
   originalAddress: text("originalAddress"), // Original address from Google Contacts (for tracking changes)

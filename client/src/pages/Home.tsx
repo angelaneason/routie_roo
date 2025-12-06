@@ -34,13 +34,14 @@ import { ContactDetailDialog } from "@/components/ContactDetailDialog";
 import { AddressSelector } from "@/components/AddressSelector";
 import { SchedulerNotes } from "@/components/SchedulerNotes";
 import { EditLabelsDialog } from "@/components/EditLabelsDialog";
-import { ScheduleDaysDialog } from "@/components/ScheduleDaysDialog";
+import RecurringScheduleDialog from "@/components/RecurringScheduleDialog";
 // StopTypeSelector removed - stop types now set via default in Settings and editable in route details
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Link, useLocation } from "wouter";
 import { getPrimaryAddress, hasMultipleAddresses, getAddressTypeIcon, getAddressTypeLabel } from "@/lib/addressHelpers";
 import { extractAndSortLabels } from "@/lib/labelHelpers";
+import { formatRecurringSchedule } from "@/lib/scheduleHelpers";
 
 export default function Home() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
@@ -83,7 +84,16 @@ export default function Home() {
   const [selectedRoutes, setSelectedRoutes] = useState<Set<number>>(new Set());
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
-  const [scheduleDialogContact, setScheduleDialogContact] = useState<{ id: number; name: string; scheduledDays: string[] } | null>(null);
+  const [scheduleDialogContact, setScheduleDialogContact] = useState<{ 
+    id: number; 
+    name: string; 
+    scheduledDays: string[];
+    repeatInterval?: number;
+    repeatDays?: string[];
+    scheduleEndType?: "never" | "date" | "occurrences";
+    scheduleEndDate?: string;
+    scheduleEndOccurrences?: number;
+  } | null>(null);
 
   // Check for OAuth callback status and route creation from waypoints
   useEffect(() => {
@@ -1268,15 +1278,20 @@ export default function Home() {
                         </div>
                         
                         {/* Scheduled Days Badge (only show when Smart Routing enabled) */}
-                        {user?.enableSmartRouting === 1 && contact.scheduledDays && (() => {
+                        {user?.enableSmartRouting === 1 && (contact.scheduledDays || contact.repeatDays) && (() => {
                           try {
-                            const days = JSON.parse(contact.scheduledDays);
-                            if (days.length > 0) {
-                              const dayAbbr = days.map((d: string) => d.substring(0, 3)).join(", ");
+                            const scheduleText = formatRecurringSchedule({
+                              repeatInterval: contact.repeatInterval,
+                              repeatDays: contact.repeatDays || contact.scheduledDays,
+                              scheduleEndType: contact.scheduleEndType,
+                              scheduleEndDate: contact.scheduleEndDate,
+                              scheduleEndOccurrences: contact.scheduleEndOccurrences,
+                            });
+                            if (scheduleText && scheduleText !== "No schedule") {
                               return (
                                 <div className="mt-2 flex items-center gap-2">
-                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
-                                    📅 {dayAbbr}
+                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium" title={scheduleText}>
+                                    📅 {scheduleText}
                                   </span>
                                 </div>
                               );
@@ -1294,7 +1309,17 @@ export default function Home() {
                               className="h-8 text-xs"
                               onClick={() => {
                                 const currentDays = contact.scheduledDays ? JSON.parse(contact.scheduledDays) : [];
-                                setScheduleDialogContact({ id: contact.id, name: contact.name || "Contact", scheduledDays: currentDays });
+                                const repeatDays = contact.repeatDays ? JSON.parse(contact.repeatDays) : currentDays;
+                                setScheduleDialogContact({ 
+                                  id: contact.id, 
+                                  name: contact.name || "Contact", 
+                                  scheduledDays: currentDays,
+                                  repeatInterval: contact.repeatInterval || 1,
+                                  repeatDays,
+                                  scheduleEndType: contact.scheduleEndType || "never",
+                                  scheduleEndDate: contact.scheduleEndDate,
+                                  scheduleEndOccurrences: contact.scheduleEndOccurrences,
+                                });
                                 setScheduleDialogOpen(true);
                               }}
                             >
@@ -1729,15 +1754,25 @@ export default function Home() {
 
       {/* Schedule Days Dialog */}
       {scheduleDialogContact && (
-        <ScheduleDaysDialog
+        <RecurringScheduleDialog
           open={scheduleDialogOpen}
           onOpenChange={setScheduleDialogOpen}
           contactName={scheduleDialogContact.name}
-          currentScheduledDays={scheduleDialogContact.scheduledDays}
-          onSave={(scheduledDays) => {
+          initialSchedule={{
+            repeatInterval: scheduleDialogContact.repeatInterval || 1,
+            repeatDays: scheduleDialogContact.repeatDays || scheduleDialogContact.scheduledDays || [],
+            scheduleEndType: scheduleDialogContact.scheduleEndType || "never",
+            scheduleEndDate: scheduleDialogContact.scheduleEndDate,
+            scheduleEndOccurrences: scheduleDialogContact.scheduleEndOccurrences,
+          }}
+          onSave={(schedule) => {
             updateScheduledDaysMutation.mutate({
               contactId: scheduleDialogContact.id,
-              scheduledDays,
+              repeatInterval: schedule.repeatInterval,
+              repeatDays: schedule.repeatDays,
+              scheduleEndType: schedule.scheduleEndType,
+              scheduleEndDate: schedule.scheduleEndDate,
+              scheduleEndOccurrences: schedule.scheduleEndOccurrences,
             });
           }}
         />

@@ -712,11 +712,17 @@ export const appRouter = router({
         return group;
       }),
 
-    // Update scheduled days for a contact
+    // Update scheduled days for a contact with enhanced recurring schedule
     updateScheduledDays: protectedProcedure
       .input(z.object({
         contactId: z.number(),
-        scheduledDays: z.array(z.string()), // Array of day names: ["Monday", "Tuesday", ...]
+        scheduledDays: z.array(z.string()).optional(), // Legacy: Array of day names (deprecated)
+        // Enhanced recurring schedule fields
+        repeatInterval: z.number().min(1).max(52).optional(), // Number of weeks between visits
+        repeatDays: z.array(z.string()).optional(), // Selected days for recurrence
+        scheduleEndType: z.enum(["never", "date", "occurrences"]).optional(),
+        scheduleEndDate: z.string().optional(), // ISO date string
+        scheduleEndOccurrences: z.number().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -737,12 +743,42 @@ export const appRouter = router({
         const contactData = contact[0];
         const oldScheduledDays = contactData.scheduledDays ? JSON.parse(contactData.scheduledDays) : [];
 
-        // Update scheduled days
+        // Build update object with enhanced schedule fields
+        const updateData: any = {
+          updatedAt: new Date(),
+        };
+
+        // Handle enhanced recurring schedule
+        if (input.repeatDays !== undefined) {
+          updateData.repeatDays = JSON.stringify(input.repeatDays);
+          updateData.scheduledDays = JSON.stringify(input.repeatDays); // Keep legacy field in sync
+        }
+        if (input.repeatInterval !== undefined) {
+          updateData.repeatInterval = input.repeatInterval;
+        }
+        if (input.scheduleEndType !== undefined) {
+          updateData.scheduleEndType = input.scheduleEndType;
+        }
+        if (input.scheduleEndDate !== undefined) {
+          updateData.scheduleEndDate = input.scheduleEndDate ? new Date(input.scheduleEndDate) : null;
+        }
+        if (input.scheduleEndOccurrences !== undefined) {
+          updateData.scheduleEndOccurrences = input.scheduleEndOccurrences;
+        }
+        // Set schedule start date if not already set and we're creating a new schedule
+        if (!contactData.scheduleStartDate && input.repeatDays && input.repeatDays.length > 0) {
+          updateData.scheduleStartDate = new Date();
+          updateData.currentOccurrenceCount = 0;
+        }
+        // Legacy support: if only scheduledDays provided (old API)
+        if (input.scheduledDays !== undefined && input.repeatDays === undefined) {
+          updateData.scheduledDays = JSON.stringify(input.scheduledDays);
+          updateData.repeatDays = JSON.stringify(input.scheduledDays);
+        }
+
+        // Update contact with new schedule
         await db.update(cachedContacts)
-          .set({ 
-            scheduledDays: JSON.stringify(input.scheduledDays),
-            updatedAt: new Date(),
-          })
+          .set(updateData)
           .where(eq(cachedContacts.id, input.contactId));
 
         // If Smart Routing is enabled, automatically create/update routes
@@ -764,8 +800,32 @@ export const appRouter = router({
 
           const startingPoint = ctx.user.smartRoutingStartingPoint || ctx.user.defaultStartingPoint || undefined;
 
-          // Process each scheduled day
-          for (const day of input.scheduledDays) {
+          // Determine which days to process (use repeatDays if available, fallback to scheduledDays)
+          const daysToProcess = input.repeatDays || input.scheduledDays || [];
+          
+          // Check if this week should have routes based on repeatInterval
+          let shouldCreateRoutes = true;
+          if (updateData.scheduleStartDate && updateData.repeatInterval && updateData.repeatInterval > 1) {
+            const startDate = new Date(updateData.scheduleStartDate);
+            const weeksSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+            shouldCreateRoutes = weeksSinceStart % updateData.repeatInterval === 0;
+          }
+
+          // Check if schedule has ended
+          if (updateData.scheduleEndType === "date" && updateData.scheduleEndDate) {
+            if (now > new Date(updateData.scheduleEndDate)) {
+              shouldCreateRoutes = false;
+            }
+          }
+          if (updateData.scheduleEndType === "occurrences" && updateData.scheduleEndOccurrences) {
+            if ((contactData.currentOccurrenceCount || 0) >= updateData.scheduleEndOccurrences) {
+              shouldCreateRoutes = false;
+            }
+          }
+
+          // Process each scheduled day if conditions are met
+          if (shouldCreateRoutes) {
+            for (const day of daysToProcess) {
             // Find or create route for this day
             const routeName = `${day} Route - Week of ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
             
@@ -841,9 +901,10 @@ export const appRouter = router({
               }
             }
           }
+          } // Close shouldCreateRoutes block
 
           // Remove contact from routes for days that were unscheduled
-          const removedDays = oldScheduledDays.filter((day: string) => !input.scheduledDays.includes(day));
+          const removedDays = oldScheduledDays.filter((day: string) => !daysToProcess.includes(day));
           for (const day of removedDays) {
             const routeName = `${day} Route - Week of ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
             
