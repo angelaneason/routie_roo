@@ -46,7 +46,7 @@ const trpcClient = trpc.createClient({
       fetch(input, init) {
         // Check for impersonation in localStorage
         const impersonationData = localStorage.getItem("impersonation");
-        let headers = { ...(init?.headers || {}) };
+        let headers: Record<string, string> = { ...(init?.headers as Record<string, string> || {}) };
         
         if (impersonationData) {
           try {

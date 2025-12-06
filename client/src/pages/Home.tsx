@@ -1284,11 +1284,11 @@ export default function Home() {
                             {user?.enableSmartRouting === 1 && (contact.scheduledDays || contact.repeatDays) && (() => {
                               try {
                                 const scheduleText = formatRecurringSchedule({
-                                  repeatInterval: contact.repeatInterval,
-                                  repeatDays: contact.repeatDays || contact.scheduledDays,
-                                  scheduleEndType: contact.scheduleEndType,
-                                  scheduleEndDate: contact.scheduleEndDate,
-                                  scheduleEndOccurrences: contact.scheduleEndOccurrences,
+                                  repeatInterval: contact.repeatInterval ?? undefined,
+                                  repeatDays: contact.repeatDays || contact.scheduledDays || undefined,
+                                  scheduleEndType: contact.scheduleEndType ?? undefined,
+                                  scheduleEndDate: contact.scheduleEndDate ? (contact.scheduleEndDate instanceof Date ? contact.scheduleEndDate.toISOString() : contact.scheduleEndDate) : undefined,
+                                  scheduleEndOccurrences: contact.scheduleEndOccurrences ?? undefined,
                                 });
                                 if (scheduleText && scheduleText !== "No schedule") {
                                   return (
@@ -1320,8 +1320,8 @@ export default function Home() {
                                   repeatInterval: contact.repeatInterval || 1,
                                   repeatDays,
                                   scheduleEndType: contact.scheduleEndType || "never",
-                                  scheduleEndDate: contact.scheduleEndDate,
-                                  scheduleEndOccurrences: contact.scheduleEndOccurrences,
+                                  scheduleEndDate: contact.scheduleEndDate ? (contact.scheduleEndDate instanceof Date ? contact.scheduleEndDate.toISOString() : contact.scheduleEndDate) : undefined,
+                                  scheduleEndOccurrences: contact.scheduleEndOccurrences ?? undefined,
                                 });
                                 setScheduleDialogOpen(true);
                               }}

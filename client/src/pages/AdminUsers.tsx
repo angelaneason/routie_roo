@@ -244,7 +244,7 @@ export default function AdminUsers() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleViewAs(u.id, u.name)}
-                              disabled={startImpersonationMutation.isLoading}
+                              disabled={startImpersonationMutation.isPending}
                             >
                               <Eye className="h-4 w-4 mr-2" />
                               View As

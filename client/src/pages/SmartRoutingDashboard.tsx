@@ -159,16 +159,16 @@ export default function SmartRoutingDashboard() {
                         {contact.photoUrl ? (
                           <img
                             src={contact.photoUrl}
-                            alt={contact.contactName}
+                            alt={contact.name || 'Contact'}
                             className="h-8 w-8 rounded-full object-cover"
                           />
                         ) : (
                           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold">
-                            {contact.contactName.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                            {contact.name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2) || '?'}
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{contact.contactName}</p>
+                          <p className="text-sm font-medium truncate">{contact.name}</p>
                           {contact.address && (
                             <p className="text-xs text-muted-foreground truncate">{contact.address}</p>
                           )}
@@ -208,7 +208,7 @@ export default function SmartRoutingDashboard() {
                     <p className="font-medium">{route.name}</p>
                     <p className="text-sm text-muted-foreground">
                       {route.waypointCount || 0} stops
-                      {route.distance && ` • ${(route.distance / 1000).toFixed(1)} km`}
+                      {route.totalDistance && ` • ${(route.totalDistance / 1000).toFixed(1)} km`}
                     </p>
                   </div>
                   <Button variant="ghost" size="sm">

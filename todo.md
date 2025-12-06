@@ -71,10 +71,10 @@
 ## Urgent Bug Fixes
 - [x] Fix "getPrimaryAddress is not defined" error in recurring schedule dialog
 - [x] Fix dialog state not refreshing when switching between contacts
+- [x] Fix TypeScript compilation errors in route_waypoints status field (BLOCKING DEPLOYMENT)
 
 ## Known Issues (Non-Blocking)
 
-- TypeScript errors in route_waypoints status field (pre-existing, not related to Smart Routing)
 - Integration tests require test data fixtures (expected behavior)
 
 ## Layout Fixes
