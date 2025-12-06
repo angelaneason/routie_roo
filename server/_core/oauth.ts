@@ -28,7 +28,16 @@ export function registerOAuthRoutes(app: Express) {
       const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
       const host = req.headers['x-forwarded-host'] || req.headers.host || 'routieroo.cc';
       const redirectUri = `${protocol}://${host}/api/oauth/callback`;
-      console.log('[OAuth] Using redirect URI:', redirectUri);
+      console.log('[OAuth] ===== OAUTH INITIATION DEBUG =====');
+      console.log('[OAuth] Headers:', JSON.stringify({
+        'x-forwarded-proto': req.headers['x-forwarded-proto'],
+        'x-forwarded-host': req.headers['x-forwarded-host'],
+        'host': req.headers.host,
+        'protocol': req.protocol
+      }, null, 2));
+      console.log('[OAuth] Computed values:', { protocol, host });
+      console.log('[OAuth] Final redirect URI:', redirectUri);
+      console.log('[OAuth] =====================================');
       const oauth2Client = getOAuth2Client(redirectUri);
 
       const authUrl = oauth2Client.generateAuthUrl({
