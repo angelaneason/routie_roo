@@ -48,6 +48,7 @@ import {
 } from "./googleAuth";
 import { TRPCError } from "@trpc/server";
 import { validateAddress } from "./addressValidation";
+import { getPrimaryAddress } from "../shared/addressHelpers";
 import { users, routes, routeWaypoints, stopTypes, savedStartingPoints, routeNotes, InsertRoute, cachedContacts, rescheduleHistory, schedulerNotes, labelColors } from "../drizzle/schema";
 import { eq, and, or, desc, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";

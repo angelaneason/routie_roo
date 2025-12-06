@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -51,6 +51,15 @@ export default function RecurringScheduleDialog({
   );
   const [endDate, setEndDate] = useState(initialSchedule?.scheduleEndDate || "");
   const [endOccurrences, setEndOccurrences] = useState(initialSchedule?.scheduleEndOccurrences || 13);
+
+  // Reset state when initialSchedule changes (when switching contacts)
+  useEffect(() => {
+    setRepeatInterval(initialSchedule?.repeatInterval || 1);
+    setSelectedDays(initialSchedule?.repeatDays || []);
+    setEndType(initialSchedule?.scheduleEndType || "never");
+    setEndDate(initialSchedule?.scheduleEndDate || "");
+    setEndOccurrences(initialSchedule?.scheduleEndOccurrences || 13);
+  }, [initialSchedule]);
 
   const handleDayToggle = (dayFull: string) => {
     setSelectedDays((prev) =>
