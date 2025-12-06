@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS route_holders (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  name VARCHAR(255) NOT NULL,\n  googleCalendarId VARCHAR(255),\n  defaultStopType VARCHAR(100),\n  defaultStopTypeColor VARCHAR(7),\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute CREATE TABLE IF NOT EXISTS route_holders (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  name VARCHAR(255) NOT NULL,\n  googleCalendarId VARCHAR(255),\n  defaultStopType VARCHAR(100),\n  defaultStopTypeColor VARCHAR(7),\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 314
+}

@@ -84,3 +84,46 @@
 - [x] Fix Smart Auto-Routing scheduledDate - all routes get Monday's date instead of correct day (Wed, Fri)
 - [x] Fix calendar connection OAuth redirect_uri_mismatch error (Error 400)
 - [ ] Implement Route Holders feature (staff assignment with calendar integration)
+
+
+## Route Holders Feature (Option B with Stop Type)
+
+### Database Schema
+- [ ] Create route_holders table (id, userId, name, googleCalendarId, defaultStopType, defaultStopTypeColor, createdAt)
+- [ ] Add routeHolderId field to routes table
+- [ ] Add routeHolderId field to contact schedules (for per-day assignment)
+
+### Backend Procedures
+- [x] routeHolders.list - Get all route holders for user
+- [x] routeHolders.create - Create new route holder
+- [x] routeHolders.update - Update route holder details
+- [x] routeHolders.delete - Delete route holder
+- [x] Update contacts.updateScheduledDays to accept routeHolderId per day
+- [x] Update route generation to assign correct holder and calendar
+
+### Settings UI
+- [x] Create Route Holders Settings section
+- [x] List existing route holders
+- [x] Add new route holder form (name, calendar selector, default stop type)
+- [x] Edit/delete route holder functionality
+- [x] Fetch user's Google Calendars for dropdown
+
+### Enhanced Scheduling Interface
+- [x] Update RecurringScheduleDialog to show Route Holder dropdown per day
+- [x] Show default stop type for selected holder
+- [x] Allow stop type override if needed
+- [x] Save routeHolderId with each scheduled day
+
+### Dashboard View
+- [x] Group routes by Route Holder on Smart Routing Dashboard
+- [x] Show "Randy's Routes", "PTA Team Routes", etc.
+- [x] Display stop count per route
+- [x] Add "View Route" button for each route
+- [x] Show calendar sync status
+
+### Testing
+- [ ] Test creating route holders
+- [ ] Test assigning different holders to different days
+- [ ] Test calendar integration per holder
+- [ ] Test stop type defaults and overrides
+- [ ] Test dashboard grouping by holder

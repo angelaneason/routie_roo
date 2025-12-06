@@ -724,6 +724,7 @@ export const appRouter = router({
         scheduleEndType: z.enum(["never", "date", "occurrences"]).optional(),
         scheduleEndDate: z.string().optional(), // ISO date string
         scheduleEndOccurrences: z.number().optional(),
+        routeHolderSchedule: z.record(z.string(), z.number()).optional(), // { "Monday": 1, "Wednesday": 2 }
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -765,6 +766,9 @@ export const appRouter = router({
         }
         if (input.scheduleEndOccurrences !== undefined) {
           updateData.scheduleEndOccurrences = input.scheduleEndOccurrences;
+        }
+        if (input.routeHolderSchedule !== undefined) {
+          updateData.routeHolderSchedule = JSON.stringify(input.routeHolderSchedule);
         }
         // Set schedule start date if not already set and we're creating a new schedule
         if (!contactData.scheduleStartDate && input.repeatDays && input.repeatDays.length > 0) {
@@ -826,6 +830,9 @@ export const appRouter = router({
 
           // Process each scheduled day if conditions are met
           if (shouldCreateRoutes) {
+            // Parse route holder schedule if provided
+            const routeHolderScheduleMap: Record<string, number> = input.routeHolderSchedule || {};
+            
             for (const day of daysToProcess) {
             // Calculate the actual date for this day of the week
             const dayMap: Record<string, number> = {
@@ -835,6 +842,25 @@ export const appRouter = router({
             const targetDayOfWeek = dayMap[day];
             const routeDate = new Date(weekStart);
             routeDate.setDate(weekStart.getDate() + targetDayOfWeek);
+            
+            // Get route holder for this day
+            const routeHolderId = routeHolderScheduleMap[day] || null;
+            let routeHolderCalendarId: string | null = null;
+            let routeHolderStopType: string | null = null;
+            let routeHolderStopColor: string | null = null;
+            
+            if (routeHolderId) {
+              const { routeHolders } = await import("../drizzle/schema");
+              const [holder] = await db.select().from(routeHolders)
+                .where(and(eq(routeHolders.id, routeHolderId), eq(routeHolders.userId, ctx.user.id)))
+                .limit(1);
+              
+              if (holder) {
+                routeHolderCalendarId = holder.googleCalendarId || null;
+                routeHolderStopType = holder.defaultStopType || null;
+                routeHolderStopColor = holder.defaultStopTypeColor || null;
+              }
+            }
             
             // Find or create route for this day
             const routeName = `${day} Route - Week of ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
@@ -851,8 +877,17 @@ export const appRouter = router({
 
             if (existingRoutes.length > 0) {
               routeId = existingRoutes[0].id;
+              // Update existing route with holder info if provided
+              if (routeHolderId) {
+                await db.update(routes)
+                  .set({
+                    routeHolderId,
+                    googleCalendarId: routeHolderCalendarId,
+                  })
+                  .where(eq(routes.id, routeId));
+              }
             } else {
-              // Create new route
+              // Create new route with route holder assignment
               const shareId = nanoid(12);
               const routeResult = await createRoute({
                 userId: ctx.user.id,
@@ -864,6 +899,8 @@ export const appRouter = router({
                 totalDuration: 0,
                 optimized: ctx.user.autoOptimizeRoutes === 1,
                 folderId: folderId || null,
+                routeHolderId: routeHolderId,
+                googleCalendarId: routeHolderCalendarId,
                 startingPointAddress: startingPoint || null,
                 distanceUnit: ctx.user.distanceUnit || "km",
                 scheduledDate: routeDate,
@@ -904,8 +941,8 @@ export const appRouter = router({
                   contactLabels: contactData.labels,
                   importantDates: contactData.importantDates,
                   comments: contactData.comments,
-                  stopType: ctx.user.defaultStopType || null,
-                  stopColor: ctx.user.defaultStopTypeColor || null,
+                  stopType: routeHolderStopType || ctx.user.defaultStopType || null,
+                  stopColor: routeHolderStopColor || ctx.user.defaultStopTypeColor || null,
                   position: waypointOrder,
                   executionOrder: waypointOrder,
                   status: "pending",
@@ -4615,6 +4652,101 @@ export const appRouter = router({
           JSON.stringify(input.widgetVisibility),
           JSON.stringify(input.widgetOrder)
         );
+
+        return { success: true };
+      }),
+  }),
+
+  routeHolders: router({
+    // List all route holders for the user
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+      const { routeHolders } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+
+      const holders = await db.select().from(routeHolders).where(eq(routeHolders.userId, ctx.user.id));
+      return holders;
+    }),
+
+    // Create a new route holder
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1, "Name is required"),
+        googleCalendarId: z.string().optional(),
+        defaultStopType: z.string().optional(),
+        defaultStopTypeColor: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+        const { routeHolders } = await import("../drizzle/schema");
+
+        const [holder] = await db.insert(routeHolders).values({
+          userId: ctx.user.id,
+          name: input.name,
+          googleCalendarId: input.googleCalendarId || null,
+          defaultStopType: input.defaultStopType || null,
+          defaultStopTypeColor: input.defaultStopTypeColor || null,
+        });
+
+        return { success: true, holderId: holder.insertId };
+      }),
+
+    // Update a route holder
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).optional(),
+        googleCalendarId: z.string().optional(),
+        defaultStopType: z.string().optional(),
+        defaultStopTypeColor: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+        const { routeHolders } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+
+        // Verify ownership
+        const [existing] = await db.select().from(routeHolders)
+          .where(and(eq(routeHolders.id, input.id), eq(routeHolders.userId, ctx.user.id)));
+
+        if (!existing) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Route holder not found" });
+        }
+
+        const updates: any = {};
+        if (input.name !== undefined) updates.name = input.name;
+        if (input.googleCalendarId !== undefined) updates.googleCalendarId = input.googleCalendarId || null;
+        if (input.defaultStopType !== undefined) updates.defaultStopType = input.defaultStopType || null;
+        if (input.defaultStopTypeColor !== undefined) updates.defaultStopTypeColor = input.defaultStopTypeColor || null;
+
+        if (Object.keys(updates).length > 0) {
+          await db.update(routeHolders)
+            .set(updates)
+            .where(and(eq(routeHolders.id, input.id), eq(routeHolders.userId, ctx.user.id)));
+        }
+
+        return { success: true };
+      }),
+
+    // Delete a route holder
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+        const { routeHolders } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+
+        // Verify ownership before deleting
+        await db.delete(routeHolders)
+          .where(and(eq(routeHolders.id, input.id), eq(routeHolders.userId, ctx.user.id)));
 
         return { success: true };
       }),

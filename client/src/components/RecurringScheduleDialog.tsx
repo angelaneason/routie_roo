@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { trpc } from "@/lib/trpc";
 
 interface RecurringScheduleDialogProps {
   open: boolean;
@@ -17,6 +19,7 @@ interface RecurringScheduleDialogProps {
     scheduleEndType: "never" | "date" | "occurrences";
     scheduleEndDate?: string;
     scheduleEndOccurrences?: number;
+    routeHolderSchedule?: Record<string, number>; // { "Monday": 1, "Wednesday": 2 }
   };
   onSave: (schedule: {
     repeatInterval: number;
@@ -24,6 +27,7 @@ interface RecurringScheduleDialogProps {
     scheduleEndType: "never" | "date" | "occurrences";
     scheduleEndDate?: string;
     scheduleEndOccurrences?: number;
+    routeHolderSchedule?: Record<string, number>;
   }) => void;
 }
 
@@ -51,6 +55,12 @@ export default function RecurringScheduleDialog({
   );
   const [endDate, setEndDate] = useState(initialSchedule?.scheduleEndDate || "");
   const [endOccurrences, setEndOccurrences] = useState(initialSchedule?.scheduleEndOccurrences || 13);
+  const [routeHolderSchedule, setRouteHolderSchedule] = useState<Record<string, number>>(
+    initialSchedule?.routeHolderSchedule || {}
+  );
+
+  // Fetch route holders
+  const { data: routeHolders } = trpc.routeHolders.list.useQuery();
 
   // Reset state when initialSchedule changes (when switching contacts)
   useEffect(() => {
@@ -59,12 +69,41 @@ export default function RecurringScheduleDialog({
     setEndType(initialSchedule?.scheduleEndType || "never");
     setEndDate(initialSchedule?.scheduleEndDate || "");
     setEndOccurrences(initialSchedule?.scheduleEndOccurrences || 13);
+    setRouteHolderSchedule(initialSchedule?.routeHolderSchedule || {});
   }, [initialSchedule]);
 
   const handleDayToggle = (dayFull: string) => {
-    setSelectedDays((prev) =>
-      prev.includes(dayFull) ? prev.filter((d) => d !== dayFull) : [...prev, dayFull]
-    );
+    setSelectedDays((prev) => {
+      const newDays = prev.includes(dayFull) 
+        ? prev.filter((d) => d !== dayFull) 
+        : [...prev, dayFull];
+      
+      // Remove route holder assignment if day is deselected
+      if (!newDays.includes(dayFull)) {
+        setRouteHolderSchedule((prevSchedule) => {
+          const newSchedule = { ...prevSchedule };
+          delete newSchedule[dayFull];
+          return newSchedule;
+        });
+      }
+      
+      return newDays;
+    });
+  };
+
+  const handleRouteHolderChange = (day: string, holderId: string) => {
+    if (holderId === "none") {
+      setRouteHolderSchedule((prev) => {
+        const newSchedule = { ...prev };
+        delete newSchedule[day];
+        return newSchedule;
+      });
+    } else {
+      setRouteHolderSchedule((prev) => ({
+        ...prev,
+        [day]: parseInt(holderId),
+      }));
+    }
   };
 
   const handleSave = () => {
@@ -79,6 +118,7 @@ export default function RecurringScheduleDialog({
       scheduleEndType: endType,
       scheduleEndDate: endType === "date" ? endDate : undefined,
       scheduleEndOccurrences: endType === "occurrences" ? endOccurrences : undefined,
+      routeHolderSchedule: Object.keys(routeHolderSchedule).length > 0 ? routeHolderSchedule : undefined,
     });
     onOpenChange(false);
   };
@@ -90,12 +130,19 @@ export default function RecurringScheduleDialog({
     setEndType(initialSchedule?.scheduleEndType || "never");
     setEndDate(initialSchedule?.scheduleEndDate || "");
     setEndOccurrences(initialSchedule?.scheduleEndOccurrences || 13);
+    setRouteHolderSchedule(initialSchedule?.routeHolderSchedule || {});
     onOpenChange(false);
+  };
+
+  const getRouteHolderForDay = (day: string) => {
+    const holderId = routeHolderSchedule[day];
+    if (!holderId) return null;
+    return routeHolders?.find((h: any) => h.id === holderId);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Schedule {contactName}</DialogTitle>
         </DialogHeader>
@@ -157,6 +204,54 @@ export default function RecurringScheduleDialog({
               ))}
             </div>
           </div>
+
+          {/* Route Holder Assignment */}
+          {selectedDays.length > 0 && routeHolders && routeHolders.length > 0 && (
+            <div className="space-y-3">
+              <Label className="text-sm text-muted-foreground">Assign Route Holders (Optional)</Label>
+              <div className="space-y-2">
+                {selectedDays.map((day) => {
+                  const holder = getRouteHolderForDay(day);
+                  return (
+                    <div key={day} className="flex items-center gap-3">
+                      <div className="w-24 text-sm font-medium">{day}</div>
+                      <Select
+                        value={routeHolderSchedule[day]?.toString() || "none"}
+                        onValueChange={(value) => handleRouteHolderChange(day, value)}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="No holder assigned" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No holder assigned</SelectItem>
+                          {routeHolders.map((h: any) => (
+                            <SelectItem key={h.id} value={h.id.toString()}>
+                              {h.name}
+                              {h.defaultStopType && (
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  ({h.defaultStopType})
+                                </span>
+                              )}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {holder && holder.defaultStopTypeColor && (
+                        <div
+                          className="w-4 h-4 rounded flex-shrink-0"
+                          style={{ backgroundColor: holder.defaultStopTypeColor }}
+                          title={holder.defaultStopType || ""}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Routes will be assigned to the selected holder and saved to their calendar
+              </p>
+            </div>
+          )}
 
           {/* Ends */}
           <div className="space-y-3">
