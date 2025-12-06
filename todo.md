@@ -2852,3 +2852,13 @@ Note: Route cards don't have labels (labels belong to contacts, not routes)
 - [x] Integrate "View As" button in Admin Users page
 - [x] Write and pass impersonation tests
 - [x] Fix duplicate admin router issue
+
+## OAuth Login Fix
+
+- [x] Fix Google OAuth redirect_uri_mismatch error preventing login from landing page
+- [x] Check current redirect URI configuration in oauth.ts
+- [x] Verify redirect URI matches Google Cloud Console configuration
+- [x] Test login flow from landing page
+- [x] Update OAuth to dynamically detect domain from request headers
+- [x] Add support for routieroo.cc and routieroo.manus.space
+- [x] Write and pass OAuth redirect URI tests

@@ -24,8 +24,11 @@ export function registerOAuthRoutes(app: Express) {
   // Initiate Google OAuth flow
   app.get("/api/oauth/google", async (req: Request, res: Response) => {
     try {
-      // Use public URL from ENV to avoid internal Azure container address
-      const redirectUri = `${ENV.publicUrl}/api/oauth/callback`;
+      // Dynamically determine the redirect URI based on the request
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+      const host = req.headers['x-forwarded-host'] || req.headers.host || 'routieroo.cc';
+      const redirectUri = `${protocol}://${host}/api/oauth/callback`;
+      console.log('[OAuth] Using redirect URI:', redirectUri);
       const oauth2Client = getOAuth2Client(redirectUri);
 
       const authUrl = oauth2Client.generateAuthUrl({
@@ -93,8 +96,11 @@ export function registerOAuthRoutes(app: Express) {
 
     console.log("[OAuth] Code received, starting token exchange");
     try {
-      // Use public URL from ENV to avoid internal Azure container address
-      const redirectUri = `${ENV.publicUrl}/api/oauth/callback`;
+      // Dynamically determine the redirect URI based on the request
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+      const host = req.headers['x-forwarded-host'] || req.headers.host || 'routieroo.cc';
+      const redirectUri = `${protocol}://${host}/api/oauth/callback`;
+      console.log('[OAuth] Using redirect URI for token exchange:', redirectUri);
       const oauth2Client = getOAuth2Client(redirectUri);
 
       // Exchange code for tokens
