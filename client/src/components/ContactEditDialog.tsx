@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar as CalendarIconLucide, MessageSquare, Plus, X, CheckCircle2 } from "lucide-react";
+import { Calendar as CalendarIconLucide, MessageSquare, Plus, X, CheckCircle2, Tags, Paperclip, Upload, Eye, EyeOff, FileText, Trash2 } from "lucide-react";
 import { EmojiPickerButton } from "./EmojiPickerButton";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -45,6 +45,8 @@ interface ContactEditDialogProps {
     phoneNumbers: string | null;
     importantDates: string | null;
     comments: string | null;
+    labels: string | null;
+    isActive: number | null;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -87,9 +89,44 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
   const [saving, setSaving] = useState(false);
   const [validating, setValidating] = useState(false);
   
+  // Labels state
+  const initialLabels: string[] = contact.labels ? (() => {
+    try {
+      const labels = JSON.parse(contact.labels);
+      return labels
+        .map((label: string) => {
+          if (label.startsWith('contactGroups/')) {
+            return label.split('/').pop() || '';
+          }
+          return label;
+        })
+        .filter((label: string) => {
+          const lower = label.toLowerCase();
+          const isHexId = /^[0-9a-f]{12,}$/i.test(label);
+          return lower !== 'mycontacts' && lower !== 'starred' && label.trim() !== '' && !isHexId;
+        });
+    } catch (e) {
+      return [];
+    }
+  })() : [];
+  const [selectedLabels, setSelectedLabels] = useState<string[]>(initialLabels);
+  
+  // Document upload state
+  const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
   // Fetch date types and comment options from settings
   const dateTypesQuery = trpc.settings.listImportantDateTypes.useQuery();
   const commentOptionsQuery = trpc.settings.listCommentOptions.useQuery();
+  
+  // Fetch all available labels and documents
+  const allLabelsQuery = trpc.contacts.getAllLabels.useQuery();
+  const documentsQuery = trpc.contacts.getDocuments.useQuery({ contactId: contact.id }, { enabled: open });
+  
+  // Mutations
+  const updateLabelsMutation = trpc.contacts.updateLabels.useMutation();
+  const uploadDocumentMutation = trpc.contacts.uploadDocument.useMutation();
+  const deleteDocumentMutation = trpc.contacts.deleteDocument.useMutation();
   
   const validateAddressMutation = trpc.contacts.validateAddress.useMutation({
     onSuccess: (result) => {
@@ -186,6 +223,77 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
     updated[index] = { ...updated[index], [field]: value };
     setComments(updated);
   };
+  
+  // Label handlers
+  const toggleLabel = (label: string) => {
+    if (selectedLabels.includes(label)) {
+      setSelectedLabels(selectedLabels.filter(l => l !== label));
+    } else {
+      setSelectedLabels([...selectedLabels, label]);
+    }
+  };
+  
+  const handleSaveLabels = async () => {
+    try {
+      await updateLabelsMutation.mutateAsync({
+        contactId: contact.id,
+        labels: selectedLabels,
+      });
+      toast.success("Labels updated successfully");
+    } catch (error) {
+      toast.error("Failed to update labels");
+      console.error(error);
+    }
+  };
+  
+  // Document upload handlers
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+  
+  const handleUploadDocument = async () => {
+    if (!selectedFile) {
+      toast.error("Please select a file");
+      return;
+    }
+    
+    setUploadingDocument(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        await uploadDocumentMutation.mutateAsync({
+          contactId: contact.id,
+          fileName: selectedFile.name,
+          fileData: base64,
+          mimeType: selectedFile.type,
+        });
+        toast.success("Document uploaded successfully");
+        setSelectedFile(null);
+        documentsQuery.refetch();
+      };
+      reader.readAsDataURL(selectedFile);
+    } catch (error) {
+      toast.error("Failed to upload document");
+      console.error(error);
+    } finally {
+      setUploadingDocument(false);
+    }
+  };
+  
+  const handleDeleteDocument = async (documentId: number) => {
+    try {
+      await deleteDocumentMutation.mutateAsync({ documentId });
+      toast.success("Document deleted successfully");
+      documentsQuery.refetch();
+    } catch (error) {
+      toast.error("Failed to delete document");
+      console.error(error);
+    }
+  };
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -220,6 +328,10 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
         importantDates: validDates,
         comments: validComments,
       });
+      
+      // Save labels separately
+      await handleSaveLabels();
+      
       toast.success("Contact updated successfully");
       onOpenChange(false);
     } catch (error) {
@@ -506,6 +618,118 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
             {comments.length === 0 && (
               <p className="text-sm text-muted-foreground">No comments added</p>
             )}
+          </div>
+          
+          {/* Labels Section */}
+          <div className="space-y-2 border-t pt-4">
+            <Label className="text-sm !font-bold flex items-center gap-2">
+              <Tags className="h-4 w-4" />
+              Labels
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              {allLabelsQuery.data && allLabelsQuery.data.length > 0 ? (
+                allLabelsQuery.data.map((label: string) => (
+                  <Button
+                    key={label}
+                    type="button"
+                    variant={selectedLabels.includes(label) ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleLabel(label)}
+                    className="h-8"
+                  >
+                    {label}
+                    {selectedLabels.includes(label) && (
+                      <CheckCircle2 className="h-3 w-3 ml-1" />
+                    )}
+                  </Button>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No labels available</p>
+              )}
+            </div>
+            {selectedLabels.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {selectedLabels.length} label{selectedLabels.length !== 1 ? 's' : ''} selected
+              </p>
+            )}
+          </div>
+          
+          {/* Documents Section */}
+          <div className="space-y-2 border-t pt-4">
+            <Label className="text-sm !font-bold flex items-center gap-2">
+              <Paperclip className="h-4 w-4" />
+              Documents
+            </Label>
+            
+            {/* Upload Document */}
+            <div className="space-y-2">
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="file"
+                  onChange={handleFileSelect}
+                  className="flex-1"
+                  disabled={uploadingDocument}
+                />
+                <Button
+                  type="button"
+                  onClick={handleUploadDocument}
+                  disabled={!selectedFile || uploadingDocument}
+                  size="sm"
+                >
+                  {uploadingDocument ? (
+                    <>
+                      <Upload className="h-4 w-4 mr-1 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-1" />
+                      Upload
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+            
+            {/* Documents List */}
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {documentsQuery.isLoading ? (
+                <p className="text-sm text-muted-foreground">Loading documents...</p>
+              ) : documentsQuery.data && documentsQuery.data.length > 0 ? (
+                documentsQuery.data.map((doc: any) => (
+                  <div key={doc.id} className="flex items-center justify-between p-2 bg-muted rounded">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <FileText className="h-4 w-4 flex-shrink-0" />
+                      <span className="text-sm truncate">{doc.fileName}</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => window.open(doc.fileUrl, '_blank')}
+                        title="View Document"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive"
+                        onClick={() => handleDeleteDocument(doc.id)}
+                        title="Delete Document"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No documents uploaded</p>
+              )}
+            </div>
           </div>
         </div>
 

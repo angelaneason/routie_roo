@@ -1343,63 +1343,6 @@ export default function Home() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => setViewingContact(contact)}
-                            title="View Details"
-                          >
-                            <Info className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => {
-                              setUploadContactId(contact.id);
-                              setUploadContactName(contact.name || "Contact");
-                              setShowDocumentUpload(true);
-                            }}
-                            title="Upload Document"
-                          >
-                            <Paperclip className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => {
-                              // Parse current labels
-                              let currentLabels: string[] = [];
-                              try {
-                                if (contact.labels) {
-                                  const labels = JSON.parse(contact.labels);
-                                  currentLabels = labels
-                                    .map((label: string) => {
-                                      if (label.startsWith('contactGroups/')) {
-                                        return label.split('/').pop() || '';
-                                      }
-                                      return label;
-                                    })
-                                    .filter((label: string) => {
-                                      const lower = label.toLowerCase();
-                                      const isHexId = /^[0-9a-f]{12,}$/i.test(label);
-                                      return lower !== 'mycontacts' && lower !== 'starred' && label.trim() !== '' && !isHexId;
-                                    });
-                                }
-                              } catch (e) {}
-                              
-                              setEditLabelsContact({
-                                id: contact.id,
-                                name: contact.name || "Contact",
-                                labels: currentLabels,
-                              });
-                            }}
-                            title="Edit Labels"
-                          >
-                            <Tags className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
                             onClick={() => setEditingContact(contact)}
                             title="Edit Contact"
                           >

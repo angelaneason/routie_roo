@@ -127,3 +127,18 @@
 - [ ] Test calendar integration per holder
 - [ ] Test stop type defaults and overrides
 - [ ] Test dashboard grouping by holder
+
+
+## Contact Card UI Reorganization
+
+### Contact Card Simplification
+- [x] Remove Info button from contact card
+- [x] Remove Upload button from contact card  
+- [x] Remove Labels button from contact card
+- [x] Keep Schedule, Edit, and Active/Inactive toggle buttons
+
+### Edit Dialog Enhancement
+- [x] Add Labels management section to ContactEditDialog
+- [x] Add Document upload section to ContactEditDialog
+- [x] Add Documents list/viewer to ContactEditDialog
+- [x] Reorganize dialog layout with tabs or sections

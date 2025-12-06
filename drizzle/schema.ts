@@ -138,7 +138,7 @@ export const routeWaypoints = mysqlTable("route_waypoints", {
   gapStopMiles: decimal("gapStopMiles", { precision: 10, scale: 2 }), // Calculated miles for off-route trip
   gapStopTripType: mysqlEnum("gapStopTripType", ["round_trip", "one_way"]), // Round trip or one way
   // Execution workflow fields
-  status: mysqlEnum("status", ["pending", "in_progress", "complete", "missed"]).default("pending"), // Stop completion status
+  status: mysqlEnum("status", ["pending", "in_progress", "complete", "missed"]).default("pending").notNull(), // Stop completion status
   executionOrder: int("executionOrder"), // Order during execution (can differ from waypoint_order)
   completedAt: timestamp("completedAt"), // When stop was completed
   missedReason: text("missedReason"), // Reason for missing stop
