@@ -225,7 +225,7 @@ export function SchedulerNotes() {
           {/* Close button - show on all devices */}
           <button
             onClick={() => setIsVisible(false)}
-            className="absolute top-2 left-2 z-20 w-8 h-8 bg-purple-600 hover:bg-purple-700 text-yellow-100 rounded-full flex items-center justify-center shadow-md"
+            className="absolute top-2 right-2 z-50 w-8 h-8 bg-purple-600 hover:bg-purple-700 text-yellow-100 rounded-full flex items-center justify-center shadow-md"
             aria-label="Hide reminders"
           >
             ×
@@ -244,9 +244,9 @@ export function SchedulerNotes() {
             />
           </div>
 
-          {/* Invisible drag area for easier dragging */}
+          {/* Invisible drag area for easier dragging - positioned below close button */}
           <div 
-            className="absolute top-0 left-0 right-0 h-8 cursor-grab active:cursor-grabbing"
+            className="absolute top-0 left-0 right-12 h-10 cursor-grab active:cursor-grabbing z-10"
             onMouseDown={handleDragStart}
             onTouchStart={handleDragStart}
           />
@@ -257,7 +257,7 @@ export function SchedulerNotes() {
             <Button
               variant="ghost"
               size="sm"
-              className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-purple-300/50"
+              className="absolute top-2 right-12 h-6 w-6 p-0 hover:bg-purple-300/50 z-50"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);

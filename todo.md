@@ -142,3 +142,8 @@
 - [x] Add Document upload section to ContactEditDialog
 - [x] Add Documents list/viewer to ContactEditDialog
 - [x] Reorganize dialog layout with tabs or sections
+
+## Sticky Note Drag Fix
+- [x] Investigate why sticky note can't be dragged
+- [x] Fix drag functionality on sticky note
+- [x] Test dragging works on desktop and mobile
