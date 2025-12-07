@@ -147,3 +147,7 @@
 - [x] Investigate why sticky note can't be dragged
 - [x] Fix drag functionality on sticky note
 - [x] Test dragging works on desktop and mobile
+
+## Dashboard Quick Actions Update
+- [x] Change "Plan Your Route" button to "Routes"
+- [x] Add "Contacts" button to quick actions

@@ -343,13 +343,13 @@ export default function Dashboard() {
               <Link href="/workspace">
                 <Button className="w-full justify-start" size="lg">
                   <MapPin className="mr-2 h-4 w-4" />
-                  Plan New Route
+                  Routes
                 </Button>
               </Link>
               <Link href="/workspace">
                 <Button variant="outline" className="w-full justify-start" size="lg">
                   <Users className="mr-2 h-4 w-4" />
-                  Manage Contacts
+                  Contacts
                 </Button>
               </Link>
               <Link href="/calendar">
@@ -379,13 +379,13 @@ export default function Dashboard() {
                       <Link href="/workspace">
                         <Button className="w-full justify-start" size="lg">
                           <MapPin className="mr-2 h-4 w-4" />
-                          Plan New Route
+                          Routes
                         </Button>
                       </Link>
                       <Link href="/workspace">
                         <Button variant="outline" className="w-full justify-start" size="lg">
                           <Users className="mr-2 h-4 w-4" />
-                          Manage Contacts
+                          Contacts
                         </Button>
                       </Link>
                       <Link href="/calendar">
