@@ -1079,6 +1079,62 @@ export const appRouter = router({
 
         return { success: true, labels: labelNames };
       }),
+
+    // Update important date for a contact from waypoint view
+    updateImportantDate: protectedProcedure
+      .input(z.object({
+        contactId: z.number(),
+        dateTypeName: z.string(), // Name of the date type
+        date: z.string().nullable(), // ISO date string or null to clear
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify contact belongs to user
+        const contact = await db.select()
+          .from(cachedContacts)
+          .where(and(
+            eq(cachedContacts.id, input.contactId),
+            eq(cachedContacts.userId, ctx.user.id)
+          ));
+
+        if (!contact.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Contact not found" });
+        }
+
+        // Parse existing important dates
+        let importantDates: Array<{ type: string; date: string }> = [];
+        try {
+          importantDates = contact[0].importantDates ? JSON.parse(contact[0].importantDates) : [];
+        } catch (e) {
+          console.error('Failed to parse important dates:', e);
+        }
+
+        // Update or remove the date
+        if (input.date === null || input.date === "") {
+          // Remove the date
+          importantDates = importantDates.filter(d => d.type !== input.dateTypeName);
+        } else {
+          // Find existing date and update, or add new
+          const existingIndex = importantDates.findIndex(d => d.type === input.dateTypeName);
+          if (existingIndex >= 0) {
+            importantDates[existingIndex].date = input.date;
+          } else {
+            importantDates.push({ type: input.dateTypeName, date: input.date });
+          }
+        }
+
+        // Save back to database
+        await db.update(cachedContacts)
+          .set({ 
+            importantDates: JSON.stringify(importantDates),
+            updatedAt: new Date(),
+          })
+          .where(eq(cachedContacts.id, input.contactId));
+
+        return { success: true };
+      }),
   }),
 
   folders: router({
@@ -3685,10 +3741,11 @@ export const appRouter = router({
     updateImportantDateType: protectedProcedure
       .input(z.object({
         id: z.number(),
-        name: z.string().min(1).max(100),
+        name: z.string().min(1).max(100).optional(),
+        showOnWaypoint: z.number().min(0).max(1).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        await updateImportantDateType(input.id, input.name);
+        await updateImportantDateType(input.id, input.name, input.showOnWaypoint);
         return { success: true };
       }),
 

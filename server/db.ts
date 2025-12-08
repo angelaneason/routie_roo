@@ -183,9 +183,61 @@ export async function getRouteWaypoints(routeId: number) {
   const db = await getDb();
   if (!db) return [];
   
-  return db.select().from(routeWaypoints)
+  const waypoints = await db.select().from(routeWaypoints)
     .where(eq(routeWaypoints.routeId, routeId))
     .orderBy(routeWaypoints.position);
+  
+  // For each waypoint, fetch date types that should show on waypoint and their values
+  const enrichedWaypoints = await Promise.all(waypoints.map(async (waypoint) => {
+    if (!waypoint.contactId) {
+      return { ...waypoint, waypointDateTypes: null };
+    }
+    
+    // Get contact's user ID to fetch their date types
+    const contact = await db.select().from(cachedContacts)
+      .where(eq(cachedContacts.id, waypoint.contactId))
+      .limit(1);
+    
+    if (!contact.length) {
+      return { ...waypoint, waypointDateTypes: null };
+    }
+    
+    // Get date types that should show on waypoint
+    const dateTypes = await db.select().from(importantDateTypes)
+      .where(and(
+        eq(importantDateTypes.userId, contact[0].userId),
+        eq(importantDateTypes.showOnWaypoint, 1)
+      ));
+    
+    if (dateTypes.length === 0) {
+      return { ...waypoint, waypointDateTypes: null };
+    }
+    
+    // Parse contact's important dates from JSON field
+    let contactDates: Array<{ type: string; date: string }> = [];
+    try {
+      contactDates = contact[0].importantDates ? JSON.parse(contact[0].importantDates) : [];
+    } catch (e) {
+      console.error('Failed to parse contact important dates:', e);
+    }
+    
+    // Build array of date types with their values
+    const dateTypesWithValues = dateTypes.map(dt => {
+      const dateValue = contactDates.find(cd => cd.type === dt.name);
+      return {
+        id: dt.id,
+        name: dt.name,
+        value: dateValue ? dateValue.date : null,
+      };
+    });
+    
+    return {
+      ...waypoint,
+      waypointDateTypes: JSON.stringify(dateTypesWithValues),
+    };
+  }));
+  
+  return enrichedWaypoints;
 }
 
 // Cached contacts functions
@@ -296,11 +348,15 @@ export async function getUserImportantDateTypes(userId: number) {
   return db.select().from(importantDateTypes).where(eq(importantDateTypes.userId, userId)).orderBy(importantDateTypes.name);
 }
 
-export async function updateImportantDateType(id: number, name: string) {
+export async function updateImportantDateType(id: number, name?: string, showOnWaypoint?: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  await db.update(importantDateTypes).set({ name }).where(eq(importantDateTypes.id, id));
+  const updates: any = {};
+  if (name !== undefined) updates.name = name;
+  if (showOnWaypoint !== undefined) updates.showOnWaypoint = showOnWaypoint;
+  
+  await db.update(importantDateTypes).set(updates).where(eq(importantDateTypes.id, id));
 }
 
 export async function deleteImportantDateType(id: number) {

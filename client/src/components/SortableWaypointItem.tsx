@@ -4,6 +4,44 @@ import { StopStatusBadge } from "@/components/StopStatusBadge";
 import { PhoneCallMenu } from "@/components/PhoneCallMenu";
 import { PhoneTextMenu } from "@/components/PhoneTextMenu";
 import { CheckCircle2, XCircle, MessageSquare, Calendar, Trash2, Edit3, MapPin, Flag, Clock } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
+
+interface DateInputProps {
+  dateTypeName: string;
+  initialValue: string;
+  contactId: number;
+}
+
+function DateInput({ dateTypeName, initialValue, contactId }: DateInputProps) {
+  const updateDateMutation = trpc.contacts.updateImportantDate.useMutation();
+
+  return (
+    <Input
+      type="date"
+      defaultValue={initialValue}
+      className="h-7 text-xs flex-1"
+      onBlur={(e) => {
+        const newValue = e.target.value;
+        updateDateMutation.mutate(
+          {
+            contactId,
+            dateTypeName,
+            date: newValue || null,
+          },
+          {
+            onSuccess: () => {
+              toast.success(`${dateTypeName} updated`);
+            },
+            onError: (error) => {
+              toast.error(`Failed to update ${dateTypeName}`);
+            },
+          }
+        );
+      }}
+    />
+  );
+}
 
 interface SortableWaypointItemProps {
   waypoint: any;
@@ -281,6 +319,31 @@ export function SortableWaypointItem({
           )}
         </div>
       </div>
+      
+      {/* Important Dates for Waypoint (editable) */}
+      {!isGapStop && waypoint.waypointDateTypes && (() => {
+        try {
+          const dateTypes = JSON.parse(waypoint.waypointDateTypes);
+          if (dateTypes.length > 0) {
+            return (
+              <div className="pt-2 border-t space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground">Important Dates:</p>
+                {dateTypes.map((dt: any) => (
+                  <div key={dt.id} className="flex items-center gap-2">
+                    <label className="text-xs font-medium min-w-[100px]">{dt.name}:</label>
+                    <DateInput
+                      dateTypeName={dt.name}
+                      initialValue={dt.value || ""}
+                      contactId={waypoint.contactId}
+                    />
+                  </div>
+                ))}
+              </div>
+            );
+          }
+        } catch (e) {}
+        return null;
+      })()}
       
       {/* Controls */}
       <div className="flex gap-2 flex-wrap pt-2 border-t">

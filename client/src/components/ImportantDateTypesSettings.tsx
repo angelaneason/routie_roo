@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Trash2, Plus, Edit2, Check, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function ImportantDateTypesSettings() {
   const [newDateType, setNewDateType] = useState("");
@@ -141,6 +142,30 @@ export function ImportantDateTypesSettings() {
                 ) : (
                   <>
                     <span className="flex-1">{dateType.name}</span>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id={`show-on-waypoint-${dateType.id}`}
+                        checked={dateType.showOnWaypoint === 1}
+                        onCheckedChange={async (checked) => {
+                          try {
+                            await updateMutation.mutateAsync({
+                              id: dateType.id,
+                              showOnWaypoint: checked ? 1 : 0
+                            });
+                            toast.success(checked ? "Will show on waypoints" : "Hidden from waypoints");
+                            refetch();
+                          } catch (error) {
+                            toast.error("Failed to update");
+                          }
+                        }}
+                      />
+                      <Label
+                        htmlFor={`show-on-waypoint-${dateType.id}`}
+                        className="text-sm cursor-pointer"
+                      >
+                        Show on Waypoint
+                      </Label>
+                    </div>
                     <Button
                       size="sm"
                       variant="ghost"

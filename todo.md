@@ -192,3 +192,13 @@
 - [x] Update calendar.getEvents to fetch and display individual waypoint events
 - [x] Ensure waypoint events can be edited and sync back to Google Calendar
 - [x] Test that waypoint events appear alongside route events in calendar view
+
+## Important Dates on Waypoints Feature
+- [x] Add showOnWaypoint boolean field to important_date_types table
+- [x] Update Settings UI to show checkbox for "Show on Waypoint" next to each date type
+- [x] Update backend to save showOnWaypoint preference for date types
+- [x] Display important dates at bottom of waypoint cards (above action buttons)
+- [x] Show blank date fields for flagged date types with no value
+- [x] Add inline date editing on waypoint cards
+- [x] Sync date changes from waypoints back to contact cards
+- [x] Test that dates display correctly and sync properly

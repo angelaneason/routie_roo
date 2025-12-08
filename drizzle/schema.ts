@@ -273,6 +273,7 @@ export const importantDateTypes = mysqlTable("important_date_types", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(), // Owner of the date type
   name: varchar("name", { length: 100 }).notNull(), // Date type name (e.g., "Birthday", "Anniversary", "Renewal Date")
+  showOnWaypoint: int("showOnWaypoint").default(0).notNull(), // 0 = hide, 1 = show on waypoint cards
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
