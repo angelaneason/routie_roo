@@ -928,14 +928,43 @@ export const appRouter = router({
                 
                 const waypointOrder = waypointCount.length + 1;
 
+                // If coordinates are missing, geocode the address
+                let latitude = primaryAddr?.latitude || null;
+                let longitude = primaryAddr?.longitude || null;
+                
+                if (!latitude || !longitude) {
+                  try {
+                    const { makeRequest } = await import("./_core/map");
+                    type GeocodingResult = {
+                      status: string;
+                      results: Array<{
+                        geometry: { location: { lat: number; lng: number } };
+                      }>;
+                    };
+                    
+                    const geocodeResult = await makeRequest<GeocodingResult>(
+                      'https://maps.googleapis.com/maps/api/geocode/json',
+                      { address }
+                    );
+                    
+                    if (geocodeResult.status === "OK" && geocodeResult.results.length > 0) {
+                      const location = geocodeResult.results[0].geometry.location;
+                      latitude = location.lat.toString();
+                      longitude = location.lng.toString();
+                    }
+                  } catch (error) {
+                    console.error(`Failed to geocode address for ${contactData.name}:`, error);
+                  }
+                }
+
                 await db.insert(routeWaypoints).values({
                   routeId,
                   contactId: input.contactId,
                   contactName: contactData.name || "Unknown",
                   address,
                   addressType: primaryAddr?.type || "other",
-                  latitude: primaryAddr?.latitude || null,
-                  longitude: primaryAddr?.longitude || null,
+                  latitude,
+                  longitude,
                   phoneNumbers: contactData.phoneNumbers,
                   photoUrl: contactData.photoUrl,
                   contactLabels: contactData.labels,
@@ -1220,12 +1249,44 @@ export const appRouter = router({
 
         // Add waypoint to route
         const waypointOrder = existingWaypoints.length + 1;
+        
+        // If coordinates are missing, geocode the address
+        let latitude = primaryAddr?.latitude || null;
+        let longitude = primaryAddr?.longitude || null;
+        
+        if (!latitude || !longitude) {
+          try {
+            const { makeRequest } = await import("./_core/map");
+            type GeocodingResult = {
+              status: string;
+              results: Array<{
+                geometry: { location: { lat: number; lng: number } };
+              }>;
+            };
+            
+            const geocodeResult = await makeRequest<GeocodingResult>(
+              'https://maps.googleapis.com/maps/api/geocode/json',
+              { address }
+            );
+            
+            if (geocodeResult.status === "OK" && geocodeResult.results.length > 0) {
+              const location = geocodeResult.results[0].geometry.location;
+              latitude = location.lat.toString();
+              longitude = location.lng.toString();
+            }
+          } catch (error) {
+            console.error(`Failed to geocode address for ${contactData.name}:`, error);
+          }
+        }
+        
         await db.insert(routeWaypoints).values({
           routeId: input.routeId,
           contactId: input.contactId,
           contactName: contactData.name || "Unknown",
           address,
           addressType: primaryAddr?.type || "other",
+          latitude,
+          longitude,
           phoneNumbers: contactData.phoneNumbers,
           photoUrl: contactData.photoUrl,
           contactLabels: contactData.labels,

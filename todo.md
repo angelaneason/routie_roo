@@ -73,6 +73,9 @@
 - [x] Fix dialog state not refreshing when switching between contacts
 - [x] Fix TypeScript compilation errors in route_waypoints status field (BLOCKING DEPLOYMENT)
 - [x] Fix Smart Auto-Routing creating routes with missing coordinates (contacts not geocoded)
+- [x] Fix missing address coordinates - contacts should be geocoded during sync
+- [x] Ensure waypoints get coordinates when added to routes
+- [x] Fix label updates in waypoint editor to sync to contact and Google Contacts (already implemented and working)
 
 ## Known Issues (Non-Blocking)
 
