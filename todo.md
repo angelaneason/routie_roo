@@ -151,3 +151,8 @@
 ## Dashboard Quick Actions Update
 - [x] Change "Plan Your Route" button to "Routes"
 - [x] Add "Contacts" button to quick actions
+
+## OAuth Redirect URI Fix
+- [x] Update PUBLIC_URL environment variable to https://routieroo.cc
+- [ ] Test OAuth login on routieroo.cc
+- [ ] Verify redirect URI matches Google Cloud Console configuration
