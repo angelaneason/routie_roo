@@ -202,3 +202,7 @@
 - [x] Add inline date editing on waypoint cards
 - [x] Sync date changes from waypoints back to contact cards
 - [x] Test that dates display correctly and sync properly
+
+## Bug Fixes - Important Dates Feature
+- [x] Fix duplicate "Visit" entries in stop type legend
+- [x] Fix important date fields not displaying on waypoint cards

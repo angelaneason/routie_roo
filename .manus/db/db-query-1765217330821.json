@@ -1,0 +1,114 @@
+{
+  "query": "SELECT id, position, contactName, stopType, stopColor, isGapStop FROM route_waypoints WHERE routeId = 1680001 ORDER BY position LIMIT 15",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, position, contactName, stopType, stopColor, isGapStop FROM route_waypoints WHERE routeId = 1680001 ORDER BY position LIMIT 15",
+  "rows": [
+    {
+      "id": "1920001",
+      "position": "0",
+      "contactName": "Starting Point",
+      "stopType": "other",
+      "stopColor": "#10b981",
+      "isGapStop": "0"
+    },
+    {
+      "id": "1920009",
+      "position": "1",
+      "contactName": "WILSON Eric",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "isGapStop": "0"
+    },
+    {
+      "id": "1920010",
+      "position": "2",
+      "contactName": "WILSON Teressa",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "isGapStop": "0"
+    },
+    {
+      "id": "1920012",
+      "position": "3",
+      "contactName": "ONEAL Alice",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "isGapStop": "0"
+    },
+    {
+      "id": "1920011",
+      "position": "4",
+      "contactName": "HARRINGTON Dana",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "isGapStop": "0"
+    },
+    {
+      "id": "1920002",
+      "position": "5",
+      "contactName": "GARRETT Larry",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "isGapStop": "0"
+    },
+    {
+      "id": "1920003",
+      "position": "6",
+      "contactName": "MONMOUTH Rose",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "isGapStop": "0"
+    },
+    {
+      "id": "1920004",
+      "position": "7",
+      "contactName": "LAYUG Conrado",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "isGapStop": "0"
+    },
+    {
+      "id": "1920005",
+      "position": "8",
+      "contactName": "BENNETT Sharon",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "isGapStop": "0"
+    },
+    {
+      "id": "1920006",
+      "position": "9",
+      "contactName": "MORGAN Barbara",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "isGapStop": "0"
+    },
+    {
+      "id": "1920007",
+      "position": "10",
+      "contactName": "GAINES Frank",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "isGapStop": "0"
+    },
+    {
+      "id": "1980001",
+      "position": "11",
+      "contactName": "BRODT Marcia",
+      "stopType": "●-visit",
+      "stopColor": "#050505",
+      "isGapStop": "0"
+    },
+    {
+      "id": "1920013",
+      "position": "12",
+      "contactName": "JETER Joe",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "isGapStop": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tposition\tcontactName\tstopType\tstopColor\tisGapStop\n1920001\t0\tStarting Point\tother\t#10b981\t0\n1920009\t1\tWILSON Eric\t● Visit\t#050505\t0\n1920010\t2\tWILSON Teressa\t● Visit\t#050505\t0\n1920012\t3\tONEAL Alice\t● Visit\t#050505\t0\n1920011\t4\tHARRINGTON Dana\t● Visit\t#050505\t0\n1920002\t5\tGARRETT Larry\t● Visit\t#050505\t0\n1920003\t6\tMONMOUTH Rose\t● Visit\t#050505\t0\n1920004\t7\tLAYUG Conrado\t● Visit\t#050505\t0\n1920005\t8\tBENNETT Sharon\t● Visit\t#050505\t0\n1920006\t9\tMORGAN Barbara\t● Visit\t#050505\t0\n1920007\t10\tGAINES Frank\t● Visit\t#050505\t0\n1980001\t11\tBRODT Marcia\t●-visit\t#050505\t0\n1920013\t12\tJETER Joe\t● Visit\t#050505\t0\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

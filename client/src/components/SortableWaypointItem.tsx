@@ -76,6 +76,11 @@ export function SortableWaypointItem({
   totalStops,
 }: SortableWaypointItemProps) {
 
+  // Fetch date types with showOnWaypoint flag
+  const dateTypesQuery = trpc.settings.listImportantDateTypes.useQuery();
+  const dateTypes = dateTypesQuery.data || [];
+  const dateTypesToShow = dateTypes.filter(dt => dt.showOnWaypoint === 1);
+
   const phoneNumbers = waypoint.phoneNumbers ? JSON.parse(waypoint.phoneNumbers) : [];
   const isGapStop = waypoint.isGapStop === true || waypoint.isGapStop === 1;
 
@@ -321,28 +326,46 @@ export function SortableWaypointItem({
       </div>
       
       {/* Important Dates for Waypoint (editable) */}
-      {!isGapStop && waypoint.waypointDateTypes && (() => {
+      {!isGapStop && dateTypesToShow.length > 0 && (() => {
+        // Parse existing dates
+        let existingDates: any[] = [];
         try {
-          const dateTypes = JSON.parse(waypoint.waypointDateTypes);
-          if (dateTypes.length > 0) {
-            return (
-              <div className="pt-2 border-t space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground">Important Dates:</p>
-                {dateTypes.map((dt: any) => (
-                  <div key={dt.id} className="flex items-center gap-2">
-                    <label className="text-xs font-medium min-w-[100px]">{dt.name}:</label>
-                    <DateInput
-                      dateTypeName={dt.name}
-                      initialValue={dt.value || ""}
-                      contactId={waypoint.contactId}
-                    />
-                  </div>
-                ))}
-              </div>
-            );
+          if (waypoint.importantDates) {
+            existingDates = JSON.parse(waypoint.importantDates);
           }
         } catch (e) {}
-        return null;
+
+        return (
+          <div className="pt-2 border-t space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground">Important Dates:</p>
+            {dateTypesToShow.map((dateType) => {
+              // Find existing date for this type
+              const existingDate = existingDates.find((d: any) => d.type === dateType.name);
+              const dateValue = existingDate ? existingDate.date.split('T')[0] : '';
+
+              return (
+                <div key={dateType.id} className="flex items-center gap-2">
+                  <label className="text-xs font-medium min-w-[100px]">{dateType.name}:</label>
+                  {waypoint.contactId ? (
+                    <DateInput
+                      dateTypeName={dateType.name}
+                      initialValue={dateValue}
+                      contactId={waypoint.contactId}
+                    />
+                  ) : (
+                    <Input
+                      type="date"
+                      value={dateValue}
+                      className="h-7 text-xs flex-1"
+                      disabled
+                      placeholder="No contact linked"
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
       })()}
       
       {/* Controls */}
