@@ -1,5 +1,9 @@
 # Routie Roo TODO
 
+## Ready to Publish
+- [x] Important dates display on waypoints with blank fields for missing values
+- [x] Duplicate stop type legend entries fixed
+
 ## In Progress - Enhanced Recurring Schedule System
 
 ### Database Schema Updates
