@@ -133,6 +133,9 @@ export default function Calendar() {
     if (event.type === 'route') {
       return 'bg-blue-500';
     }
+    if (event.type === 'waypoint') {
+      return 'bg-purple-500'; // Purple for individual waypoint events
+    }
     if (event.type === 'rescheduled') {
       return 'bg-orange-500'; // Orange for rescheduled stops
     }
@@ -586,10 +589,14 @@ export default function Calendar() {
             </div>
             
             {/* Event type legend */}
-            <div className="flex items-center gap-4 mb-4 text-sm">
+            <div className="flex items-center gap-4 mb-4 text-sm flex-wrap">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded bg-blue-500" />
                 <span className="text-gray-600">Routes</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded bg-purple-500" />
+                <span className="text-gray-600">Waypoint Events</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded bg-orange-500" />
@@ -642,6 +649,9 @@ export default function Calendar() {
               } else if (event.type === 'route') {
                 bgColor = 'bg-blue-500 border-blue-600';
                 textColor = 'text-white';
+              } else if (event.type === 'waypoint') {
+                bgColor = 'bg-purple-500 border-purple-600';
+                textColor = 'text-white';
               } else if (event.type === 'rescheduled') {
                 bgColor = 'bg-orange-500 border-orange-600';
                 textColor = 'text-white';
@@ -657,19 +667,19 @@ export default function Calendar() {
                     <div className="flex-1">
                       <h3 className={`font-medium text-lg ${textColor}`}>{event.summary}</h3>
                       {startDate && (
-                        <p className={`text-sm mt-1 ${event.color || event.type === 'route' || event.type === 'rescheduled' ? 'text-white/90' : 'text-gray-600'}`}>
+                        <p className={`text-sm mt-1 ${event.color || event.type === 'route' || event.type === 'waypoint' || event.type === 'rescheduled' ? 'text-white/90' : 'text-gray-600'}`}>
                           {startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                           {endDate && ` - ${endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`}
                         </p>
                       )}
                       {event.location && (
-                        <p className={`text-sm mt-1 flex items-center gap-1 ${event.color || event.type === 'route' || event.type === 'rescheduled' ? 'text-white/90' : 'text-gray-600'}`}>
+                        <p className={`text-sm mt-1 flex items-center gap-1 ${event.color || event.type === 'route' || event.type === 'waypoint' || event.type === 'rescheduled' ? 'text-white/90' : 'text-gray-600'}`}>
                           <MapPin className="h-3 w-3" />
                           {event.location}
                         </p>
                       )}
                       {event.description && (
-                        <p className={`text-sm mt-2 ${event.color || event.type === 'route' || event.type === 'rescheduled' ? 'text-white/90' : 'text-gray-700'}`}>{event.description}</p>
+                        <p className={`text-sm mt-2 ${event.color || event.type === 'route' || event.type === 'waypoint' || event.type === 'rescheduled' ? 'text-white/90' : 'text-gray-700'}`}>{event.description}</p>
                       )}
                     </div>
                     <div className="flex gap-2">
@@ -678,7 +688,7 @@ export default function Calendar() {
                           <Button size="sm">View Route</Button>
                         </Link>
                       )}
-                      {event.type === 'google' && event.googleEventId && (
+                      {(event.type === 'google' || event.type === 'waypoint') && event.googleEventId && (
                         <Button 
                           size="sm" 
                           variant="outline"

@@ -186,3 +186,9 @@
 - [x] Change default landing page from Dashboard to Routes (/workspace)
 - [x] Update back buttons to navigate to Routes instead of Dashboard
 - [x] Keep Dashboard accessible via sidebar menu only
+
+## Calendar Waypoint Event Display Issue
+- [x] Investigate why individual waypoint events don't appear in Routie Roo calendar
+- [x] Update calendar.getEvents to fetch and display individual waypoint events
+- [x] Ensure waypoint events can be edited and sync back to Google Calendar
+- [x] Test that waypoint events appear alongside route events in calendar view

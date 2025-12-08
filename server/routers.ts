@@ -3284,7 +3284,7 @@ export const appRouter = router({
         // Get all missed waypoints from user's routes
         const missedWaypoints = await db.select()
           .from(routeWaypoints)
-          .where(eq(routeWaypoints.status, "missed"));
+          .where(sql`${routeWaypoints.status} = 'missed'`);
 
         // Filter to only include waypoints from user's routes and join with route info
         const result = [];
@@ -3871,6 +3871,49 @@ export const appRouter = router({
           });
         });
         
+        // Get waypoints with calendar events (individual stops added to calendar)
+        const waypointEvents = await db
+          .select({
+            waypoint: routeWaypoints,
+            route: routes,
+          })
+          .from(routeWaypoints)
+          .innerJoin(routes, eq(routeWaypoints.routeId, routes.id))
+          .where(
+            and(
+              eq(routes.userId, ctx.user.id),
+              sql`${routeWaypoints.calendarEventId} IS NOT NULL`,
+              sql`${routeWaypoints.calendarEventId} != ''`,
+              sql`${routes.scheduledDate} IS NOT NULL`,
+              sql`YEAR(${routes.scheduledDate}) = ${input.year}`,
+              sql`MONTH(${routes.scheduledDate}) = ${input.month}`
+            )
+          );
+        
+        // Convert waypoint events to calendar events
+        waypointEvents.forEach(({ waypoint, route }) => {
+          if (!waypoint.isGapStop && waypoint.calendarEventId) {
+            // Calculate event time based on route scheduled date and waypoint position
+            const routeStartTime = route.scheduledDate ? new Date(route.scheduledDate) : new Date();
+            
+            allEvents.push({
+              id: `waypoint-${waypoint.id}`,
+              waypointId: waypoint.id,
+              routeId: route.id,
+              routeName: route.name,
+              summary: `${waypoint.stopType}: ${waypoint.contactName}`,
+              description: `Stop from route: ${route.name}`,
+              start: routeStartTime.toISOString(),
+              end: new Date(routeStartTime.getTime() + 30 * 60 * 1000).toISOString(), // 30 min default
+              location: waypoint.address,
+              type: 'waypoint',
+              color: waypoint.stopColor || '#3b82f6', // Use stop type color
+              googleEventId: waypoint.calendarEventId, // For editing
+              calendarId: route.googleCalendarId || '', // Calendar ID from route
+            });
+          }
+        });
+        
         // Get rescheduled stops (missed waypoints with rescheduledDate)
         const rescheduledStops = await db
           .select({
@@ -3882,7 +3925,7 @@ export const appRouter = router({
           .where(
             and(
               eq(routes.userId, ctx.user.id),
-              eq(routeWaypoints.status, 'missed'),
+              sql`${routeWaypoints.status} = 'missed'`,
               sql`${routeWaypoints.rescheduledDate} IS NOT NULL`,
               sql`YEAR(${routeWaypoints.rescheduledDate}) = ${input.year}`,
               sql`MONTH(${routeWaypoints.rescheduledDate}) = ${input.month}`
@@ -4557,7 +4600,7 @@ export const appRouter = router({
           .innerJoin(routes, eq(routeWaypoints.routeId, routes.id))
           .where(and(
             eq(routes.userId, input.userId),
-            eq(routeWaypoints.status, 'complete')
+            sql`${routeWaypoints.status} = 'complete'`
           ));
         
         return {
@@ -4620,7 +4663,7 @@ export const appRouter = router({
       // Total completed stops
       const totalCompletedStops = await db.select({ count: sql<number>`count(*)` })
         .from(routeWaypoints)
-        .where(eq(routeWaypoints.status, 'complete'));
+        .where(sql`${routeWaypoints.status} = 'complete'`);
       
       // Active users (logged in within last 30 days)
       const thirtyDaysAgo = new Date();
