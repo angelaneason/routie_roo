@@ -9,6 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIconLucide, MessageSquare, Plus, X, CheckCircle2, Tags, Paperclip, Upload, Eye, EyeOff, FileText, Trash2 } from "lucide-react";
 import { EmojiPickerButton } from "./EmojiPickerButton";
 import { toast } from "sonner";
@@ -120,7 +123,7 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
   const commentOptionsQuery = trpc.settings.listCommentOptions.useQuery();
   
   // Fetch all available labels and documents
-  const allLabelsQuery = trpc.contacts.getAllLabels.useQuery();
+  const allLabelsQuery = trpc.contacts.getAllLabels.useQuery(undefined, { enabled: open });
   const documentsQuery = trpc.contacts.getDocuments.useQuery({ contactId: contact.id }, { enabled: open });
   
   // Mutations
@@ -621,36 +624,76 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
           </div>
           
           {/* Labels Section */}
-          <div className="space-y-2 border-t pt-4">
+          <div className="space-y-3 border-t pt-4">
             <Label className="text-sm !font-bold flex items-center gap-2">
               <Tags className="h-4 w-4" />
               Labels
             </Label>
-            <div className="flex flex-wrap gap-2">
-              {allLabelsQuery.data && allLabelsQuery.data.length > 0 ? (
-                allLabelsQuery.data.map((labelObj: { resourceName: string; name: string; memberCount?: number }) => (
-                  <Button
-                    key={labelObj.resourceName}
-                    type="button"
-                    variant={selectedLabels.includes(labelObj.name) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => toggleLabel(labelObj.name)}
-                    className="h-8"
-                  >
-                    {labelObj.name}
-                    {selectedLabels.includes(labelObj.name) && (
-                      <CheckCircle2 className="h-3 w-3 ml-1" />
-                    )}
-                  </Button>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">No labels available</p>
-              )}
-            </div>
+            
+            {/* Label Selector */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Label
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search labels..." />
+                  <CommandEmpty>
+                    {allLabelsQuery.isLoading ? "Loading..." : "No labels found."}
+                  </CommandEmpty>
+                  <CommandGroup className="max-h-64 overflow-auto">
+                    {allLabelsQuery.isError ? (
+                      <div className="p-2 text-sm text-destructive">Error loading labels</div>
+                    ) : allLabelsQuery.data && Array.isArray(allLabelsQuery.data) ? (
+                      allLabelsQuery.data
+                        .filter((labelObj: any) => labelObj && typeof labelObj === 'object' && typeof labelObj.name === 'string')
+                        .filter((labelObj: { name: string }) => !selectedLabels.includes(labelObj.name))
+                        .map((labelObj: { resourceName: string; name: string; memberCount?: number }) => (
+                          <CommandItem
+                            key={labelObj.resourceName || labelObj.name}
+                            value={labelObj.name}
+                            onSelect={() => toggleLabel(labelObj.name)}
+                          >
+                            {labelObj.name}
+                          </CommandItem>
+                        ))
+                    ) : null}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            
+            {/* Selected Labels */}
             {selectedLabels.length > 0 && (
-              <p className="text-xs text-muted-foreground">
-                {selectedLabels.length} label{selectedLabels.length !== 1 ? 's' : ''} selected
-              </p>
+              <div className="flex flex-wrap gap-2">
+                {selectedLabels.map((label) => (
+                  <Badge
+                    key={label}
+                    variant="secondary"
+                    className="pl-2 pr-1 py-1 flex items-center gap-1"
+                  >
+                    {label}
+                    <button
+                      type="button"
+                      onClick={() => toggleLabel(label)}
+                      className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+            
+            {selectedLabels.length === 0 && (
+              <p className="text-xs text-muted-foreground">No labels selected</p>
             )}
           </div>
           
@@ -693,7 +736,9 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
             
             {/* Documents List */}
             <div className="space-y-2 max-h-40 overflow-y-auto">
-              {documentsQuery.isLoading ? (
+              {documentsQuery.isError ? (
+                <p className="text-sm text-destructive">Error loading documents</p>
+              ) : documentsQuery.isLoading ? (
                 <p className="text-sm text-muted-foreground">Loading documents...</p>
               ) : documentsQuery.data && documentsQuery.data.length > 0 ? (
                 documentsQuery.data.map((doc: any) => (

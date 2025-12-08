@@ -45,7 +45,6 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: MapPin, label: "Plan Routes", path: "/workspace" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
-  { icon: Zap, label: "Smart Routing", path: "/smart-routing" },
   { icon: AlertTriangle, label: "Mis-Hops", path: "/missed-stops" },
   { icon: Clock, label: "Reschedule", path: "/reschedule-history" },
   { icon: Archive, label: "Archive", path: "/archive" },

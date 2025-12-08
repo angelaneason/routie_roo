@@ -159,4 +159,11 @@
 
 ## Contact Edit Dialog Fixes
 - [x] Fix React error #31 when rendering labels (getAllLabels returns objects, not strings)
-- [x] Fix Google Maps API not loading in AddressAutocomplete component (causing React error #31)
+- [x] Fix React error #31 by adding enabled flag to allLabelsQuery and error handling
+
+## Dashboard Updates
+- [x] Remove Smart Scheduling link from dashboard
+
+## Contact Edit Dialog UI Improvements
+- [x] Replace label button grid with searchable dropdown/combobox
+- [x] Display selected labels as removable badges

@@ -16,36 +16,63 @@ const FORGE_BASE_URL =
   "https://forge.butterfly-effect.dev";
 const MAPS_PROXY_URL = `${FORGE_BASE_URL}/v1/maps/proxy`;
 
-let mapsLoadingPromise: Promise<void> | null = null;
-let mapsLoaded = false;
+// Track if the script has been loaded globally
+let scriptLoaded = false;
+let scriptLoading = false;
+const loadCallbacks: Array<() => void> = [];
 
 function loadMapScript(): Promise<void> {
-  if (mapsLoaded) {
+  // If already loaded, resolve immediately
+  if (scriptLoaded && window.google?.maps?.places) {
     return Promise.resolve();
   }
-  
-  if (mapsLoadingPromise) {
-    return mapsLoadingPromise;
+
+  // If currently loading, wait for it
+  if (scriptLoading) {
+    return new Promise((resolve) => {
+      loadCallbacks.push(() => resolve());
+    });
   }
 
-  mapsLoadingPromise = new Promise((resolve, reject) => {
+  // Start loading
+  scriptLoading = true;
+  
+  const scriptUrl = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry`;
+  console.log("[AddressAutocomplete] Loading script from:", scriptUrl);
+
+  return new Promise((resolve) => {
     const script = document.createElement("script");
-    script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry`;
+    script.src = scriptUrl;
     script.async = true;
     script.crossOrigin = "anonymous";
+    
+    console.log("[AddressAutocomplete] Script element created, appending to head...");
+    
     script.onload = () => {
-      mapsLoaded = true;
+      scriptLoaded = true;
+      scriptLoading = false;
+      
+      // Notify all waiting callbacks
+      loadCallbacks.forEach(cb => cb());
+      loadCallbacks.length = 0;
+      
       resolve();
     };
-    script.onerror = () => {
-      console.error("Failed to load Google Maps script");
-      mapsLoadingPromise = null;
-      reject(new Error("Failed to load Google Maps"));
+    
+    script.onerror = (error) => {
+      console.error("[AddressAutocomplete] Failed to load Google Maps script:", error);
+      scriptLoading = false;
+      
+      // Notify all waiting callbacks anyway
+      loadCallbacks.forEach(cb => cb());
+      loadCallbacks.length = 0;
+      
+      resolve(); // Resolve anyway to prevent hanging
     };
+    
     document.head.appendChild(script);
+    console.log("[AddressAutocomplete] Script appended to document.head");
   });
-
-  return mapsLoadingPromise;
 }
 
 /**
@@ -63,18 +90,39 @@ export function AddressAutocomplete({
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
     async function initAutocomplete() {
       try {
+        console.log("[AddressAutocomplete] Starting initialization...");
+        
         // Load Google Maps script first
         await loadMapScript();
 
-        if (!mounted || !inputRef.current) {
+        if (!mounted) {
+          console.log("[AddressAutocomplete] Component unmounted during load");
           return;
         }
+
+        // Verify Google Maps API is available
+        if (!window.google?.maps?.places) {
+          console.error("[AddressAutocomplete] Google Maps Places API not available!");
+          setError(true);
+          setIsLoading(false);
+          return;
+        }
+
+        if (!inputRef.current) {
+          console.error("[AddressAutocomplete] Input ref not available");
+          setError(true);
+          setIsLoading(false);
+          return;
+        }
+
+        console.log("[AddressAutocomplete] Initializing Autocomplete...");
 
         // Initialize autocomplete
         autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
@@ -91,9 +139,11 @@ export function AddressAutocomplete({
           }
         });
 
+        console.log("[AddressAutocomplete] Initialization complete!");
         setIsLoading(false);
-      } catch (error) {
-        console.error("[AddressAutocomplete] Failed to initialize:", error);
+      } catch (err) {
+        console.error("[AddressAutocomplete] Failed to initialize:", err);
+        setError(true);
         setIsLoading(false);
       }
     }
@@ -108,13 +158,26 @@ export function AddressAutocomplete({
     };
   }, [onChange, onPlaceSelected]);
 
+  if (error) {
+    return (
+      <Input
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={className}
+        autoComplete="off"
+      />
+    );
+  }
+
   return (
     <Input
       ref={inputRef}
       id={id}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder={isLoading ? "Loading..." : placeholder}
+      placeholder={isLoading ? "Loading address autocomplete..." : placeholder}
       className={className}
       autoComplete="off"
       disabled={isLoading}
