@@ -154,5 +154,8 @@
 
 ## OAuth Redirect URI Fix
 - [x] Update PUBLIC_URL environment variable to https://routieroo.cc
-- [ ] Test OAuth login on routieroo.cc
-- [ ] Verify redirect URI matches Google Cloud Console configuration
+- [x] Test OAuth login on routieroo.cc
+- [x] Verify redirect URI matches Google Cloud Console configuration
+
+## Contact Edit Dialog Fixes
+- [x] Fix React error #31 when rendering labels (getAllLabels returns objects, not strings)

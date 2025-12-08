@@ -628,17 +628,17 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
             </Label>
             <div className="flex flex-wrap gap-2">
               {allLabelsQuery.data && allLabelsQuery.data.length > 0 ? (
-                allLabelsQuery.data.map((label: string) => (
+                allLabelsQuery.data.map((labelObj: { resourceName: string; name: string; memberCount?: number }) => (
                   <Button
-                    key={label}
+                    key={labelObj.resourceName}
                     type="button"
-                    variant={selectedLabels.includes(label) ? "default" : "outline"}
+                    variant={selectedLabels.includes(labelObj.name) ? "default" : "outline"}
                     size="sm"
-                    onClick={() => toggleLabel(label)}
+                    onClick={() => toggleLabel(labelObj.name)}
                     className="h-8"
                   >
-                    {label}
-                    {selectedLabels.includes(label) && (
+                    {labelObj.name}
+                    {selectedLabels.includes(labelObj.name) && (
                       <CheckCircle2 className="h-3 w-3 ml-1" />
                     )}
                   </Button>
