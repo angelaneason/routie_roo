@@ -16,6 +16,7 @@ interface SortableWaypointItemProps {
   onRemove?: () => void;
   onEditAddress?: () => void;
   onEdit?: () => void;
+  onGeocode?: () => void;
   onPositionChange?: (waypointId: number, newPosition: number) => void;
   totalStops?: number;
 }
@@ -32,6 +33,7 @@ export function SortableWaypointItem({
   onRemove,
   onEditAddress,
   onEdit,
+  onGeocode,
   onPositionChange,
   totalStops,
 }: SortableWaypointItemProps) {
@@ -291,6 +293,18 @@ export function SortableWaypointItem({
           <Edit3 className="h-4 w-4 mr-1" />
           Edit Details
         </Button>
+        {/* Show Fix Location button if coordinates are missing */}
+        {(!waypoint.latitude || !waypoint.longitude) && onGeocode && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onGeocode}
+            className="text-orange-600 hover:bg-orange-50"
+          >
+            <MapPin className="h-4 w-4 mr-1" />
+            Fix Location
+          </Button>
+        )}
         <Button
           size="sm"
           variant="outline"

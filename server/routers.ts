@@ -2852,6 +2852,79 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Geocode waypoint (retry geocoding for waypoints with missing coordinates)
+    geocodeWaypoint: protectedProcedure
+      .input(z.object({
+        waypointId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Verify waypoint belongs to user's route
+        const waypoint = await db.select().from(routeWaypoints).where(eq(routeWaypoints.id, input.waypointId)).limit(1);
+        if (!waypoint.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Waypoint not found" });
+        }
+
+        const route = await getRouteById(waypoint[0].routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+        }
+
+        const waypointData = waypoint[0];
+        if (!waypointData.address) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Waypoint has no address to geocode" });
+        }
+
+        // Geocode the address to get coordinates
+        let latitude: string | null = null;
+        let longitude: string | null = null;
+        
+        try {
+          const { makeRequest } = await import("./_core/map");
+          type GeocodingResult = {
+            results: Array<{
+              geometry: { location: { lat: number; lng: number } };
+              formatted_address: string;
+            }>;
+            status: string;
+          };
+          const geocodeResult = await makeRequest<GeocodingResult>(
+            "/maps/api/geocode/json",
+            { address: waypointData.address }
+          );
+          
+          if (geocodeResult.status === "OK" && geocodeResult.results.length > 0) {
+            const location = geocodeResult.results[0].geometry.location;
+            latitude = location.lat.toString();
+            longitude = location.lng.toString();
+          } else {
+            throw new TRPCError({ 
+              code: "BAD_REQUEST", 
+              message: `Geocoding failed: ${geocodeResult.status}` 
+            });
+          }
+        } catch (error) {
+          console.error("Failed to geocode address:", error);
+          throw new TRPCError({ 
+            code: "INTERNAL_SERVER_ERROR", 
+            message: "Failed to geocode address" 
+          });
+        }
+
+        // Update waypoint with coordinates
+        await db.update(routeWaypoints)
+          .set({ latitude, longitude })
+          .where(eq(routeWaypoints.id, input.waypointId));
+
+        return { 
+          success: true, 
+          latitude, 
+          longitude 
+        };
+      }),
+
     // Copy route
     copyRoute: protectedProcedure
       .input(z.object({

@@ -175,6 +175,16 @@ export default function RouteDetail() {
     },
   });
 
+  const geocodeWaypointMutation = trpc.routes.geocodeWaypoint.useMutation({
+    onSuccess: (data) => {
+      toast.success("Location coordinates updated successfully");
+      routeQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Failed to geocode address: ${error.message}`);
+    },
+  });
+
   const addGapStopMutation = trpc.routes.addGapStop.useMutation({
     onSuccess: () => {
       toast.success("Gap stop added");
@@ -436,13 +446,16 @@ export default function RouteDetail() {
                 if (waypoint?.contactLabels && labelColorsQuery.data) {
                   try {
                     const labels = JSON.parse(waypoint.contactLabels);
+                    // Helper to normalize label names (remove * prefix, lowercase)
+                    const normalizeLabel = (label: string) => label.replace(/^\*/, '').toLowerCase().trim();
                     const labelsWithColors = labels.filter((label: string) => 
-                      labelColorsQuery.data.some(lc => lc.labelName === label)
+                      labelColorsQuery.data.some(lc => normalizeLabel(lc.labelName) === normalizeLabel(label))
                     );
                     
                     // If exactly one label has a color, use it as center with stop type as border
                     if (labelsWithColors.length === 1) {
-                      const labelColor = labelColorsQuery.data.find(lc => lc.labelName === labelsWithColors[0]);
+                      const normalizeLabel = (label: string) => label.replace(/^\*/, '').toLowerCase().trim();
+                      const labelColor = labelColorsQuery.data.find(lc => normalizeLabel(lc.labelName) === normalizeLabel(labelsWithColors[0]));
                       if (labelColor) {
                         fillColor = labelColor.color; // label color in center
                         strokeColor = stopColor; // stop type color as border
@@ -498,13 +511,16 @@ export default function RouteDetail() {
             if (lastWaypoint?.contactLabels && labelColorsQuery.data) {
               try {
                 const labels = JSON.parse(lastWaypoint.contactLabels);
+                // Helper to normalize label names (remove * prefix, lowercase)
+                const normalizeLabel = (label: string) => label.replace(/^\*/, '').toLowerCase().trim();
                 const labelsWithColors = labels.filter((label: string) => 
-                  labelColorsQuery.data.some(lc => lc.labelName === label)
+                  labelColorsQuery.data.some(lc => normalizeLabel(lc.labelName) === normalizeLabel(label))
                 );
                 
                 // If exactly one label has a color, use it as center with stop type as border
                 if (labelsWithColors.length === 1) {
-                  const labelColor = labelColorsQuery.data.find(lc => lc.labelName === labelsWithColors[0]);
+                  const normalizeLabel = (label: string) => label.replace(/^\*/, '').toLowerCase().trim();
+                  const labelColor = labelColorsQuery.data.find(lc => normalizeLabel(lc.labelName) === normalizeLabel(labelsWithColors[0]));
                   if (labelColor) {
                     lastFillColor = labelColor.color; // label color in center
                     lastStrokeColor = lastStopColor; // stop type color as border
@@ -1180,6 +1196,11 @@ export default function RouteDetail() {
                               setEditWaypointLabels([]);
                             }
                             setShowEditWaypointDialog(true);
+                          }}
+                          onGeocode={() => {
+                            if (confirm(`Retry geocoding for ${waypoint.contactName || waypoint.address}?`)) {
+                              geocodeWaypointMutation.mutate({ waypointId: waypoint.id });
+                            }
                           }}
                           onPositionChange={handlePositionChange}
                         />

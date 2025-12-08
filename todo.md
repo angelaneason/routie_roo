@@ -81,6 +81,12 @@
 
 - Integration tests require test data fixtures (expected behavior)
 
+## New Issues (2025-12-08)
+
+- [x] Fix geocoding for BRODT Marcia (stop #11) - address not geocoded, missing coordinates
+- [x] Fix map marker colors - should show yellow for DeltaCare label, currently showing pink
+- [x] Add label editing capability to Edit Details dialog in route waypoint editor (already implemented, verified working)
+
 ## Layout Fixes
 - [x] Fix schedule information overlapping with Schedule button on contact cards
 
