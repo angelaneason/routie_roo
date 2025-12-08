@@ -159,3 +159,4 @@
 
 ## Contact Edit Dialog Fixes
 - [x] Fix React error #31 when rendering labels (getAllLabels returns objects, not strings)
+- [x] Fix Google Maps API not loading in AddressAutocomplete component (causing React error #31)
