@@ -176,3 +176,8 @@
 ## Contact Edit Dialog UI Improvements
 - [x] Replace label button grid with searchable dropdown/combobox
 - [x] Display selected labels as removable badges
+
+## Waypoint Edit Details Dialog
+- [x] Add label selector dropdown to waypoint Edit Details dialog (like RoadRunner interface)
+- [x] Enable label selection/deselection with checkboxes
+- [x] Sync label changes to contact card and Google Contacts

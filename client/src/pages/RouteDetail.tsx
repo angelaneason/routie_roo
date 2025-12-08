@@ -84,6 +84,11 @@ export default function RouteDetail() {
     enabled: isAuthenticated,
   });
 
+  // Fetch all available labels for label selector
+  const allLabelsQuery = trpc.contacts.getAllLabels.useQuery(undefined, {
+    enabled: isAuthenticated && showEditWaypointDialog,
+  });
+
   const route = routeQuery.data?.route;
   const waypoints = routeQuery.data?.waypoints || [];
 
@@ -1733,7 +1738,7 @@ export default function RouteDetail() {
             </div>
             <div className="space-y-2">
               <Label>Contact Labels</Label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mb-2">
                 {editWaypointLabels.map((label, idx) => (
                   <div key={idx} className="flex items-center gap-1 bg-secondary px-2 py-1 rounded-md text-sm">
                     <span>{label}</span>
@@ -1750,18 +1755,41 @@ export default function RouteDetail() {
                   </div>
                 ))}
               </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Add label (e.g., Family, Work)"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && e.currentTarget.value.trim()) {
-                      setEditWaypointLabels([...editWaypointLabels, e.currentTarget.value.trim()]);
-                      e.currentTarget.value = "";
-                    }
-                  }}
-                />
+              <div className="border rounded-md p-2 max-h-48 overflow-y-auto">
+                {allLabelsQuery.isLoading ? (
+                  <p className="text-sm text-muted-foreground">Loading labels...</p>
+                ) : allLabelsQuery.data && allLabelsQuery.data.length > 0 ? (
+                  <div className="space-y-1">
+                    {allLabelsQuery.data.map((labelObj) => {
+                      const labelName = typeof labelObj === 'string' ? labelObj : labelObj.name;
+                      const isSelected = editWaypointLabels.includes(labelName);
+                      return (
+                        <label
+                          key={labelName}
+                          className="flex items-center gap-2 p-2 hover:bg-accent rounded-md cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setEditWaypointLabels([...editWaypointLabels, labelName]);
+                              } else {
+                                setEditWaypointLabels(editWaypointLabels.filter(l => l !== labelName));
+                              }
+                            }}
+                            className="h-4 w-4"
+                          />
+                          <span className="text-sm">{labelName}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No labels available</p>
+                )}
               </div>
-              <p className="text-xs text-muted-foreground">Press Enter to add a label</p>
+              <p className="text-xs text-muted-foreground">Select label groups to add to this contact</p>
             </div>
           </div>
           <DialogFooter>
