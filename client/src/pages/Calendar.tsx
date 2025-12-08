@@ -460,7 +460,7 @@ export default function Calendar() {
               <Plus className="h-4 w-4 md:mr-2" />
               <span className="hidden md:inline">Add Event</span>
             </Button>
-            <Link href="/" className="flex-1 md:flex-initial">
+            <Link href="/workspace" className="flex-1 md:flex-initial">
               <Button variant="outline" size="sm" className="w-full">Back to Home</Button>
             </Link>
           </div>

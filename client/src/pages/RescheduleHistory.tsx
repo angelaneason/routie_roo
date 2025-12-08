@@ -33,7 +33,7 @@ export default function RescheduleHistory() {
   };
 
   if (!isAuthenticated) {
-    navigate("/");
+    navigate("/workspace");
     return null;
   }
 
@@ -82,7 +82,7 @@ export default function RescheduleHistory() {
       <header className="bg-white border-b">
         <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/">
+            <Link href="/workspace">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back

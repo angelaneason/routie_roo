@@ -149,7 +149,7 @@ export default function RouteDetail() {
   const archiveRouteMutation = trpc.routes.archiveRoute.useMutation({
     onSuccess: () => {
       toast.success("Route archived");
-      navigate("/");
+      navigate("/workspace");
     },
     onError: (error) => {
       toast.error(`Failed to archive: ${error.message}`);
@@ -762,7 +762,7 @@ export default function RouteDetail() {
                 <strong>Error:</strong> {routeQuery.error.message}
               </div>
             )}
-            <Link href="/">
+            <Link href="/workspace">
               <Button className="w-full">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Home
@@ -780,7 +780,7 @@ export default function RouteDetail() {
         <div className="container py-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3 flex-wrap">
-              <Link href="/">
+              <Link href="/workspace">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back

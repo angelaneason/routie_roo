@@ -181,3 +181,8 @@
 - [x] Add label selector dropdown to waypoint Edit Details dialog (like RoadRunner interface)
 - [x] Enable label selection/deselection with checkboxes
 - [x] Sync label changes to contact card and Google Contacts
+
+## Navigation Flow Updates
+- [x] Change default landing page from Dashboard to Routes (/workspace)
+- [x] Update back buttons to navigate to Routes instead of Dashboard
+- [x] Keep Dashboard accessible via sidebar menu only

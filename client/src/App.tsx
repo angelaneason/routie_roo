@@ -50,7 +50,8 @@ function Router() {
     <>
       <ImpersonationBanner />
       <Switch>
-      <Route path={"/"} component={Dashboard} />
+      <Route path={"/"} component={Home} />
+      <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/workspace"} component={Home} />
       <Route path={"/plan-route"} component={Home} />
       <Route path={"/contacts"} component={Home} />
