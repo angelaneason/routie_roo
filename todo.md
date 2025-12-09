@@ -241,3 +241,37 @@
 
 ## Route Holders Search Filtering Bug (2025-12-09)
 - [x] Fix "No contact found" appearing when typing - search filter not matching contacts correctly
+
+## Critical Issues (2025-12-09)
+- [ ] Fix geocoding - addresses not getting coordinates when syncing contacts
+- [ ] Integrate Route Holders with Smart Auto-Routing - scheduled routes should be assigned to correct route holder
+- [ ] Support multiple route holders on same schedule day
+- [ ] Implement folder management for auto-generated routes
+- [ ] Create "Scheduled Routes" folder for auto-generated routes
+- [ ] Add ability to move routes between folders
+- [ ] Add ability to move scheduled routes to main workspace or other folders
+
+
+## Subscription Tier System Implementation (2025-12-09)
+
+### Database Schema
+- [x] Add subscriptionTier field to users table (VARCHAR(20), default 'free')
+- [x] Options: 'free', 'premium', 'enterprise'
+
+### Backend Subscription Gating
+- [x] Add subscription check to contacts.updateScheduledDays procedure
+- [x] Add subscription check to all routeHolders procedures (list, create, update, delete)
+- [x] Return proper error message for free users trying to access premium features
+
+### Frontend UI Updates
+- [x] Hide "Schedule" button on contact cards for free users
+- [x] Hide scheduled days badge on contact cards for free users
+- [x] Hide "Route Holders" tab in Settings for free users
+- [x] Keep manual route creation available to all users
+
+### Testing
+- [ ] Test free user cannot access Smart Routing features
+- [ ] Test premium user can access all Smart Routing features
+- [ ] Test enterprise tier placeholder works correctly
+- [ ] Test error messages display correctly when free users try to access premium features
+- [ ] Verify manual route creation works for all tiers

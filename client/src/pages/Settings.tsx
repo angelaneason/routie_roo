@@ -177,12 +177,14 @@ export default function Settings() {
             </div>
           ) : (
             <Tabs defaultValue="account" className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className={`grid w-full ${['premium', 'enterprise'].includes(user?.subscriptionTier || 'free') ? 'grid-cols-6' : 'grid-cols-5'}`}>
                 <TabsTrigger value="account">Account</TabsTrigger>
                 <TabsTrigger value="site">Site Config</TabsTrigger>
                 <TabsTrigger value="contacts">Contacts</TabsTrigger>
                 <TabsTrigger value="routes">Routes</TabsTrigger>
-                <TabsTrigger value="holders">Route Holders</TabsTrigger>
+                {['premium', 'enterprise'].includes(user?.subscriptionTier || 'free') && (
+                  <TabsTrigger value="holders">Route Holders</TabsTrigger>
+                )}
                 <TabsTrigger value="labels">Label Colors</TabsTrigger>
               </TabsList>
 
@@ -1021,9 +1023,11 @@ export default function Settings() {
               </TabsContent>
 
               {/* ========== ROUTE HOLDERS TAB ========== */}
-              <TabsContent value="holders" className="space-y-4 mt-6">
-                <RouteHoldersSettings />
-              </TabsContent>
+              {['premium', 'enterprise'].includes(user?.subscriptionTier || 'free') && (
+                <TabsContent value="holders" className="space-y-4 mt-6">
+                  <RouteHoldersSettings />
+                </TabsContent>
+              )}
 
               {/* ========== LABEL COLORS TAB ========== */}
               <TabsContent value="labels" className="space-y-4 mt-6">

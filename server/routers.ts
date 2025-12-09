@@ -204,7 +204,7 @@ export const appRouter = router({
                     };
                     
                     const geocodeResult = await makeRequest<GeocodingResult>(
-                      'https://maps.googleapis.com/maps/api/geocode/json',
+                      '/maps/api/geocode/json',
                       { address: addr.formattedValue }
                     );
                     
@@ -727,6 +727,14 @@ export const appRouter = router({
         routeHolderSchedule: z.record(z.string(), z.number()).optional(), // { "Monday": 1, "Wednesday": 2 }
       }))
       .mutation(async ({ ctx, input }) => {
+        // Check subscription tier - Smart Auto-Routing is premium-only
+        if (!['premium', 'enterprise'].includes(ctx.user.subscriptionTier || 'free')) {
+          throw new TRPCError({ 
+            code: 'FORBIDDEN', 
+            message: 'Smart Auto-Routing is a premium feature. Please upgrade to access contact scheduling.' 
+          });
+        }
+
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
@@ -848,6 +856,7 @@ export const appRouter = router({
             let routeHolderCalendarId: string | null = null;
             let routeHolderStopType: string | null = null;
             let routeHolderStopColor: string | null = null;
+            let routeHolderName: string | null = null;
             
             if (routeHolderId) {
               const { routeHolders } = await import("../drizzle/schema");
@@ -856,6 +865,7 @@ export const appRouter = router({
                 .limit(1);
               
               if (holder) {
+                routeHolderName = holder.name;
                 routeHolderCalendarId = holder.googleCalendarId || null;
                 routeHolderStopType = holder.defaultStopType || null;
                 routeHolderStopColor = holder.defaultStopTypeColor || null;
@@ -863,7 +873,8 @@ export const appRouter = router({
             }
             
             // Find or create route for this day
-            const routeName = `${day} Route - Week of ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+            const routeNamePrefix = routeHolderName ? `${routeHolderName} - ` : '';
+            const routeName = `${routeNamePrefix}${day} Route - Week of ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
             
             let routeId: number;
             const existingRoutes = await db.select()
@@ -877,10 +888,11 @@ export const appRouter = router({
 
             if (existingRoutes.length > 0) {
               routeId = existingRoutes[0].id;
-              // Update existing route with holder info if provided
+              // Update existing route with holder info and name if provided
               if (routeHolderId) {
                 await db.update(routes)
                   .set({
+                    name: routeName, // Update name to include holder
                     routeHolderId,
                     googleCalendarId: routeHolderCalendarId,
                   })
@@ -943,7 +955,7 @@ export const appRouter = router({
                     };
                     
                     const geocodeResult = await makeRequest<GeocodingResult>(
-                      'https://maps.googleapis.com/maps/api/geocode/json',
+                      '/maps/api/geocode/json',
                       { address }
                     );
                     
@@ -1321,7 +1333,7 @@ export const appRouter = router({
             };
             
             const geocodeResult = await makeRequest<GeocodingResult>(
-              'https://maps.googleapis.com/maps/api/geocode/json',
+              '/maps/api/geocode/json',
               { address }
             );
             
@@ -2315,7 +2327,7 @@ export const appRouter = router({
           };
           
           const geocodeResult = await makeRequest<GeocodingResult>(
-            'https://maps.googleapis.com/maps/api/geocode/json',
+            '/maps/api/geocode/json',
             { address: input.address }
           );
           
@@ -4894,6 +4906,14 @@ export const appRouter = router({
   routeHolders: router({
     // List all route holders for the user
     list: protectedProcedure.query(async ({ ctx }) => {
+      // Check subscription tier - Route Holders is premium-only
+      if (!['premium', 'enterprise'].includes(ctx.user.subscriptionTier || 'free')) {
+        throw new TRPCError({ 
+          code: 'FORBIDDEN', 
+          message: 'Route Holders is a premium feature. Please upgrade to access this functionality.' 
+        });
+      }
+
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
 
@@ -4914,6 +4934,14 @@ export const appRouter = router({
         defaultStartingAddress: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
+        // Check subscription tier - Route Holders is premium-only
+        if (!['premium', 'enterprise'].includes(ctx.user.subscriptionTier || 'free')) {
+          throw new TRPCError({ 
+            code: 'FORBIDDEN', 
+            message: 'Route Holders is a premium feature. Please upgrade to access this functionality.' 
+          });
+        }
+
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
 
@@ -4942,6 +4970,14 @@ export const appRouter = router({
         defaultStartingAddress: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
+        // Check subscription tier - Route Holders is premium-only
+        if (!['premium', 'enterprise'].includes(ctx.user.subscriptionTier || 'free')) {
+          throw new TRPCError({ 
+            code: 'FORBIDDEN', 
+            message: 'Route Holders is a premium feature. Please upgrade to access this functionality.' 
+          });
+        }
+
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
 
@@ -4976,6 +5012,14 @@ export const appRouter = router({
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
+        // Check subscription tier - Route Holders is premium-only
+        if (!['premium', 'enterprise'].includes(ctx.user.subscriptionTier || 'free')) {
+          throw new TRPCError({ 
+            code: 'FORBIDDEN', 
+            message: 'Route Holders is a premium feature. Please upgrade to access this functionality.' 
+          });
+        }
+
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
 

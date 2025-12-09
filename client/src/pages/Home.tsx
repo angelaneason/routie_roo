@@ -1279,9 +1279,9 @@ export default function Home() {
                         
                         {/* Action buttons and schedule info row */}
                         <div className="mt-2 flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
-                          {/* Scheduled Days Badge (only show when Smart Routing enabled) */}
+                          {/* Scheduled Days Badge (only show when Smart Routing enabled and user is premium+) */}
                           <div className="flex-1 min-w-0">
-                            {user?.enableSmartRouting === 1 && (contact.scheduledDays || contact.repeatDays) && (() => {
+                            {user?.enableSmartRouting === 1 && ['premium', 'enterprise'].includes(user?.subscriptionTier || 'free') && (contact.scheduledDays || contact.repeatDays) && (() => {
                               try {
                                 const scheduleText = formatRecurringSchedule({
                                   repeatInterval: contact.repeatInterval ?? undefined,
@@ -1304,8 +1304,8 @@ export default function Home() {
                           
                           {/* Action buttons */}
                           <div className="flex gap-1 flex-shrink-0">
-                          {/* Schedule Button (only show when Smart Routing enabled) */}
-                          {user?.enableSmartRouting === 1 && (
+                          {/* Schedule Button (only show when Smart Routing enabled and user is premium+) */}
+                          {user?.enableSmartRouting === 1 && ['premium', 'enterprise'].includes(user?.subscriptionTier || 'free') && (
                             <Button
                               variant="outline"
                               size="sm"
