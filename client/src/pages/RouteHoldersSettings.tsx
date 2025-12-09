@@ -23,8 +23,9 @@ export default function RouteHoldersSettings() {
 
   // Fetch data
   const { data: routeHolders, isLoading, refetch } = trpc.routeHolders.list.useQuery();
-  const { data: calendars } = trpc.contacts.getCalendarList.useQuery();
+  const { data: calendars } = trpc.googleCalendar.getCalendarList.useQuery();
   const { data: settings } = trpc.settings.get.useQuery();
+  const { data: contacts } = trpc.contacts.list.useQuery();
 
   // Mutations
   const createMutation = trpc.routeHolders.create.useMutation({
@@ -165,13 +166,22 @@ export default function RouteHoldersSettings() {
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
-                  placeholder="e.g., Randy, PTA Team, Shaquana"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
+                <Label htmlFor="name">Contact Name *</Label>
+                <Select value={name} onValueChange={setName}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select contact from Kangaroo Crew" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {contacts?.filter((c: any) => c.labels?.includes('Kangaroo Crew')).map((contact: any) => (
+                      <SelectItem key={contact.id} value={contact.name}>
+                        {contact.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Select from contacts labeled as "Kangaroo Crew"
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -336,13 +346,22 @@ export default function RouteHoldersSettings() {
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Name *</Label>
-              <Input
-                id="edit-name"
-                placeholder="e.g., Randy, PTA Team, Shaquana"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
+              <Label htmlFor="edit-name">Contact Name *</Label>
+              <Select value={name} onValueChange={setName}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select contact from Kangaroo Crew" />
+                </SelectTrigger>
+                <SelectContent>
+                  {contacts?.filter((c: any) => c.labels?.includes('Kangaroo Crew')).map((contact: any) => (
+                    <SelectItem key={contact.id} value={contact.name}>
+                      {contact.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Select from contacts labeled as "Kangaroo Crew"
+              </p>
             </div>
 
             <div className="space-y-2">

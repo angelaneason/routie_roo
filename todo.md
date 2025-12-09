@@ -220,3 +220,9 @@
 - [x] Add default starting address field
 - [x] Update database schema to store starting address
 - [x] Update backend procedures to handle new fields
+
+## Route Holders Name Field Enhancement
+- [x] Change Name field from text input to contact dropdown
+- [x] Fetch contacts from Kangaroo Crew (Google Contacts)
+- [x] Display contact names in dropdown selector
+- [x] Update create/edit forms to use contact selector
