@@ -909,6 +909,11 @@ export default function RouteDetail() {
                   <p className="text-2xl font-bold">
                     {formatDistance(route.totalDistance! / 1000, user?.distanceUnit || "km")}
                   </p>
+                  {waypoints.length === 1 && route.totalDistance === 0 && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                      ⚠️ Add more stops to calculate route
+                    </p>
+                  )}
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Estimated Time</p>
