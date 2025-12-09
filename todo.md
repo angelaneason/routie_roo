@@ -231,3 +231,7 @@
 - [x] Fix Contact Name dropdown - make it searchable and selectable (not opening)
 - [x] Fix Default Stop Type dropdown - not working/responding to clicks
 - [x] Auto-populate Starting Address when contact is selected from dropdown
+
+## Route Holders UI Issues (2025-12-09 - Continued)
+- [x] Fix Contact Name dropdown - not allowing typing or searching contact names
+- [x] Fix Default Stop Type dropdown - not showing the stop types from Settings

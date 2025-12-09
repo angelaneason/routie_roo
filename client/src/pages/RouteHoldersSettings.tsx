@@ -6,6 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Plus, Pencil, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,8 +28,12 @@ export default function RouteHoldersSettings() {
   // Fetch data
   const { data: routeHolders, isLoading, refetch } = trpc.routeHolders.list.useQuery();
   const { data: calendars } = trpc.calendar.getCalendarList.useQuery();
-  const { data: settings } = trpc.settings.get.useQuery();
+  const { data: stopTypes } = trpc.stopTypes.list.useQuery();
   const { data: contacts } = trpc.contacts.list.useQuery();
+  
+  // State for combobox
+  const [openContactCombobox, setOpenContactCombobox] = useState(false);
+  const [openEditContactCombobox, setOpenEditContactCombobox] = useState(false);
 
   // Mutations
   const createMutation = trpc.routeHolders.create.useMutation({
@@ -167,31 +175,56 @@ export default function RouteHoldersSettings() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Contact Name *</Label>
-                <Select value={name} onValueChange={(value) => {
-                  setName(value);
-                  // Auto-populate starting address when contact is selected
-                  const selectedContact = contacts?.find((c: any) => c.name === value);
-                  if (selectedContact) {
-                    const primaryAddr = selectedContact.addresses?.find((a: any) => a.isPrimary) || 
-                                       selectedContact.addresses?.[0] || 
-                                       { formattedValue: selectedContact.address || '' };
-                    setDefaultStartingAddress(primaryAddr.formattedValue || '');
-                  }
-                }}>
-                  <SelectTrigger id="name">
-                    <SelectValue placeholder="Select contact from Kangaroo Crew" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {contacts?.filter((c: any) => {
-                      const labels = c.labels || '';
-                      return labels.includes('Kangaroo Crew') || labels.includes('kangaroo crew');
-                    }).map((contact: any) => (
-                      <SelectItem key={contact.id} value={contact.name}>
-                        {contact.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={openContactCombobox} onOpenChange={setOpenContactCombobox}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openContactCombobox}
+                      className="w-full justify-between"
+                    >
+                      {name || "Select contact from Kangaroo Crew"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search contacts..." />
+                      <CommandEmpty>No contact found.</CommandEmpty>
+                      <CommandGroup>
+                        {contacts?.filter((c: any) => {
+                          const labels = c.labels || '';
+                          return labels.includes('Kangaroo Crew') || labels.includes('kangaroo crew');
+                        }).map((contact: any) => (
+                          <CommandItem
+                            key={contact.id}
+                            value={contact.name}
+                            onSelect={(currentValue) => {
+                              setName(currentValue);
+                              // Auto-populate starting address when contact is selected
+                              const selectedContact = contacts?.find((c: any) => c.name.toLowerCase() === currentValue.toLowerCase());
+                              if (selectedContact) {
+                                const primaryAddr = selectedContact.addresses?.find((a: any) => a.isPrimary) || 
+                                                   selectedContact.addresses?.[0] || 
+                                                   { formattedValue: selectedContact.address || '' };
+                                setDefaultStartingAddress(primaryAddr.formattedValue || '');
+                              }
+                              setOpenContactCombobox(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                name === contact.name ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {contact.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <p className="text-xs text-muted-foreground">
                   Select from contacts labeled as "Kangaroo Crew"
                 </p>
@@ -219,12 +252,15 @@ export default function RouteHoldersSettings() {
 
               <div className="space-y-2">
                 <Label htmlFor="stopType">Default Stop Type</Label>
-                <Select value={defaultStopType} onValueChange={(value) => {
-                  setDefaultStopType(value);
+                <Select value={defaultStopType || "none"} onValueChange={(value) => {
+                  const val = value === "none" ? "" : value;
+                  setDefaultStopType(val);
                   // Find the stop type and set its color
-                  const stopType = settings?.stopTypes?.find((st: any) => st.name === value);
-                  if (stopType) {
-                    setDefaultStopTypeColor(stopType.color);
+                  if (val) {
+                    const stopType = stopTypes?.find((st: any) => st.name === val);
+                    if (stopType) {
+                      setDefaultStopTypeColor(stopType.color);
+                    }
                   }
                 }}>
                   <SelectTrigger id="stopType">
@@ -232,7 +268,7 @@ export default function RouteHoldersSettings() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No default stop type</SelectItem>
-                    {settings?.stopTypes?.map((stopType: any) => (
+                    {stopTypes?.map((stopType: any) => (
                       <SelectItem key={stopType.id} value={stopType.name}>
                         <div className="flex items-center gap-2">
                           <div
@@ -360,31 +396,56 @@ export default function RouteHoldersSettings() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="edit-name">Contact Name *</Label>
-              <Select value={name} onValueChange={(value) => {
-                setName(value);
-                // Auto-populate starting address when contact is selected
-                const selectedContact = contacts?.find((c: any) => c.name === value);
-                if (selectedContact) {
-                  const primaryAddr = selectedContact.addresses?.find((a: any) => a.isPrimary) || 
-                                     selectedContact.addresses?.[0] || 
-                                     { formattedValue: selectedContact.address || '' };
-                  setDefaultStartingAddress(primaryAddr.formattedValue || '');
-                }
-              }}>
-                <SelectTrigger id="edit-name">
-                  <SelectValue placeholder="Select contact from Kangaroo Crew" />
-                </SelectTrigger>
-                <SelectContent>
-                  {contacts?.filter((c: any) => {
-                    const labels = c.labels || '';
-                    return labels.includes('Kangaroo Crew') || labels.includes('kangaroo crew');
-                  }).map((contact: any) => (
-                    <SelectItem key={contact.id} value={contact.name}>
-                      {contact.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={openEditContactCombobox} onOpenChange={setOpenEditContactCombobox}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openEditContactCombobox}
+                    className="w-full justify-between"
+                  >
+                    {name || "Select contact from Kangaroo Crew"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search contacts..." />
+                    <CommandEmpty>No contact found.</CommandEmpty>
+                    <CommandGroup>
+                      {contacts?.filter((c: any) => {
+                        const labels = c.labels || '';
+                        return labels.includes('Kangaroo Crew') || labels.includes('kangaroo crew');
+                      }).map((contact: any) => (
+                        <CommandItem
+                          key={contact.id}
+                          value={contact.name}
+                          onSelect={(currentValue) => {
+                            setName(currentValue);
+                            // Auto-populate starting address when contact is selected
+                            const selectedContact = contacts?.find((c: any) => c.name.toLowerCase() === currentValue.toLowerCase());
+                            if (selectedContact) {
+                              const primaryAddr = selectedContact.addresses?.find((a: any) => a.isPrimary) || 
+                                                 selectedContact.addresses?.[0] || 
+                                                 { formattedValue: selectedContact.address || '' };
+                              setDefaultStartingAddress(primaryAddr.formattedValue || '');
+                            }
+                            setOpenEditContactCombobox(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              name === contact.name ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {contact.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               <p className="text-xs text-muted-foreground">
                 Select from contacts labeled as "Kangaroo Crew"
               </p>
@@ -414,7 +475,7 @@ export default function RouteHoldersSettings() {
                 setDefaultStopType(val);
                 // Find the stop type and set its color
                 if (val) {
-                  const stopType = settings?.stopTypes?.find((st: any) => st.name === val);
+                  const stopType = stopTypes?.find((st: any) => st.name === val);
                   if (stopType) {
                     setDefaultStopTypeColor(stopType.color);
                   }
@@ -425,7 +486,7 @@ export default function RouteHoldersSettings() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No default stop type</SelectItem>
-                  {settings?.stopTypes?.map((stopType: any) => (
+                  {stopTypes?.map((stopType: any) => (
                     <SelectItem key={stopType.id} value={stopType.name}>
                       <div className="flex items-center gap-2">
                         <div
