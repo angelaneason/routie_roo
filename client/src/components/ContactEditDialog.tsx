@@ -240,7 +240,7 @@ export function ContactEditDialog({ contact, open, onOpenChange, onSave }: Conta
     try {
       await updateLabelsMutation.mutateAsync({
         contactId: contact.id,
-        labels: selectedLabels,
+        labelResourceNames: selectedLabels,
       });
       toast.success("Labels updated successfully");
     } catch (error) {

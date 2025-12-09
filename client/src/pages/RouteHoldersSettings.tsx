@@ -23,7 +23,7 @@ export default function RouteHoldersSettings() {
 
   // Fetch data
   const { data: routeHolders, isLoading, refetch } = trpc.routeHolders.list.useQuery();
-  const { data: calendars } = trpc.googleCalendar.getCalendarList.useQuery();
+  const { data: calendars } = trpc.calendar.getCalendarList.useQuery();
   const { data: settings } = trpc.settings.get.useQuery();
   const { data: contacts } = trpc.contacts.list.useQuery();
 
