@@ -67,6 +67,7 @@ export const routeHolders = mysqlTable("route_holders", {
   googleCalendarId: varchar("googleCalendarId", { length: 255 }), // Google Calendar ID to save routes to
   defaultStopType: varchar("defaultStopType", { length: 100 }), // Default stop type for this holder
   defaultStopTypeColor: varchar("defaultStopTypeColor", { length: 7 }), // Default stop type color
+  defaultStartingAddress: text("defaultStartingAddress"), // Default starting address for routes
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

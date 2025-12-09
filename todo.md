@@ -213,3 +213,10 @@
 
 ## UI Layout Update
 - [x] Move important dates to display horizontally above action buttons on waypoint cards
+
+## Route Holders Settings Enhancements
+- [x] Add Google Calendar dropdown (fetch from user's connected calendars)
+- [x] Add stop type dropdown with colors from Settings
+- [x] Add default starting address field
+- [x] Update database schema to store starting address
+- [x] Update backend procedures to handle new fields

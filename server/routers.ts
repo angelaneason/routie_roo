@@ -4911,6 +4911,7 @@ export const appRouter = router({
         googleCalendarId: z.string().optional(),
         defaultStopType: z.string().optional(),
         defaultStopTypeColor: z.string().optional(),
+        defaultStartingAddress: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -4924,6 +4925,7 @@ export const appRouter = router({
           googleCalendarId: input.googleCalendarId || null,
           defaultStopType: input.defaultStopType || null,
           defaultStopTypeColor: input.defaultStopTypeColor || null,
+          defaultStartingAddress: input.defaultStartingAddress || null,
         });
 
         return { success: true, holderId: holder.insertId };
@@ -4937,6 +4939,7 @@ export const appRouter = router({
         googleCalendarId: z.string().optional(),
         defaultStopType: z.string().optional(),
         defaultStopTypeColor: z.string().optional(),
+        defaultStartingAddress: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const db = await getDb();
@@ -4958,6 +4961,7 @@ export const appRouter = router({
         if (input.googleCalendarId !== undefined) updates.googleCalendarId = input.googleCalendarId || null;
         if (input.defaultStopType !== undefined) updates.defaultStopType = input.defaultStopType || null;
         if (input.defaultStopTypeColor !== undefined) updates.defaultStopTypeColor = input.defaultStopTypeColor || null;
+        if (input.defaultStartingAddress !== undefined) updates.defaultStartingAddress = input.defaultStartingAddress || null;
 
         if (Object.keys(updates).length > 0) {
           await db.update(routeHolders)

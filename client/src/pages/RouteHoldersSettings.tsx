@@ -19,6 +19,7 @@ export default function RouteHoldersSettings() {
   const [googleCalendarId, setGoogleCalendarId] = useState("");
   const [defaultStopType, setDefaultStopType] = useState("");
   const [defaultStopTypeColor, setDefaultStopTypeColor] = useState("#3b82f6");
+  const [defaultStartingAddress, setDefaultStartingAddress] = useState("");
 
   // Fetch data
   const { data: routeHolders, isLoading, refetch } = trpc.routeHolders.list.useQuery();
@@ -66,6 +67,7 @@ export default function RouteHoldersSettings() {
     setGoogleCalendarId("");
     setDefaultStopType("");
     setDefaultStopTypeColor("#3b82f6");
+    setDefaultStartingAddress("");
   };
 
   const handleCreate = () => {
@@ -79,6 +81,7 @@ export default function RouteHoldersSettings() {
       googleCalendarId: googleCalendarId || undefined,
       defaultStopType: defaultStopType || undefined,
       defaultStopTypeColor: defaultStopTypeColor || undefined,
+      defaultStartingAddress: defaultStartingAddress || undefined,
     });
   };
 
@@ -88,6 +91,7 @@ export default function RouteHoldersSettings() {
     setGoogleCalendarId(holder.googleCalendarId || "");
     setDefaultStopType(holder.defaultStopType || "");
     setDefaultStopTypeColor(holder.defaultStopTypeColor || "#3b82f6");
+    setDefaultStartingAddress(holder.defaultStartingAddress || "");
     setIsEditDialogOpen(true);
   };
 
@@ -103,6 +107,7 @@ export default function RouteHoldersSettings() {
       googleCalendarId: googleCalendarId || undefined,
       defaultStopType: defaultStopType || undefined,
       defaultStopTypeColor: defaultStopTypeColor || undefined,
+      defaultStartingAddress: defaultStartingAddress || undefined,
     });
   };
 
@@ -191,30 +196,48 @@ export default function RouteHoldersSettings() {
 
               <div className="space-y-2">
                 <Label htmlFor="stopType">Default Stop Type</Label>
-                <Input
-                  id="stopType"
-                  placeholder="e.g., Visit, Eval, Assessment"
-                  value={defaultStopType}
-                  onChange={(e) => setDefaultStopType(e.target.value)}
-                />
+                <Select value={defaultStopType} onValueChange={(value) => {
+                  setDefaultStopType(value);
+                  // Find the stop type and set its color
+                  const stopType = settings?.stopTypes?.find((st: any) => st.name === value);
+                  if (stopType) {
+                    setDefaultStopTypeColor(stopType.color);
+                  }
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select stop type (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No default stop type</SelectItem>
+                    {settings?.stopTypes?.map((stopType: any) => (
+                      <SelectItem key={stopType.id} value={stopType.name}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded"
+                            style={{ backgroundColor: stopType.color }}
+                          />
+                          {stopType.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  New waypoints for this holder will use this stop type
+                </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="color">Stop Type Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="color"
-                    type="color"
-                    value={defaultStopTypeColor}
-                    onChange={(e) => setDefaultStopTypeColor(e.target.value)}
-                    className="w-20 h-10"
-                  />
-                  <Input
-                    value={defaultStopTypeColor}
-                    onChange={(e) => setDefaultStopTypeColor(e.target.value)}
-                    placeholder="#3b82f6"
-                  />
-                </div>
+                <Label htmlFor="startingAddress">Default Starting Address</Label>
+                <Input
+                  id="startingAddress"
+                  placeholder="e.g., 123 Main St, City, State ZIP"
+                  value={defaultStartingAddress}
+                  onChange={(e) => setDefaultStartingAddress(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Routes for this holder will start from this address
+                </p>
               </div>
             </div>
 
@@ -268,6 +291,11 @@ export default function RouteHoldersSettings() {
                       {holder.defaultStopType && (
                         <div>
                           <strong>Default Stop Type:</strong> {holder.defaultStopType}
+                        </div>
+                      )}
+                      {holder.defaultStartingAddress && (
+                        <div>
+                          <strong>Starting Address:</strong> {holder.defaultStartingAddress}
                         </div>
                       )}
                     </CardDescription>
@@ -336,30 +364,48 @@ export default function RouteHoldersSettings() {
 
             <div className="space-y-2">
               <Label htmlFor="edit-stopType">Default Stop Type</Label>
-              <Input
-                id="edit-stopType"
-                placeholder="e.g., Visit, Eval, Assessment"
-                value={defaultStopType}
-                onChange={(e) => setDefaultStopType(e.target.value)}
-              />
+              <Select value={defaultStopType || "none"} onValueChange={(value) => {
+                const val = value === "none" ? "" : value;
+                setDefaultStopType(val);
+                // Find the stop type and set its color
+                if (val) {
+                  const stopType = settings?.stopTypes?.find((st: any) => st.name === val);
+                  if (stopType) {
+                    setDefaultStopTypeColor(stopType.color);
+                  }
+                }
+              }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select stop type (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No default stop type</SelectItem>
+                  {settings?.stopTypes?.map((stopType: any) => (
+                    <SelectItem key={stopType.id} value={stopType.name}>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded"
+                          style={{ backgroundColor: stopType.color }}
+                        />
+                        {stopType.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-color">Stop Type Color</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="edit-color"
-                  type="color"
-                  value={defaultStopTypeColor}
-                  onChange={(e) => setDefaultStopTypeColor(e.target.value)}
-                  className="w-20 h-10"
-                />
-                <Input
-                  value={defaultStopTypeColor}
-                  onChange={(e) => setDefaultStopTypeColor(e.target.value)}
-                  placeholder="#3b82f6"
-                />
-              </div>
+              <Label htmlFor="edit-startingAddress">Default Starting Address</Label>
+              <Input
+                id="edit-startingAddress"
+                placeholder="e.g., 123 Main St, City, State ZIP"
+                value={defaultStartingAddress}
+                onChange={(e) => setDefaultStartingAddress(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Routes for this holder will start from this address
+              </p>
             </div>
           </div>
 
