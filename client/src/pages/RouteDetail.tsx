@@ -940,7 +940,15 @@ export default function RouteDetail() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h2 className="text-2xl font-bold mb-4">{route.name}</h2>
+                  <div className="flex items-center gap-3 mb-4">
+                    <h2 className="text-2xl font-bold">{route.name}</h2>
+                    {route.googleCalendarId && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 text-sm bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 rounded-full">
+                        <Calendar className="h-4 w-4" />
+                        On Calendar
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Missing Coordinates Warning */}

@@ -1512,7 +1512,7 @@ export default function Home() {
                                     {(route as any).completedWaypointCount || 0}/{(route as any).waypointCount} stops
                                   </span>
                                 )}
-                                {route.calendarId && (
+                                {route.googleCalendarId && (
                                   <span className="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
                                     📅 On Calendar
                                   </span>

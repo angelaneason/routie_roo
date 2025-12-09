@@ -367,3 +367,12 @@
 - [x] Fix cached_contacts table schema mismatch - missing columns causing query errors
 - [x] Run database migration to add missing columns
 - [x] Verify all queries work after schema update
+
+
+### Calendar Indicator Feature (2025-12-09)
+- [x] Check if googleCalendarId field already exists in routes table
+- [x] Update addToCalendar mutation to save calendar ID when events are created (already implemented)
+- [x] Add visual "On Calendar" badge to route cards in route list
+- [x] Add visual "On Calendar" badge to route detail page header
+- [ ] Test that badge appears after adding route to calendar
+- [ ] Test that badge doesn't appear for routes without calendar events
