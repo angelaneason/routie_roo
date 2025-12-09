@@ -1,0 +1,28 @@
+{
+  "query": "SELECT id, openId, email, role, subscriptionTier, createdAt, lastSignedIn FROM users WHERE email = 'angelaneason@gmail.com' ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, openId, email, role, subscriptionTier, createdAt, lastSignedIn FROM users WHERE email = 'angelaneason@gmail.com' ORDER BY id;",
+  "rows": [
+    {
+      "id": "1",
+      "openId": "RDmGkc9MK28myjC85C9iU5",
+      "email": "angelaneason@gmail.com",
+      "role": "admin",
+      "subscriptionTier": "premium",
+      "createdAt": "2025-11-22 04:36:28",
+      "lastSignedIn": "2025-12-09 19:49:12"
+    },
+    {
+      "id": "14310070",
+      "openId": "google_113630323491727347002",
+      "email": "angelaneason@gmail.com",
+      "role": "admin",
+      "subscriptionTier": "premium",
+      "createdAt": "2025-12-06 00:02:45",
+      "lastSignedIn": "2025-12-09 19:52:29"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\temail\trole\tsubscriptionTier\tcreatedAt\tlastSignedIn\n1\tRDmGkc9MK28myjC85C9iU5\tangelaneason@gmail.com\tadmin\tpremium\t2025-11-22 04:36:28\t2025-12-09 19:49:12\n14310070\tgoogle_113630323491727347002\tangelaneason@gmail.com\tadmin\tpremium\t2025-12-06 00:02:45\t2025-12-09 19:52:29\n",
+  "stderr": "",
+  "execution_time_ms": 51
+}

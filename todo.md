@@ -275,3 +275,43 @@
 - [ ] Test enterprise tier placeholder works correctly
 - [ ] Test error messages display correctly when free users try to access premium features
 - [ ] Verify manual route creation works for all tiers
+
+
+## Route Holder Scheduling Integration (2025-12-09)
+
+### Database Schema Updates
+- [x] Add routeHolderSchedule field to cached_contacts (JSON: {day: routeHolderId})
+- [x] Add scheduleStartDate field to cached_contacts (when schedule begins)
+- [x] Ensure folders table can store route holder names
+
+### Backend Updates
+- [x] Update contacts.updateScheduledDays to accept routeHolderSchedule mapping
+- [x] Update contacts.updateScheduledDays to accept scheduleStartDate
+- [x] Update route generation to assign correct routeHolderId per day
+- [x] Auto-create folders named after route holders if they don't exist
+- [x] Assign auto-generated routes to route holder's folder
+- [x] Update calendar event titles to include route holder name
+
+### Schedule Dialog UI Updates
+- [x] Add "Start Date" field to RecurringScheduleDialog
+- [x] Add route holder dropdown for each selected day
+- [x] Show which holder is assigned to each day
+- [x] Save routeHolderSchedule mapping when user clicks Done
+
+### Route Organization
+- [x] Auto-create folder with route holder's name when generating routes
+- [x] Place auto-generated routes in holder's folder
+- [x] Sort routes by date within folders
+- [x] Ensure folder names match route holder names exactly
+
+### Calendar Integration
+- [x] Update calendar event titles to show: "Randy - Mon Route (3 stops)"
+- [x] Include route holder name in event description
+- [x] Test calendar events display correctly with holder names
+
+### Testing
+- [ ] Test assigning different holders to different days (Mon→Randy, Wed→Shaquana)
+- [ ] Test auto-folder creation with route holder names
+- [ ] Test routes sorted by date within folders
+- [ ] Test calendar titles include route holder names
+- [ ] Test start date controls when routes begin generating

@@ -724,6 +724,7 @@ export const appRouter = router({
         scheduleEndType: z.enum(["never", "date", "occurrences"]).optional(),
         scheduleEndDate: z.string().optional(), // ISO date string
         scheduleEndOccurrences: z.number().optional(),
+        scheduleStartDate: z.string().optional(), // ISO date string - when schedule begins
         routeHolderSchedule: z.record(z.string(), z.number()).optional(), // { "Monday": 1, "Wednesday": 2 }
       }))
       .mutation(async ({ ctx, input }) => {
@@ -775,6 +776,9 @@ export const appRouter = router({
         if (input.scheduleEndOccurrences !== undefined) {
           updateData.scheduleEndOccurrences = input.scheduleEndOccurrences;
         }
+        if (input.scheduleStartDate !== undefined) {
+          updateData.scheduleStartDate = input.scheduleStartDate ? new Date(input.scheduleStartDate) : null;
+        }
         if (input.routeHolderSchedule !== undefined) {
           updateData.routeHolderSchedule = JSON.stringify(input.routeHolderSchedule);
         }
@@ -805,7 +809,7 @@ export const appRouter = router({
           weekStart.setHours(0, 0, 0, 0);
 
           // Get user's Smart Routing preferences
-          const folderId = ctx.user.smartRoutingFolder ? 
+          let folderId = ctx.user.smartRoutingFolder ? 
             (await db.select().from(folders).where(and(
               eq(folders.userId, ctx.user.id),
               eq(folders.name, ctx.user.smartRoutingFolder)
@@ -857,6 +861,7 @@ export const appRouter = router({
             let routeHolderStopType: string | null = null;
             let routeHolderStopColor: string | null = null;
             let routeHolderName: string | null = null;
+            let holderFolderId: number | null = null;
             
             if (routeHolderId) {
               const { routeHolders } = await import("../drizzle/schema");
@@ -869,6 +874,26 @@ export const appRouter = router({
                 routeHolderCalendarId = holder.googleCalendarId || null;
                 routeHolderStopType = holder.defaultStopType || null;
                 routeHolderStopColor = holder.defaultStopTypeColor || null;
+                
+                // Auto-create folder with route holder's name if it doesn't exist
+                const existingFolder = await db.select().from(folders)
+                  .where(and(
+                    eq(folders.userId, ctx.user.id),
+                    eq(folders.name, holder.name)
+                  ))
+                  .limit(1);
+                
+                if (existingFolder.length > 0) {
+                  holderFolderId = existingFolder[0].id;
+                } else {
+                  // Create new folder for this route holder
+                  const folderResult = await db.insert(folders).values({
+                    userId: ctx.user.id,
+                    name: holder.name,
+                    color: holder.defaultStopTypeColor || "#3b82f6",
+                  });
+                  holderFolderId = Number(folderResult[0].insertId);
+                }
               }
             }
             
@@ -910,7 +935,7 @@ export const appRouter = router({
                 totalDistance: 0,
                 totalDuration: 0,
                 optimized: ctx.user.autoOptimizeRoutes === 1,
-                folderId: folderId || null,
+                folderId: holderFolderId || folderId || null, // Use holder's folder first, then fallback to smart routing folder
                 routeHolderId: routeHolderId,
                 googleCalendarId: routeHolderCalendarId,
                 startingPointAddress: startingPoint || null,

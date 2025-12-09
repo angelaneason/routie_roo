@@ -19,6 +19,7 @@ interface RecurringScheduleDialogProps {
     scheduleEndType: "never" | "date" | "occurrences";
     scheduleEndDate?: string;
     scheduleEndOccurrences?: number;
+    scheduleStartDate?: string;
     routeHolderSchedule?: Record<string, number>; // { "Monday": 1, "Wednesday": 2 }
   };
   onSave: (schedule: {
@@ -27,6 +28,7 @@ interface RecurringScheduleDialogProps {
     scheduleEndType: "never" | "date" | "occurrences";
     scheduleEndDate?: string;
     scheduleEndOccurrences?: number;
+    scheduleStartDate?: string;
     routeHolderSchedule?: Record<string, number>;
   }) => void;
 }
@@ -55,6 +57,7 @@ export default function RecurringScheduleDialog({
   );
   const [endDate, setEndDate] = useState(initialSchedule?.scheduleEndDate || "");
   const [endOccurrences, setEndOccurrences] = useState(initialSchedule?.scheduleEndOccurrences || 13);
+  const [startDate, setStartDate] = useState(initialSchedule?.scheduleStartDate || new Date().toISOString().split('T')[0]);
   const [routeHolderSchedule, setRouteHolderSchedule] = useState<Record<string, number>>(
     initialSchedule?.routeHolderSchedule || {}
   );
@@ -69,6 +72,7 @@ export default function RecurringScheduleDialog({
     setEndType(initialSchedule?.scheduleEndType || "never");
     setEndDate(initialSchedule?.scheduleEndDate || "");
     setEndOccurrences(initialSchedule?.scheduleEndOccurrences || 13);
+    setStartDate(initialSchedule?.scheduleStartDate || new Date().toISOString().split('T')[0]);
     setRouteHolderSchedule(initialSchedule?.routeHolderSchedule || {});
   }, [initialSchedule]);
 
@@ -118,6 +122,7 @@ export default function RecurringScheduleDialog({
       scheduleEndType: endType,
       scheduleEndDate: endType === "date" ? endDate : undefined,
       scheduleEndOccurrences: endType === "occurrences" ? endOccurrences : undefined,
+      scheduleStartDate: startDate,
       routeHolderSchedule: Object.keys(routeHolderSchedule).length > 0 ? routeHolderSchedule : undefined,
     });
     onOpenChange(false);
@@ -130,6 +135,7 @@ export default function RecurringScheduleDialog({
     setEndType(initialSchedule?.scheduleEndType || "never");
     setEndDate(initialSchedule?.scheduleEndDate || "");
     setEndOccurrences(initialSchedule?.scheduleEndOccurrences || 13);
+    setStartDate(initialSchedule?.scheduleStartDate || new Date().toISOString().split('T')[0]);
     setRouteHolderSchedule(initialSchedule?.routeHolderSchedule || {});
     onOpenChange(false);
   };
@@ -148,6 +154,20 @@ export default function RecurringScheduleDialog({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Start Date */}
+          <div className="space-y-2">
+            <Label className="text-sm text-muted-foreground">Start Date</Label>
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground">
+              Routes will begin generating from this date forward
+            </p>
+          </div>
+
           {/* Repeat Every */}
           <div className="space-y-2">
             <Label className="text-sm text-muted-foreground">Repeat every</Label>

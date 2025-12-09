@@ -93,6 +93,8 @@ export default function Home() {
     scheduleEndType?: "never" | "date" | "occurrences";
     scheduleEndDate?: string;
     scheduleEndOccurrences?: number;
+    scheduleStartDate?: string;
+    routeHolderSchedule?: Record<string, number>;
   } | null>(null);
 
   // Check for OAuth callback status and route creation from waypoints
@@ -1313,6 +1315,8 @@ export default function Home() {
                               onClick={() => {
                                 const currentDays = contact.scheduledDays ? JSON.parse(contact.scheduledDays) : [];
                                 const repeatDays = contact.repeatDays ? JSON.parse(contact.repeatDays) : currentDays;
+                                const routeHolderSchedule = contact.routeHolderSchedule ? JSON.parse(contact.routeHolderSchedule) : undefined;
+                                const scheduleStartDate = contact.scheduleStartDate ? (contact.scheduleStartDate instanceof Date ? contact.scheduleStartDate.toISOString().split('T')[0] : contact.scheduleStartDate.split('T')[0]) : undefined;
                                 setScheduleDialogContact({ 
                                   id: contact.id, 
                                   name: contact.name || "Contact", 
@@ -1322,6 +1326,8 @@ export default function Home() {
                                   scheduleEndType: contact.scheduleEndType || "never",
                                   scheduleEndDate: contact.scheduleEndDate ? (contact.scheduleEndDate instanceof Date ? contact.scheduleEndDate.toISOString() : contact.scheduleEndDate) : undefined,
                                   scheduleEndOccurrences: contact.scheduleEndOccurrences ?? undefined,
+                                  scheduleStartDate,
+                                  routeHolderSchedule,
                                 });
                                 setScheduleDialogOpen(true);
                               }}
@@ -1711,6 +1717,8 @@ export default function Home() {
             scheduleEndType: scheduleDialogContact.scheduleEndType || "never",
             scheduleEndDate: scheduleDialogContact.scheduleEndDate,
             scheduleEndOccurrences: scheduleDialogContact.scheduleEndOccurrences,
+            scheduleStartDate: scheduleDialogContact.scheduleStartDate,
+            routeHolderSchedule: scheduleDialogContact.routeHolderSchedule,
           }}
           onSave={(schedule) => {
             updateScheduledDaysMutation.mutate({
@@ -1720,6 +1728,8 @@ export default function Home() {
               scheduleEndType: schedule.scheduleEndType,
               scheduleEndDate: schedule.scheduleEndDate,
               scheduleEndOccurrences: schedule.scheduleEndOccurrences,
+              scheduleStartDate: schedule.scheduleStartDate,
+              routeHolderSchedule: schedule.routeHolderSchedule,
             });
           }}
         />
