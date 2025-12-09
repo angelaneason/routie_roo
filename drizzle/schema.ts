@@ -177,6 +177,9 @@ export const cachedContacts = mysqlTable("cached_contacts", {
   routeHolderSchedule: text("routeHolderSchedule"), // JSON object mapping days to route holders: {"Monday": 1, "Wednesday": 2} where values are routeHolderId
   isOneTimeVisit: int("isOneTimeVisit").default(0), // 1 = one-time visit (non-recurring), 0 = recurring schedule
   oneTimeVisitDate: timestamp("oneTimeVisitDate"), // Specific date for one-time visit
+  oneTimeRouteHolderId: int("oneTimeRouteHolderId"), // Route holder assigned to one-time visit
+  oneTimeStopType: varchar("oneTimeStopType", { length: 100 }), // Stop type for one-time visit (e.g., "Eval", "OASIS")
+  oneTimeStopTypeColor: varchar("oneTimeStopTypeColor", { length: 7 }), // Color for one-time visit stop type
   scheduleEndType: mysqlEnum("scheduleEndType", ["never", "date", "occurrences"]).default("never"), // How the schedule ends
   scheduleEndDate: timestamp("scheduleEndDate"), // End date for "date" type
   scheduleEndOccurrences: int("scheduleEndOccurrences"), // Total occurrences for "occurrences" type

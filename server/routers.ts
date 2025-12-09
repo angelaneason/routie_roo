@@ -729,6 +729,9 @@ export const appRouter = router({
         // One-time visit fields
         isOneTimeVisit: z.boolean().optional(), // true = one-time visit, false = recurring
         oneTimeVisitDate: z.string().optional(), // ISO date string for one-time visit
+        oneTimeRouteHolderId: z.number().optional(), // Route holder for one-time visit
+        oneTimeStopType: z.string().optional(), // Stop type for one-time visit
+        oneTimeStopTypeColor: z.string().optional(), // Stop type color for one-time visit
       }))
       .mutation(async ({ ctx, input }) => {
         // Check subscription tier - Smart Auto-Routing is premium-only
@@ -791,6 +794,15 @@ export const appRouter = router({
         }
         if (input.oneTimeVisitDate !== undefined) {
           updateData.oneTimeVisitDate = input.oneTimeVisitDate ? new Date(input.oneTimeVisitDate) : null;
+        }
+        if (input.oneTimeRouteHolderId !== undefined) {
+          updateData.oneTimeRouteHolderId = input.oneTimeRouteHolderId;
+        }
+        if (input.oneTimeStopType !== undefined) {
+          updateData.oneTimeStopType = input.oneTimeStopType;
+        }
+        if (input.oneTimeStopTypeColor !== undefined) {
+          updateData.oneTimeStopTypeColor = input.oneTimeStopTypeColor;
         }
         // Set schedule start date if not already set and we're creating a new schedule
         if (!contactData.scheduleStartDate && input.repeatDays && input.repeatDays.length > 0) {

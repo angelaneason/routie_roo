@@ -1756,6 +1756,9 @@ export default function Home() {
             routeHolderSchedule: scheduleDialogContact.routeHolderSchedule,
             isOneTimeVisit: scheduleDialogContact.isOneTimeVisit,
             oneTimeVisitDate: scheduleDialogContact.oneTimeVisitDate,
+            oneTimeRouteHolderId: scheduleDialogContact.oneTimeRouteHolderId,
+            oneTimeStopType: scheduleDialogContact.oneTimeStopType,
+            oneTimeStopTypeColor: scheduleDialogContact.oneTimeStopTypeColor,
           }}
           hasExistingSchedule={scheduleDialogContact.repeatDays && scheduleDialogContact.repeatDays.length > 0}
           onSave={(schedule) => {
@@ -1770,6 +1773,9 @@ export default function Home() {
               routeHolderSchedule: schedule.routeHolderSchedule,
               isOneTimeVisit: schedule.isOneTimeVisit,
               oneTimeVisitDate: schedule.oneTimeVisitDate,
+              oneTimeRouteHolderId: schedule.oneTimeRouteHolderId,
+              oneTimeStopType: schedule.oneTimeStopType,
+              oneTimeStopTypeColor: schedule.oneTimeStopTypeColor,
             });
           }}
           onDelete={() => {

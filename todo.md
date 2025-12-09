@@ -346,3 +346,13 @@
 - [x] Database schema updated with isOneTimeVisit and oneTimeVisitDate fields
 - [x] Frontend UI updated with visit type toggle
 - [x] Backend procedures updated to handle one-time visits
+
+### One-Time Visit Route Holder and Visit Type (2025-12-09)
+- [x] Add oneTimeRouteHolderId field to cached_contacts table
+- [x] Add oneTimeStopType and oneTimeStopTypeColor fields to cached_contacts table
+- [x] Update schedule dialog UI to show route holder dropdown for one-time visits
+- [x] Update schedule dialog UI to show stop type dropdown for one-time visits
+- [x] Update backend updateScheduledDays to save route holder and stop type for one-time visits
+- [ ] Test creating one-time visit with route holder (e.g., Randy for Leon's eval)
+- [ ] Test creating one-time visit with stop type (e.g., Eval for Leon)
+- [ ] Verify route generation uses correct holder and stop type for one-time visits

@@ -23,6 +23,9 @@ interface RecurringScheduleDialogProps {
     routeHolderSchedule?: Record<string, number>; // { "Monday": 1, "Wednesday": 2 }
     isOneTimeVisit?: boolean;
     oneTimeVisitDate?: string;
+    oneTimeRouteHolderId?: number;
+    oneTimeStopType?: string;
+    oneTimeStopTypeColor?: string;
   };
   onSave: (schedule: {
     repeatInterval: number;
@@ -34,6 +37,9 @@ interface RecurringScheduleDialogProps {
     routeHolderSchedule?: Record<string, number>;
     isOneTimeVisit?: boolean;
     oneTimeVisitDate?: string;
+    oneTimeRouteHolderId?: number;
+    oneTimeStopType?: string;
+    oneTimeStopTypeColor?: string;
   }) => void;
   onDelete?: () => void; // Optional delete handler
   hasExistingSchedule?: boolean; // Whether contact has an existing schedule
@@ -71,9 +77,13 @@ export default function RecurringScheduleDialog({
   );
   const [isOneTimeVisit, setIsOneTimeVisit] = useState(initialSchedule?.isOneTimeVisit || false);
   const [oneTimeVisitDate, setOneTimeVisitDate] = useState(initialSchedule?.oneTimeVisitDate || new Date().toISOString().split('T')[0]);
+  const [oneTimeRouteHolderId, setOneTimeRouteHolderId] = useState<number | undefined>(initialSchedule?.oneTimeRouteHolderId);
+  const [oneTimeStopType, setOneTimeStopType] = useState<string | undefined>(initialSchedule?.oneTimeStopType);
+  const [oneTimeStopTypeColor, setOneTimeStopTypeColor] = useState<string | undefined>(initialSchedule?.oneTimeStopTypeColor);
 
-  // Fetch route holders
+  // Fetch route holders and stop types
   const { data: routeHolders } = trpc.routeHolders.list.useQuery();
+  const { data: stopTypes } = trpc.settings.getStopTypes.useQuery();
 
   // Reset state when initialSchedule changes (when switching contacts)
   useEffect(() => {
@@ -86,6 +96,9 @@ export default function RecurringScheduleDialog({
     setRouteHolderSchedule(initialSchedule?.routeHolderSchedule || {});
     setIsOneTimeVisit(initialSchedule?.isOneTimeVisit || false);
     setOneTimeVisitDate(initialSchedule?.oneTimeVisitDate || new Date().toISOString().split('T')[0]);
+    setOneTimeRouteHolderId(initialSchedule?.oneTimeRouteHolderId);
+    setOneTimeStopType(initialSchedule?.oneTimeStopType);
+    setOneTimeStopTypeColor(initialSchedule?.oneTimeStopTypeColor);
   }, [initialSchedule]);
 
   const handleDayToggle = (dayFull: string) => {
@@ -134,6 +147,9 @@ export default function RecurringScheduleDialog({
         scheduleEndType: "never",
         isOneTimeVisit: true,
         oneTimeVisitDate,
+        oneTimeRouteHolderId,
+        oneTimeStopType,
+        oneTimeStopTypeColor,
       });
     } else {
       if (selectedDays.length === 0) {
@@ -165,6 +181,9 @@ export default function RecurringScheduleDialog({
     setRouteHolderSchedule(initialSchedule?.routeHolderSchedule || {});
     setIsOneTimeVisit(initialSchedule?.isOneTimeVisit || false);
     setOneTimeVisitDate(initialSchedule?.oneTimeVisitDate || new Date().toISOString().split('T')[0]);
+    setOneTimeRouteHolderId(initialSchedule?.oneTimeRouteHolderId);
+    setOneTimeStopType(initialSchedule?.oneTimeStopType);
+    setOneTimeStopTypeColor(initialSchedule?.oneTimeStopTypeColor);
     onOpenChange(false);
   };
 
@@ -203,17 +222,89 @@ export default function RecurringScheduleDialog({
 
           {/* One-Time Visit Date */}
           {isOneTimeVisit && (
-            <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Visit Date</Label>
-              <Input
-                type="date"
-                value={oneTimeVisitDate}
-                onChange={(e) => setOneTimeVisitDate(e.target.value)}
-                className="w-full"
-              />
-              <p className="text-xs text-muted-foreground">
-                Schedule a single visit on this date (non-recurring)
-              </p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-sm text-muted-foreground">Visit Date</Label>
+                <Input
+                  type="date"
+                  value={oneTimeVisitDate}
+                  onChange={(e) => setOneTimeVisitDate(e.target.value)}
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Schedule a single visit on this date (non-recurring)
+                </p>
+              </div>
+
+              {/* Route Holder for One-Time Visit */}
+              <div className="space-y-2">
+                <Label className="text-sm text-muted-foreground">Route Holder</Label>
+                <Select
+                  value={oneTimeRouteHolderId?.toString() || ""}
+                  onValueChange={(value) => {
+                    const holderId = value ? parseInt(value) : undefined;
+                    setOneTimeRouteHolderId(holderId);
+                    // Auto-set stop type from route holder's default if available
+                    if (holderId && routeHolders) {
+                      const holder = routeHolders.find(h => h.id === holderId);
+                      if (holder?.defaultStopType) {
+                        setOneTimeStopType(holder.defaultStopType);
+                        setOneTimeStopTypeColor(holder.defaultStopTypeColor || undefined);
+                      }
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select route holder" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {routeHolders?.map((holder) => (
+                      <SelectItem key={holder.id} value={holder.id.toString()}>
+                        {holder.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Who will handle this visit?
+                </p>
+              </div>
+
+              {/* Stop Type for One-Time Visit */}
+              <div className="space-y-2">
+                <Label className="text-sm text-muted-foreground">Visit Type</Label>
+                <Select
+                  value={oneTimeStopType || ""}
+                  onValueChange={(value) => {
+                    setOneTimeStopType(value);
+                    // Find and set the color for this stop type
+                    const stopType = stopTypes?.find(st => st.name === value);
+                    if (stopType) {
+                      setOneTimeStopTypeColor(stopType.color);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select visit type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stopTypes?.map((type) => (
+                      <SelectItem key={type.id} value={type.name}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: type.color }}
+                          />
+                          {type.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Type of visit (e.g., Eval, OASIS, Visit)
+                </p>
+              </div>
             </div>
           )}
 
