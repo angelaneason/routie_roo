@@ -226,3 +226,8 @@
 - [x] Fetch contacts from Kangaroo Crew (Google Contacts)
 - [x] Display contact names in dropdown selector
 - [x] Update create/edit forms to use contact selector
+
+## Route Holders UI Fixes (2025-12-09)
+- [x] Fix Contact Name dropdown - make it searchable and selectable (not opening)
+- [x] Fix Default Stop Type dropdown - not working/responding to clicks
+- [x] Auto-populate Starting Address when contact is selected from dropdown

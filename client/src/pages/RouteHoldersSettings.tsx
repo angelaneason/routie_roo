@@ -167,12 +167,25 @@ export default function RouteHoldersSettings() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Contact Name *</Label>
-                <Select value={name} onValueChange={setName}>
-                  <SelectTrigger>
+                <Select value={name} onValueChange={(value) => {
+                  setName(value);
+                  // Auto-populate starting address when contact is selected
+                  const selectedContact = contacts?.find((c: any) => c.name === value);
+                  if (selectedContact) {
+                    const primaryAddr = selectedContact.addresses?.find((a: any) => a.isPrimary) || 
+                                       selectedContact.addresses?.[0] || 
+                                       { formattedValue: selectedContact.address || '' };
+                    setDefaultStartingAddress(primaryAddr.formattedValue || '');
+                  }
+                }}>
+                  <SelectTrigger id="name">
                     <SelectValue placeholder="Select contact from Kangaroo Crew" />
                   </SelectTrigger>
                   <SelectContent>
-                    {contacts?.filter((c: any) => c.labels?.includes('Kangaroo Crew')).map((contact: any) => (
+                    {contacts?.filter((c: any) => {
+                      const labels = c.labels || '';
+                      return labels.includes('Kangaroo Crew') || labels.includes('kangaroo crew');
+                    }).map((contact: any) => (
                       <SelectItem key={contact.id} value={contact.name}>
                         {contact.name}
                       </SelectItem>
@@ -214,7 +227,7 @@ export default function RouteHoldersSettings() {
                     setDefaultStopTypeColor(stopType.color);
                   }
                 }}>
-                  <SelectTrigger>
+                  <SelectTrigger id="stopType">
                     <SelectValue placeholder="Select stop type (optional)" />
                   </SelectTrigger>
                   <SelectContent>
@@ -347,12 +360,25 @@ export default function RouteHoldersSettings() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="edit-name">Contact Name *</Label>
-              <Select value={name} onValueChange={setName}>
-                <SelectTrigger>
+              <Select value={name} onValueChange={(value) => {
+                setName(value);
+                // Auto-populate starting address when contact is selected
+                const selectedContact = contacts?.find((c: any) => c.name === value);
+                if (selectedContact) {
+                  const primaryAddr = selectedContact.addresses?.find((a: any) => a.isPrimary) || 
+                                     selectedContact.addresses?.[0] || 
+                                     { formattedValue: selectedContact.address || '' };
+                  setDefaultStartingAddress(primaryAddr.formattedValue || '');
+                }
+              }}>
+                <SelectTrigger id="edit-name">
                   <SelectValue placeholder="Select contact from Kangaroo Crew" />
                 </SelectTrigger>
                 <SelectContent>
-                  {contacts?.filter((c: any) => c.labels?.includes('Kangaroo Crew')).map((contact: any) => (
+                  {contacts?.filter((c: any) => {
+                    const labels = c.labels || '';
+                    return labels.includes('Kangaroo Crew') || labels.includes('kangaroo crew');
+                  }).map((contact: any) => (
                     <SelectItem key={contact.id} value={contact.name}>
                       {contact.name}
                     </SelectItem>
@@ -394,7 +420,7 @@ export default function RouteHoldersSettings() {
                   }
                 }
               }}>
-                <SelectTrigger>
+                <SelectTrigger id="edit-stopType">
                   <SelectValue placeholder="Select stop type (optional)" />
                 </SelectTrigger>
                 <SelectContent>
