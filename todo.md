@@ -356,3 +356,14 @@
 - [ ] Test creating one-time visit with route holder (e.g., Randy for Leon's eval)
 - [ ] Test creating one-time visit with stop type (e.g., Eval for Leon)
 - [ ] Verify route generation uses correct holder and stop type for one-time visits
+
+### Calendar Integration Bug (2025-12-09)
+- [x] Fix "Add to Calendar" - route not being added to Google Calendar after selecting calendar
+- [x] Debug calendar event creation backend logic
+- [x] Verify calendar API calls are being made correctly
+- [ ] Test that calendar events appear in selected Google Calendar
+
+### Database Schema Error (2025-12-09)
+- [x] Fix cached_contacts table schema mismatch - missing columns causing query errors
+- [x] Run database migration to add missing columns
+- [x] Verify all queries work after schema update

@@ -68,6 +68,12 @@ export default function RouteDetail() {
   const [gapStopAddress, setGapStopAddress] = useState("");
   const [gapStopTripType, setGapStopTripType] = useState<"round_trip" | "one_way">("round_trip");
   const [showArchiveConfirmDialog, setShowArchiveConfirmDialog] = useState(false);
+  const [showCalendarSelectorDialog, setShowCalendarSelectorDialog] = useState(false);
+  const [availableCalendars, setAvailableCalendars] = useState<Array<{id: string, summary: string, backgroundColor?: string}>>([]);
+  const [selectedCalendarId, setSelectedCalendarId] = useState<string>("");
+  const [calendarAccessToken, setCalendarAccessToken] = useState<string>("");
+  const [pendingRouteId, setPendingRouteId] = useState<number | null>(null);
+  const [pendingStartTime, setPendingStartTime] = useState<string>("");
 
   const routeQuery = trpc.routes.get.useQuery(
     { routeId: parseInt(routeId!) },
@@ -98,6 +104,34 @@ export default function RouteDetail() {
       setLocalWaypoints(waypoints);
     }
   }, [waypoints]);
+
+  // Handle calendar OAuth redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const calendarAuth = params.get('calendar_auth');
+    const data = params.get('data');
+    
+    if (calendarAuth === 'success' && data) {
+      try {
+        const calendarData = JSON.parse(decodeURIComponent(data));
+        setAvailableCalendars(calendarData.calendars || []);
+        setPendingRouteId(calendarData.routeId);
+        setPendingStartTime(calendarData.startTime);
+        setCalendarAccessToken(calendarData.accessToken);
+        setShowCalendarSelectorDialog(true);
+        
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+      } catch (error) {
+        console.error('Failed to parse calendar data:', error);
+        toast.error('Failed to load calendar data');
+      }
+    } else if (calendarAuth === 'error') {
+      toast.error('Failed to connect to Google Calendar');
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   const updateStatusMutation = trpc.routes.updateWaypointStatus.useMutation({
     onSuccess: () => {
@@ -605,6 +639,21 @@ export default function RouteDetail() {
     },
   });
 
+  const addToCalendarMutation = trpc.routes.addToCalendar.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Successfully added ${data.eventsCreated} events to calendar!`);
+      setShowCalendarSelectorDialog(false);
+      setSelectedCalendarId("");
+      setCalendarAccessToken("");
+      setPendingRouteId(null);
+      setPendingStartTime("");
+      routeQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to add events to calendar");
+    },
+  });
+
   const copyRouteMutation = trpc.routes.copyRoute.useMutation({
     onSuccess: (data) => {
       toast.success("Route copied successfully!");
@@ -630,6 +679,20 @@ export default function RouteDetail() {
     calendarMutation.mutate({
       routeId: parseInt(routeId),
       startTime: new Date(calendarStartTime).toISOString(),
+    });
+  };
+
+  const handleConfirmCalendarSelection = () => {
+    if (!selectedCalendarId || !calendarAccessToken || !pendingRouteId || !pendingStartTime) {
+      toast.error("Missing required calendar information");
+      return;
+    }
+    
+    addToCalendarMutation.mutate({
+      routeId: pendingRouteId,
+      calendarId: selectedCalendarId,
+      startTime: pendingStartTime,
+      accessToken: calendarAccessToken,
     });
   };
 
@@ -1261,6 +1324,54 @@ export default function RouteDetail() {
             </Button>
             <Button onClick={handleConfirmAddToCalendar} disabled={!calendarStartTime}>
               Add to Calendar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Calendar Selector Dialog */}
+      <Dialog open={showCalendarSelectorDialog} onOpenChange={setShowCalendarSelectorDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Calendar</DialogTitle>
+            <DialogDescription>
+              Choose which Google Calendar to add the route events to
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="calendar-select" className="!font-bold">Calendar</Label>
+              <select
+                id="calendar-select"
+                value={selectedCalendarId}
+                onChange={(e) => setSelectedCalendarId(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Select a calendar...</option>
+                {availableCalendars.map((cal) => (
+                  <option key={cal.id} value={cal.id}>
+                    {cal.summary}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCalendarSelectorDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmCalendarSelection} 
+              disabled={!selectedCalendarId || addToCalendarMutation.isPending}
+            >
+              {addToCalendarMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add to Calendar"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

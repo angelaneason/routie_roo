@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE cached_contacts \nADD COLUMN IF NOT EXISTS repeatInterval INT DEFAULT 1,\nADD COLUMN IF NOT EXISTS repeatDays TEXT,\nADD COLUMN IF NOT EXISTS routeHolderSchedule TEXT,\nADD COLUMN IF NOT EXISTS isOneTimeVisit INT DEFAULT 0,\nADD COLUMN IF NOT EXISTS oneTimeVisitDate TIMESTAMP NULL,\nADD COLUMN IF NOT EXISTS oneTimeRouteHolderId INT NULL,\nADD COLUMN IF NOT EXISTS oneTimeStopType VARCHAR(100),\nADD COLUMN IF NOT EXISTS oneTimeStopTypeColor VARCHAR(7),\nADD COLUMN IF NOT EXISTS scheduleEndType ENUM('never', 'date', 'occurrences') DEFAULT 'never',\nADD COLUMN IF NOT EXISTS scheduleEndDate TIMESTAMP NULL,\nADD COLUMN IF NOT EXISTS scheduleEndOccurrences INT NULL,\nADD COLUMN IF NOT EXISTS currentOccurrenceCount INT DEFAULT 0,\nADD COLUMN IF NOT EXISTS scheduleStartDate TIMESTAMP NULL",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute ALTER TABLE cached_contacts \nADD COLUMN IF NOT EXISTS repeatInterval INT DEFAULT 1,\nADD COLUMN IF NOT EXISTS repeatDays TEXT,\nADD COLUMN IF NOT EXISTS routeHolderSchedule TEXT,\nADD COLUMN IF NOT EXISTS isOneTimeVisit INT DEFAULT 0,\nADD COLUMN IF NOT EXISTS oneTimeVisitDate TIMESTAMP NULL,\nADD COLUMN IF NOT EXISTS oneTimeRouteHolderId INT NULL,\nADD COLUMN IF NOT EXISTS oneTimeStopType VARCHAR(100),\nADD COLUMN IF NOT EXISTS oneTimeStopTypeColor VARCHAR(7),\nADD COLUMN IF NOT EXISTS scheduleEndType ENUM('never', 'date', 'occurrences') DEFAULT 'never',\nADD COLUMN IF NOT EXISTS scheduleEndDate TIMESTAMP NULL,\nADD COLUMN IF NOT EXISTS scheduleEndOccurrences INT NULL,\nADD COLUMN IF NOT EXISTS currentOccurrenceCount INT DEFAULT 0,\nADD COLUMN IF NOT EXISTS scheduleStartDate TIMESTAMP NULL",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 911
+}
