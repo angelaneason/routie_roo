@@ -12,6 +12,7 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Plus, Pencil, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
+import { getPrimaryAddress } from "@/lib/addressHelpers";
 
 // Route Holders Settings - Shows ALL contacts in dropdown (no label filter)
 export default function RouteHoldersSettings() {
@@ -214,10 +215,9 @@ export default function RouteHoldersSettings() {
                             onSelect={(currentValue) => {
                               setName(contact.name);
                               // Auto-populate starting address when contact is selected
-                              const primaryAddr = contact.addresses?.find((a: any) => a.isPrimary) || 
-                                                 contact.addresses?.[0] || 
-                                                 { formattedValue: contact.address || '' };
-                              setDefaultStartingAddress(primaryAddr.formattedValue || '');
+                              const primaryAddr = getPrimaryAddress(contact.addresses);
+                              const addressValue = primaryAddr?.formattedValue || contact.address || '';
+                              setDefaultStartingAddress(addressValue);
                               setOpenContactCombobox(false);
                             }}
                           >
@@ -441,10 +441,9 @@ export default function RouteHoldersSettings() {
                           onSelect={(currentValue) => {
                             setName(contact.name);
                             // Auto-populate starting address when contact is selected
-                            const primaryAddr = contact.addresses?.find((a: any) => a.isPrimary) || 
-                                               contact.addresses?.[0] || 
-                                               { formattedValue: contact.address || '' };
-                            setDefaultStartingAddress(primaryAddr.formattedValue || '');
+                            const primaryAddr = getPrimaryAddress(contact.addresses);
+                            const addressValue = primaryAddr?.formattedValue || contact.address || '';
+                            setDefaultStartingAddress(addressValue);
                             setOpenEditContactCombobox(false);
                           }}
                         >
