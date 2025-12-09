@@ -857,8 +857,9 @@ export default function RouteDetail() {
                 </div>
               )}
               {route.calendarId && (
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-sm font-medium">
-                  📅 On Calendar
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 text-sm font-semibold border-2 border-green-400 dark:border-green-600">
+                  <img src="/calendar-check-icon.png" alt="Calendar" className="w-5 h-5" />
+                  On Calendar
                 </div>
               )}
             </div>
@@ -943,8 +944,8 @@ export default function RouteDetail() {
                   <div className="flex items-center gap-3 mb-4">
                     <h2 className="text-2xl font-bold">{route.name}</h2>
                     {route.googleCalendarId && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 text-sm bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 rounded-full">
-                        <Calendar className="h-4 w-4" />
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 rounded-full font-semibold border-2 border-green-400 dark:border-green-600">
+                        <img src="/calendar-check-icon.png" alt="Calendar" className="w-5 h-5" />
                         On Calendar
                       </span>
                     )}

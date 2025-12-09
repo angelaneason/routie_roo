@@ -376,3 +376,13 @@
 - [x] Add visual "On Calendar" badge to route detail page header
 - [ ] Test that badge appears after adding route to calendar
 - [ ] Test that badge doesn't appear for routes without calendar events
+- [x] Replace calendar emoji with custom calendar icon image
+- [x] Make badge more visible with better styling
+
+
+### Geotracker Address Selection Issue (2025-12-09)
+- [ ] Investigate why addresses can't be selected in trip screen geotracker
+- [ ] Check if autocomplete results are rendering correctly
+- [ ] Check if click handlers are properly attached to address suggestions
+- [ ] Fix address selection functionality
+- [ ] Test that addresses can be selected and populate the input field
