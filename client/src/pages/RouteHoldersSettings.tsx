@@ -34,6 +34,8 @@ export default function RouteHoldersSettings() {
   // State for combobox
   const [openContactCombobox, setOpenContactCombobox] = useState(false);
   const [openEditContactCombobox, setOpenEditContactCombobox] = useState(false);
+  const [contactSearch, setContactSearch] = useState("");
+  const [editContactSearch, setEditContactSearch] = useState("");
 
   // Mutations
   const createMutation = trpc.routeHolders.create.useMutation({
@@ -175,7 +177,10 @@ export default function RouteHoldersSettings() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Contact Name *</Label>
-                <Popover open={openContactCombobox} onOpenChange={setOpenContactCombobox}>
+                <Popover open={openContactCombobox} onOpenChange={(open) => {
+                setOpenContactCombobox(open);
+                if (!open) setContactSearch("");
+              }}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -188,27 +193,31 @@ export default function RouteHoldersSettings() {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0">
-                    <Command>
-                      <CommandInput placeholder="Search contacts..." />
+                    <Command shouldFilter={false}>
+                      <CommandInput 
+                        placeholder="Search contacts..." 
+                        value={contactSearch}
+                        onValueChange={setContactSearch}
+                      />
                       <CommandEmpty>No contact found.</CommandEmpty>
                       <CommandGroup>
                         {contacts?.filter((c: any) => {
                           const labels = c.labels || '';
-                          return labels.includes('Kangaroo Crew') || labels.includes('kangaroo crew');
+                          const hasLabel = labels.includes('Kangaroo Crew') || labels.includes('kangaroo crew');
+                          const matchesSearch = !contactSearch || c.name.toLowerCase().includes(contactSearch.toLowerCase());
+                          return hasLabel && matchesSearch;
                         }).map((contact: any) => (
                           <CommandItem
                             key={contact.id}
                             value={contact.name}
+                            keywords={[contact.name.toLowerCase()]}
                             onSelect={(currentValue) => {
-                              setName(currentValue);
+                              setName(contact.name);
                               // Auto-populate starting address when contact is selected
-                              const selectedContact = contacts?.find((c: any) => c.name.toLowerCase() === currentValue.toLowerCase());
-                              if (selectedContact) {
-                                const primaryAddr = selectedContact.addresses?.find((a: any) => a.isPrimary) || 
-                                                   selectedContact.addresses?.[0] || 
-                                                   { formattedValue: selectedContact.address || '' };
-                                setDefaultStartingAddress(primaryAddr.formattedValue || '');
-                              }
+                              const primaryAddr = contact.addresses?.find((a: any) => a.isPrimary) || 
+                                                 contact.addresses?.[0] || 
+                                                 { formattedValue: contact.address || '' };
+                              setDefaultStartingAddress(primaryAddr.formattedValue || '');
                               setOpenContactCombobox(false);
                             }}
                           >
@@ -396,7 +405,10 @@ export default function RouteHoldersSettings() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="edit-name">Contact Name *</Label>
-              <Popover open={openEditContactCombobox} onOpenChange={setOpenEditContactCombobox}>
+              <Popover open={openEditContactCombobox} onOpenChange={(open) => {
+                setOpenEditContactCombobox(open);
+                if (!open) setEditContactSearch("");
+              }}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -409,27 +421,31 @@ export default function RouteHoldersSettings() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search contacts..." />
+                  <Command shouldFilter={false}>
+                    <CommandInput 
+                      placeholder="Search contacts..." 
+                      value={editContactSearch}
+                      onValueChange={setEditContactSearch}
+                    />
                     <CommandEmpty>No contact found.</CommandEmpty>
                     <CommandGroup>
                       {contacts?.filter((c: any) => {
                         const labels = c.labels || '';
-                        return labels.includes('Kangaroo Crew') || labels.includes('kangaroo crew');
+                        const hasLabel = labels.includes('Kangaroo Crew') || labels.includes('kangaroo crew');
+                        const matchesSearch = !editContactSearch || c.name.toLowerCase().includes(editContactSearch.toLowerCase());
+                        return hasLabel && matchesSearch;
                       }).map((contact: any) => (
                         <CommandItem
                           key={contact.id}
                           value={contact.name}
+                          keywords={[contact.name.toLowerCase()]}
                           onSelect={(currentValue) => {
-                            setName(currentValue);
+                            setName(contact.name);
                             // Auto-populate starting address when contact is selected
-                            const selectedContact = contacts?.find((c: any) => c.name.toLowerCase() === currentValue.toLowerCase());
-                            if (selectedContact) {
-                              const primaryAddr = selectedContact.addresses?.find((a: any) => a.isPrimary) || 
-                                                 selectedContact.addresses?.[0] || 
-                                                 { formattedValue: selectedContact.address || '' };
-                              setDefaultStartingAddress(primaryAddr.formattedValue || '');
-                            }
+                            const primaryAddr = contact.addresses?.find((a: any) => a.isPrimary) || 
+                                               contact.addresses?.[0] || 
+                                               { formattedValue: contact.address || '' };
+                            setDefaultStartingAddress(primaryAddr.formattedValue || '');
                             setOpenEditContactCombobox(false);
                           }}
                         >

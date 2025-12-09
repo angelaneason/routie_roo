@@ -235,3 +235,6 @@
 ## Route Holders UI Issues (2025-12-09 - Continued)
 - [x] Fix Contact Name dropdown - not allowing typing or searching contact names
 - [x] Fix Default Stop Type dropdown - not showing the stop types from Settings
+
+## Route Holders Contact Search Issue (2025-12-09)
+- [x] Fix Combobox search - typing doesn't filter the contact list
