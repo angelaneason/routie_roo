@@ -238,3 +238,6 @@
 
 ## Route Holders Contact Search Issue (2025-12-09)
 - [x] Fix Combobox search - typing doesn't filter the contact list
+
+## Route Holders Search Filtering Bug (2025-12-09)
+- [x] Fix "No contact found" appearing when typing - search filter not matching contacts correctly
