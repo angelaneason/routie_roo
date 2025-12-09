@@ -210,3 +210,6 @@
 ## Bug Fixes - Important Dates Feature
 - [x] Fix duplicate "Visit" entries in stop type legend
 - [x] Fix important date fields not displaying on waypoint cards
+
+## UI Layout Update
+- [x] Move important dates to display horizontally above action buttons on waypoint cards

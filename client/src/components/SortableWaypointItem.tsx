@@ -325,7 +325,7 @@ export function SortableWaypointItem({
         </div>
       </div>
       
-      {/* Important Dates for Waypoint (editable) */}
+      {/* Important Dates for Waypoint (editable) - Horizontal above buttons */}
       {!isGapStop && dateTypesToShow.length > 0 && (() => {
         // Parse existing dates
         let existingDates: any[] = [];
@@ -336,34 +336,35 @@ export function SortableWaypointItem({
         } catch (e) {}
 
         return (
-          <div className="pt-2 border-t space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground">Important Dates:</p>
-            {dateTypesToShow.map((dateType) => {
-              // Find existing date for this type
-              const existingDate = existingDates.find((d: any) => d.type === dateType.name);
-              const dateValue = existingDate ? existingDate.date.split('T')[0] : '';
+          <div className="pt-2 border-t">
+            <div className="flex items-center gap-3 flex-wrap">
+              {dateTypesToShow.map((dateType) => {
+                // Find existing date for this type
+                const existingDate = existingDates.find((d: any) => d.type === dateType.name);
+                const dateValue = existingDate ? existingDate.date.split('T')[0] : '';
 
-              return (
-                <div key={dateType.id} className="flex items-center gap-2">
-                  <label className="text-xs font-medium min-w-[100px]">{dateType.name}:</label>
-                  {waypoint.contactId ? (
-                    <DateInput
-                      dateTypeName={dateType.name}
-                      initialValue={dateValue}
-                      contactId={waypoint.contactId}
-                    />
-                  ) : (
-                    <Input
-                      type="date"
-                      value={dateValue}
-                      className="h-7 text-xs flex-1"
-                      disabled
-                      placeholder="No contact linked"
-                    />
-                  )}
-                </div>
-              );
-            })}
+                return (
+                  <div key={dateType.id} className="flex items-center gap-2">
+                    <label className="text-xs font-medium whitespace-nowrap">{dateType.name}:</label>
+                    {waypoint.contactId ? (
+                      <DateInput
+                        dateTypeName={dateType.name}
+                        initialValue={dateValue}
+                        contactId={waypoint.contactId}
+                      />
+                    ) : (
+                      <Input
+                        type="date"
+                        value={dateValue}
+                        className="h-7 text-xs w-32"
+                        disabled
+                        placeholder="No contact linked"
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         );
       })()}
