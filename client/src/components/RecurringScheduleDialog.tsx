@@ -21,6 +21,8 @@ interface RecurringScheduleDialogProps {
     scheduleEndOccurrences?: number;
     scheduleStartDate?: string;
     routeHolderSchedule?: Record<string, number>; // { "Monday": 1, "Wednesday": 2 }
+    isOneTimeVisit?: boolean;
+    oneTimeVisitDate?: string;
   };
   onSave: (schedule: {
     repeatInterval: number;
@@ -30,7 +32,11 @@ interface RecurringScheduleDialogProps {
     scheduleEndOccurrences?: number;
     scheduleStartDate?: string;
     routeHolderSchedule?: Record<string, number>;
+    isOneTimeVisit?: boolean;
+    oneTimeVisitDate?: string;
   }) => void;
+  onDelete?: () => void; // Optional delete handler
+  hasExistingSchedule?: boolean; // Whether contact has an existing schedule
 }
 
 const DAYS = [
@@ -49,6 +55,8 @@ export default function RecurringScheduleDialog({
   contactName,
   initialSchedule,
   onSave,
+  onDelete,
+  hasExistingSchedule = false,
 }: RecurringScheduleDialogProps) {
   const [repeatInterval, setRepeatInterval] = useState(initialSchedule?.repeatInterval || 1);
   const [selectedDays, setSelectedDays] = useState<string[]>(initialSchedule?.repeatDays || []);
@@ -61,6 +69,8 @@ export default function RecurringScheduleDialog({
   const [routeHolderSchedule, setRouteHolderSchedule] = useState<Record<string, number>>(
     initialSchedule?.routeHolderSchedule || {}
   );
+  const [isOneTimeVisit, setIsOneTimeVisit] = useState(initialSchedule?.isOneTimeVisit || false);
+  const [oneTimeVisitDate, setOneTimeVisitDate] = useState(initialSchedule?.oneTimeVisitDate || new Date().toISOString().split('T')[0]);
 
   // Fetch route holders
   const { data: routeHolders } = trpc.routeHolders.list.useQuery();
@@ -74,6 +84,8 @@ export default function RecurringScheduleDialog({
     setEndOccurrences(initialSchedule?.scheduleEndOccurrences || 13);
     setStartDate(initialSchedule?.scheduleStartDate || new Date().toISOString().split('T')[0]);
     setRouteHolderSchedule(initialSchedule?.routeHolderSchedule || {});
+    setIsOneTimeVisit(initialSchedule?.isOneTimeVisit || false);
+    setOneTimeVisitDate(initialSchedule?.oneTimeVisitDate || new Date().toISOString().split('T')[0]);
   }, [initialSchedule]);
 
   const handleDayToggle = (dayFull: string) => {
@@ -111,20 +123,34 @@ export default function RecurringScheduleDialog({
   };
 
   const handleSave = () => {
-    if (selectedDays.length === 0) {
-      alert("Please select at least one day");
-      return;
+    if (isOneTimeVisit) {
+      if (!oneTimeVisitDate) {
+        alert("Please select a date for the one-time visit");
+        return;
+      }
+      onSave({
+        repeatInterval: 1,
+        repeatDays: [],
+        scheduleEndType: "never",
+        isOneTimeVisit: true,
+        oneTimeVisitDate,
+      });
+    } else {
+      if (selectedDays.length === 0) {
+        alert("Please select at least one day");
+        return;
+      }
+      onSave({
+        repeatInterval,
+        repeatDays: selectedDays,
+        scheduleEndType: endType,
+        scheduleEndDate: endType === "date" ? endDate : undefined,
+        scheduleEndOccurrences: endType === "occurrences" ? endOccurrences : undefined,
+        scheduleStartDate: startDate,
+        routeHolderSchedule: Object.keys(routeHolderSchedule).length > 0 ? routeHolderSchedule : undefined,
+        isOneTimeVisit: false,
+      });
     }
-
-    onSave({
-      repeatInterval,
-      repeatDays: selectedDays,
-      scheduleEndType: endType,
-      scheduleEndDate: endType === "date" ? endDate : undefined,
-      scheduleEndOccurrences: endType === "occurrences" ? endOccurrences : undefined,
-      scheduleStartDate: startDate,
-      routeHolderSchedule: Object.keys(routeHolderSchedule).length > 0 ? routeHolderSchedule : undefined,
-    });
     onOpenChange(false);
   };
 
@@ -137,6 +163,8 @@ export default function RecurringScheduleDialog({
     setEndOccurrences(initialSchedule?.scheduleEndOccurrences || 13);
     setStartDate(initialSchedule?.scheduleStartDate || new Date().toISOString().split('T')[0]);
     setRouteHolderSchedule(initialSchedule?.routeHolderSchedule || {});
+    setIsOneTimeVisit(initialSchedule?.isOneTimeVisit || false);
+    setOneTimeVisitDate(initialSchedule?.oneTimeVisitDate || new Date().toISOString().split('T')[0]);
     onOpenChange(false);
   };
 
@@ -154,6 +182,44 @@ export default function RecurringScheduleDialog({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Visit Type Toggle */}
+          <div className="space-y-2">
+            <Label className="text-sm text-muted-foreground">Visit Type</Label>
+            <RadioGroup value={isOneTimeVisit ? "one-time" : "recurring"} onValueChange={(value) => setIsOneTimeVisit(value === "one-time")}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="recurring" id="recurring" />
+                <Label htmlFor="recurring" className="font-normal cursor-pointer">
+                  Recurring Schedule
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="one-time" id="one-time" />
+                <Label htmlFor="one-time" className="font-normal cursor-pointer">
+                  One-Time Visit
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* One-Time Visit Date */}
+          {isOneTimeVisit && (
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground">Visit Date</Label>
+              <Input
+                type="date"
+                value={oneTimeVisitDate}
+                onChange={(e) => setOneTimeVisitDate(e.target.value)}
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground">
+                Schedule a single visit on this date (non-recurring)
+              </p>
+            </div>
+          )}
+
+          {/* Recurring Schedule Fields */}
+          {!isOneTimeVisit && (
+            <>
           {/* Start Date */}
           <div className="space-y-2">
             <Label className="text-sm text-muted-foreground">Start Date</Label>
@@ -351,14 +417,30 @@ export default function RecurringScheduleDialog({
               </div>
             </RadioGroup>
           </div>
+            </>
+          )}
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-2">
-          <Button variant="ghost" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Done</Button>
+        <div className="flex justify-between gap-2">
+          <div>
+            {hasExistingSchedule && onDelete && (
+              <Button variant="destructive" onClick={() => {
+                if (confirm(`Are you sure you want to delete the schedule for ${contactName}?`)) {
+                  onDelete();
+                  onOpenChange(false);
+                }
+              }}>
+                Delete Schedule
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>Done</Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

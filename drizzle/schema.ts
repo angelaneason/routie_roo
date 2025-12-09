@@ -175,6 +175,8 @@ export const cachedContacts = mysqlTable("cached_contacts", {
   repeatInterval: int("repeatInterval").default(1), // Number of weeks between visits (1 = weekly, 2 = bi-weekly, etc.)
   repeatDays: text("repeatDays"), // JSON array of selected days ["Monday", "Wednesday"] for recurrence
   routeHolderSchedule: text("routeHolderSchedule"), // JSON object mapping days to route holders: {"Monday": 1, "Wednesday": 2} where values are routeHolderId
+  isOneTimeVisit: int("isOneTimeVisit").default(0), // 1 = one-time visit (non-recurring), 0 = recurring schedule
+  oneTimeVisitDate: timestamp("oneTimeVisitDate"), // Specific date for one-time visit
   scheduleEndType: mysqlEnum("scheduleEndType", ["never", "date", "occurrences"]).default("never"), // How the schedule ends
   scheduleEndDate: timestamp("scheduleEndDate"), // End date for "date" type
   scheduleEndOccurrences: int("scheduleEndOccurrences"), // Total occurrences for "occurrences" type

@@ -95,6 +95,8 @@ export default function Home() {
     scheduleEndOccurrences?: number;
     scheduleStartDate?: string;
     routeHolderSchedule?: Record<string, number>;
+    isOneTimeVisit?: boolean;
+    oneTimeVisitDate?: string;
   } | null>(null);
 
   // Check for OAuth callback status and route creation from waypoints
@@ -266,6 +268,7 @@ export default function Home() {
   // Update contact mutation
   const updateContactMutation = trpc.contacts.update.useMutation({
     onSuccess: () => {
+      // Refetch contacts to update the UI immediately
       contactsQuery.refetch();
     },
   });
@@ -1125,6 +1128,35 @@ export default function Home() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <p className="font-medium">{contact.name}</p>
+                            {/* Schedule indicator badge */}
+                            {contact.repeatDays && (() => {
+                              try {
+                                const days = JSON.parse(contact.repeatDays);
+                                if (days.length > 0) {
+                                  const scheduleText = formatRecurringSchedule({
+                                    repeatInterval: contact.repeatInterval || 1,
+                                    repeatDays: days,
+                                    scheduleEndType: contact.scheduleEndType || "never",
+                                    scheduleEndDate: contact.scheduleEndDate,
+                                    scheduleEndOccurrences: contact.scheduleEndOccurrences,
+                                  });
+                                  return (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
+                                          <CalendarIcon className="h-3 w-3" />
+                                          Scheduled
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>{scheduleText}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  );
+                                }
+                              } catch (e) {}
+                              return null;
+                            })()}
                             {(!contact.address || contact.address.trim() === "") && (
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -1317,6 +1349,7 @@ export default function Home() {
                                 const repeatDays = contact.repeatDays ? JSON.parse(contact.repeatDays) : currentDays;
                                 const routeHolderSchedule = contact.routeHolderSchedule ? JSON.parse(contact.routeHolderSchedule) : undefined;
                                 const scheduleStartDate = contact.scheduleStartDate ? (contact.scheduleStartDate instanceof Date ? contact.scheduleStartDate.toISOString().split('T')[0] : contact.scheduleStartDate.split('T')[0]) : undefined;
+                                const oneTimeVisitDate = contact.oneTimeVisitDate ? (contact.oneTimeVisitDate instanceof Date ? contact.oneTimeVisitDate.toISOString().split('T')[0] : contact.oneTimeVisitDate.split('T')[0]) : undefined;
                                 setScheduleDialogContact({ 
                                   id: contact.id, 
                                   name: contact.name || "Contact", 
@@ -1328,6 +1361,8 @@ export default function Home() {
                                   scheduleEndOccurrences: contact.scheduleEndOccurrences ?? undefined,
                                   scheduleStartDate,
                                   routeHolderSchedule,
+                                  isOneTimeVisit: contact.isOneTimeVisit === 1,
+                                  oneTimeVisitDate,
                                 });
                                 setScheduleDialogOpen(true);
                               }}
@@ -1719,7 +1754,10 @@ export default function Home() {
             scheduleEndOccurrences: scheduleDialogContact.scheduleEndOccurrences,
             scheduleStartDate: scheduleDialogContact.scheduleStartDate,
             routeHolderSchedule: scheduleDialogContact.routeHolderSchedule,
+            isOneTimeVisit: scheduleDialogContact.isOneTimeVisit,
+            oneTimeVisitDate: scheduleDialogContact.oneTimeVisitDate,
           }}
+          hasExistingSchedule={scheduleDialogContact.repeatDays && scheduleDialogContact.repeatDays.length > 0}
           onSave={(schedule) => {
             updateScheduledDaysMutation.mutate({
               contactId: scheduleDialogContact.id,
@@ -1730,6 +1768,21 @@ export default function Home() {
               scheduleEndOccurrences: schedule.scheduleEndOccurrences,
               scheduleStartDate: schedule.scheduleStartDate,
               routeHolderSchedule: schedule.routeHolderSchedule,
+              isOneTimeVisit: schedule.isOneTimeVisit,
+              oneTimeVisitDate: schedule.oneTimeVisitDate,
+            });
+          }}
+          onDelete={() => {
+            // Clear the schedule by setting empty arrays
+            updateScheduledDaysMutation.mutate({
+              contactId: scheduleDialogContact.id,
+              repeatInterval: 1,
+              repeatDays: [],
+              scheduleEndType: "never",
+              scheduleEndDate: undefined,
+              scheduleEndOccurrences: undefined,
+              scheduleStartDate: undefined,
+              routeHolderSchedule: undefined,
             });
           }}
         />

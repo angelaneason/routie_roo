@@ -315,3 +315,34 @@
 - [ ] Test routes sorted by date within folders
 - [ ] Test calendar titles include route holder names
 - [ ] Test start date controls when routes begin generating
+
+
+## Scheduling Improvements (2025-12-09)
+
+### Address Update Refresh Issue
+- [x] Fix contact card not refreshing after adding address via "Add Address" link
+- [x] Invalidate contacts query after successful address update
+- [x] Ensure "Add Address" warning disappears after address is added
+
+### Route Not Created After Schedule
+- [x] Debug why clicking "Done" in schedule dialog doesn't create route
+- [x] Check if enableSmartRouting is set to 1 in user settings
+- [x] Verify route creation logic is triggered after updateScheduledDays
+- [x] Enabled Smart Auto-Routing in user settings
+
+### Schedule Visibility and Management
+- [x] Add visual indicator on contact cards showing existing schedules
+- [x] Display schedule summary (e.g., "Every week on Mon, Wed, Fri")
+- [x] Add "Delete Schedule" button to clear existing schedules
+- [x] Confirm deletion with dialog to prevent accidental removal
+- [x] Update backend to support schedule deletion
+
+### One-Time Visit Scheduling
+- [x] Add "One-Time Visit" option to schedule dialog
+- [x] Support scheduling single visit on specific date
+- [x] Don't create recurring schedule for one-time visits
+- [x] Use case: Leon does eval, needs re-eval in 30 days (non-recurring)
+- [x] Use case: Debbie does weekly visits (recurring)
+- [x] Database schema updated with isOneTimeVisit and oneTimeVisitDate fields
+- [x] Frontend UI updated with visit type toggle
+- [x] Backend procedures updated to handle one-time visits

@@ -726,6 +726,9 @@ export const appRouter = router({
         scheduleEndOccurrences: z.number().optional(),
         scheduleStartDate: z.string().optional(), // ISO date string - when schedule begins
         routeHolderSchedule: z.record(z.string(), z.number()).optional(), // { "Monday": 1, "Wednesday": 2 }
+        // One-time visit fields
+        isOneTimeVisit: z.boolean().optional(), // true = one-time visit, false = recurring
+        oneTimeVisitDate: z.string().optional(), // ISO date string for one-time visit
       }))
       .mutation(async ({ ctx, input }) => {
         // Check subscription tier - Smart Auto-Routing is premium-only
@@ -781,6 +784,13 @@ export const appRouter = router({
         }
         if (input.routeHolderSchedule !== undefined) {
           updateData.routeHolderSchedule = JSON.stringify(input.routeHolderSchedule);
+        }
+        // One-time visit fields
+        if (input.isOneTimeVisit !== undefined) {
+          updateData.isOneTimeVisit = input.isOneTimeVisit ? 1 : 0;
+        }
+        if (input.oneTimeVisitDate !== undefined) {
+          updateData.oneTimeVisitDate = input.oneTimeVisitDate ? new Date(input.oneTimeVisitDate) : null;
         }
         // Set schedule start date if not already set and we're creating a new schedule
         if (!contactData.scheduleStartDate && input.repeatDays && input.repeatDays.length > 0) {
