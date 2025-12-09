@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Plus, Pencil, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 
+// Route Holders Settings - Shows ALL contacts in dropdown (no label filter)
 export default function RouteHoldersSettings() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
