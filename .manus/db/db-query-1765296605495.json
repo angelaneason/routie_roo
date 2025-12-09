@@ -1,0 +1,60 @@
+{
+  "query": "SELECT id, name, labels FROM cached_contacts LIMIT 10",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, name, labels FROM cached_contacts LIMIT 10",
+  "rows": [
+    {
+      "id": "210001",
+      "name": "Ray Camacho",
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "id": "210002",
+      "name": "Leon Montgomery",
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "id": "210003",
+      "name": "Marie Scheduling",
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "id": "210004",
+      "name": "May Kim",
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "id": "210005",
+      "name": "Jason Hammock",
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "id": "210006",
+      "name": "Angie Neason",
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "id": "210007",
+      "name": "TODD Elizabeth",
+      "labels": "[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/63c2ee10e427465\",\"contactGroups/6bb9616b08caabb4\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "id": "210008",
+      "name": "WARD Billy",
+      "labels": "[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/295899130effff7d\",\"contactGroups/4289982b0c954d85\",\"contactGroups/ec2a670d514408\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "id": "210009",
+      "name": "Randy HARMS",
+      "labels": "[\"contactGroups/myContacts\"]"
+    },
+    {
+      "id": "210010",
+      "name": "WILBUR Karen",
+      "labels": "[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/295899130effff7d\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tlabels\n210001\tRay Camacho\t[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n210002\tLeon Montgomery\t[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n210003\tMarie Scheduling\t[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n210004\tMay Kim\t[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n210005\tJason Hammock\t[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n210006\tAngie Neason\t[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n210007\tTODD Elizabeth\t[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/63c2ee10e427465\",\"contactGroups/6bb9616b08caabb4\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n210008\tWARD Billy\t[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/295899130effff7d\",\"contactGroups/4289982b0c954d85\",\"contactGroups/ec2a670d514408\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n210009\tRandy HARMS\t[\"contactGroups/myContacts\"]\n210010\tWILBUR Karen\t[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/295899130effff7d\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

@@ -1,0 +1,70 @@
+{
+  "query": "SELECT DISTINCT labels FROM cached_contacts WHERE labels IS NOT NULL AND labels != '' LIMIT 20",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT DISTINCT labels FROM cached_contacts WHERE labels IS NOT NULL AND labels != '' LIMIT 20",
+  "rows": [
+    {
+      "labels": "[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/295899130effff7d\",\"contactGroups/46b3ed08a6374d7\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"♾️PT/Randy.Harms\",\"⚕️Samuel.Adeyi\",\"*DeltaCare\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/5db8c017898daefe\",\"contactGroups/6a722d5088647c3f\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"♾️PT/Randy.Harms\",\"⚕️Debbie.Hachtel\",\"*Universal\",\"contactGroups/6bb9616b08caabb4\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/4c43e3590f776bcf\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"♾️PT/Randy.Harms\",\"*Universal\",\"⚕️Sean.Hart\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/3b07aa0b0ecf21f2\",\"contactGroups/5db8c017898daefe\",\"contactGroups/6bb9616b08caabb4\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"♾️PT/Randy.Harms\",\"*DeltaCare\",\"⚕️K.Strickland\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"*DeltaCare\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"♾️PT/Randy.Harms\",\"⚕️K.Strickland\",\"*Applesoft\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"Discharged\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "labels": "[\"*Abundant\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "labels": "[\"♾️PT/Randy.Harms\",\"*Universal\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"♾️PT/Randy.Harms\",\"⚕️Shaquana.Williams\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]"
+    },
+    {
+      "labels": "[\"♾️PT/Randy.Harms\",\"*DeltaCare\",\"contactGroups/7bee4ed1884ac501\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"♾️PT/Randy.Harms\",\"⚕️Sean.Hart\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/6bb9616b08caabb4\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"♾️PT/Randy.Harms\",\"⚕️Alisha Garner\",\"*Universal\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    },
+    {
+      "labels": "[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/295899130effff7d\",\"contactGroups/myContacts\",\"contactGroups/starred\"]"
+    }
+  ],
+  "messages": [],
+  "stdout": "labels\n[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/295899130effff7d\",\"contactGroups/46b3ed08a6374d7\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"♾️PT/Randy.Harms\",\"⚕️Samuel.Adeyi\",\"*DeltaCare\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/5db8c017898daefe\",\"contactGroups/6a722d5088647c3f\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"♾️PT/Randy.Harms\",\"⚕️Debbie.Hachtel\",\"*Universal\",\"contactGroups/6bb9616b08caabb4\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/4c43e3590f776bcf\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"♾️PT/Randy.Harms\",\"*Universal\",\"⚕️Sean.Hart\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/3b07aa0b0ecf21f2\",\"contactGroups/5db8c017898daefe\",\"contactGroups/6bb9616b08caabb4\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"♾️PT/Randy.Harms\",\"*DeltaCare\",\"⚕️K.Strickland\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"*DeltaCare\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"♾️PT/Randy.Harms\",\"⚕️K.Strickland\",\"*Applesoft\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"Discharged\",\"contactGroups/myContacts\"]\n[\"*Abundant\",\"contactGroups/myContacts\"]\n[\"♾️PT/Randy.Harms\",\"*Universal\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"♾️PT/Randy.Harms\",\"⚕️Shaquana.Williams\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"contactGroups/750664c109a2dd83\",\"contactGroups/myContacts\"]\n[\"♾️PT/Randy.Harms\",\"*DeltaCare\",\"contactGroups/7bee4ed1884ac501\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"♾️PT/Randy.Harms\",\"⚕️Sean.Hart\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/6bb9616b08caabb4\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"♾️PT/Randy.Harms\",\"⚕️Alisha Garner\",\"*Universal\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n[\"contactGroups/10a5e7768dc5c4f2\",\"contactGroups/295899130effff7d\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\n",
+  "stderr": "",
+  "execution_time_ms": 86
+}

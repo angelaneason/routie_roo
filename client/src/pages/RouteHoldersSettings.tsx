@@ -188,7 +188,7 @@ export default function RouteHoldersSettings() {
                       aria-expanded={openContactCombobox}
                       className="w-full justify-between"
                     >
-                      {name || "Select contact from Kangaroo Crew"}
+                      {name || "Select contact from your contacts"}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
@@ -202,10 +202,9 @@ export default function RouteHoldersSettings() {
                       <CommandEmpty>No contact found.</CommandEmpty>
                       <CommandGroup>
                         {contacts?.filter((c: any) => {
-                          const labels = c.labels || '';
-                          const hasLabel = labels.includes('Kangaroo Crew') || labels.includes('kangaroo crew');
+                          // Show all active contacts, filter by search only
                           const matchesSearch = !contactSearch || c.name.toLowerCase().includes(contactSearch.toLowerCase());
-                          return hasLabel && matchesSearch;
+                          return matchesSearch;
                         }).map((contact: any) => (
                           <CommandItem
                             key={contact.id}
@@ -235,7 +234,7 @@ export default function RouteHoldersSettings() {
                   </PopoverContent>
                 </Popover>
                 <p className="text-xs text-muted-foreground">
-                  Select from contacts labeled as "Kangaroo Crew"
+                  Select from your contacts
                 </p>
               </div>
 
@@ -416,7 +415,7 @@ export default function RouteHoldersSettings() {
                     aria-expanded={openEditContactCombobox}
                     className="w-full justify-between"
                   >
-                    {name || "Select contact from Kangaroo Crew"}
+                    {name || "Select contact from your contacts"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -430,10 +429,9 @@ export default function RouteHoldersSettings() {
                     <CommandEmpty>No contact found.</CommandEmpty>
                     <CommandGroup>
                       {contacts?.filter((c: any) => {
-                        const labels = c.labels || '';
-                        const hasLabel = labels.includes('Kangaroo Crew') || labels.includes('kangaroo crew');
+                        // Show all active contacts, filter by search only
                         const matchesSearch = !editContactSearch || c.name.toLowerCase().includes(editContactSearch.toLowerCase());
-                        return hasLabel && matchesSearch;
+                        return matchesSearch;
                       }).map((contact: any) => (
                         <CommandItem
                           key={contact.id}
@@ -463,7 +461,7 @@ export default function RouteHoldersSettings() {
                 </PopoverContent>
               </Popover>
               <p className="text-xs text-muted-foreground">
-                Select from contacts labeled as "Kangaroo Crew"
+                Select from your contacts
               </p>
             </div>
 
