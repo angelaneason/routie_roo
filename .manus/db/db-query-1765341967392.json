@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS billing_records (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  routeId INT NOT NULL,\n  clientId INT NOT NULL,\n  routeHolderId INT NOT NULL,\n  routeName VARCHAR(255) NOT NULL,\n  routeDate TIMESTAMP NOT NULL,\n  completedAt TIMESTAMP NOT NULL,\n  billingModel ENUM('mileage', 'flat_fee', 'hourly') NOT NULL,\n  totalMiles INT,\n  mileageRate INT,\n  totalHours INT,\n  hourlyRate INT,\n  flatFeeAmount INT,\n  calculatedAmount INT NOT NULL,\n  invoiceNumber VARCHAR(50),\n  invoiceDate TIMESTAMP,\n  paidAt TIMESTAMP,\n  paymentMethod VARCHAR(50),\n  notes TEXT,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL\n)",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute CREATE TABLE IF NOT EXISTS billing_records (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  routeId INT NOT NULL,\n  clientId INT NOT NULL,\n  routeHolderId INT NOT NULL,\n  routeName VARCHAR(255) NOT NULL,\n  routeDate TIMESTAMP NOT NULL,\n  completedAt TIMESTAMP NOT NULL,\n  billingModel ENUM('mileage', 'flat_fee', 'hourly') NOT NULL,\n  totalMiles INT,\n  mileageRate INT,\n  totalHours INT,\n  hourlyRate INT,\n  flatFeeAmount INT,\n  calculatedAmount INT NOT NULL,\n  invoiceNumber VARCHAR(50),\n  invoiceDate TIMESTAMP,\n  paidAt TIMESTAMP,\n  paymentMethod VARCHAR(50),\n  notes TEXT,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL\n)",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 171
+}

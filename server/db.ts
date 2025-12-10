@@ -1,6 +1,6 @@
 import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, routes, routeWaypoints, cachedContacts, folders, InsertRoute, InsertRouteWaypoint, InsertCachedContact, InsertFolder, importantDateTypes, commentOptions, InsertImportantDateType, InsertCommentOption } from "../drizzle/schema";
+import { InsertUser, users, routes, routeWaypoints, cachedContacts, folders, InsertRoute, InsertRouteWaypoint, InsertCachedContact, InsertFolder, importantDateTypes, commentOptions, InsertImportantDateType, InsertCommentOption, clients, billingRecords, accountSettings, InsertClient, InsertBillingRecord, InsertAccountSetting } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -395,4 +395,154 @@ export async function deleteCommentOption(id: number) {
   if (!db) throw new Error("Database not available");
   
   await db.delete(commentOptions).where(eq(commentOptions.id, id));
+}
+
+// ============================================================================
+// BILLING SYSTEM
+// ============================================================================
+
+// Client Management
+export async function createClient(client: InsertClient) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(clients).values(client);
+  return result;
+}
+
+export async function getUserClients(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(clients).where(eq(clients.userId, userId)).orderBy(clients.clientName);
+}
+
+export async function getRouteHolderClients(userId: number, routeHolderId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(clients)
+    .where(and(eq(clients.userId, userId), eq(clients.routeHolderId, routeHolderId)))
+    .orderBy(clients.clientName);
+}
+
+export async function getClientById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db.select().from(clients).where(eq(clients.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateClient(id: number, updates: Partial<InsertClient>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(clients).set(updates).where(eq(clients.id, id));
+}
+
+export async function deleteClient(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(clients).where(eq(clients.id, id));
+}
+
+// Billing Records Management
+export async function createBillingRecord(record: InsertBillingRecord) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(billingRecords).values(record);
+  return result;
+}
+
+export async function getUserBillingRecords(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(billingRecords)
+    .where(eq(billingRecords.userId, userId))
+    .orderBy(billingRecords.routeDate);
+}
+
+export async function getClientBillingRecords(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(billingRecords)
+    .where(eq(billingRecords.clientId, clientId))
+    .orderBy(billingRecords.routeDate);
+}
+
+export async function getRouteHolderBillingRecords(userId: number, routeHolderId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(billingRecords)
+    .where(and(eq(billingRecords.userId, userId), eq(billingRecords.routeHolderId, routeHolderId)))
+    .orderBy(billingRecords.routeDate);
+}
+
+export async function getBillingRecordById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db.select().from(billingRecords).where(eq(billingRecords.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateBillingRecord(id: number, updates: Partial<InsertBillingRecord>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(billingRecords).set(updates).where(eq(billingRecords.id, id));
+}
+
+// Account Settings Management
+export async function getAccountSettings(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db.select().from(accountSettings).where(eq(accountSettings.userId, userId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function upsertAccountSettings(settings: InsertAccountSetting) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const existing = await getAccountSettings(settings.userId);
+  
+  if (existing) {
+    await db.update(accountSettings).set(settings).where(eq(accountSettings.userId, settings.userId));
+  } else {
+    await db.insert(accountSettings).values(settings);
+  }
+}
+
+export async function getNextInvoiceNumber(userId: number): Promise<string> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const settings = await getAccountSettings(userId);
+  
+  if (!settings) {
+    // Create default settings if none exist
+    await upsertAccountSettings({
+      userId,
+      invoicePrefix: "INV",
+      nextInvoiceNumber: 1000,
+    });
+    return "INV-1000";
+  }
+  
+  const invoiceNumber = `${settings.invoicePrefix}-${settings.nextInvoiceNumber}`;
+  
+  // Increment for next time
+  await db.update(accountSettings)
+    .set({ nextInvoiceNumber: settings.nextInvoiceNumber + 1 })
+    .where(eq(accountSettings.userId, userId));
+  
+  return invoiceNumber;
 }

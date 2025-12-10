@@ -426,3 +426,90 @@ export const loginAttempts = mysqlTable("login_attempts", {
 
 export type LoginAttempt = typeof loginAttempts.$inferSelect;
 export type InsertLoginAttempt = typeof loginAttempts.$inferInsert;
+
+/**
+ * Clients table - stores billing clients associated with route holders
+ * Each client is linked to a route holder (staff member) for billing purposes
+ */
+export const clients = mysqlTable("clients", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Account owner
+  routeHolderId: int("routeHolderId").notNull(), // Route holder (staff) who services this client
+  clientName: varchar("clientName", { length: 255 }).notNull(), // Client's business/organization name
+  contactName: varchar("contactName", { length: 255 }), // Primary contact person
+  email: varchar("email", { length: 320 }), // Client email for invoices
+  phone: varchar("phone", { length: 50 }), // Client phone number
+  address: text("address"), // Client billing address
+  // Billing configuration
+  billingModel: mysqlEnum("billingModel", ["mileage", "flat_fee", "hourly"]).notNull(), // Billing model type
+  mileageRate: int("mileageRate"), // Rate per mile in cents (e.g., 65 = $0.65/mile)
+  flatFeeAmount: int("flatFeeAmount"), // Flat fee per route in cents (e.g., 5000 = $50.00)
+  hourlyRate: int("hourlyRate"), // Hourly rate in cents (e.g., 3500 = $35.00/hour)
+  // Payment tracking
+  paymentTerms: varchar("paymentTerms", { length: 100 }).default("Net 30"), // Payment terms (e.g., "Net 30", "Due on receipt")
+  notes: text("notes"), // Internal notes about the client
+  isActive: boolean("isActive").default(true).notNull(), // Whether client is active
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Client = typeof clients.$inferSelect;
+export type InsertClient = typeof clients.$inferInsert;
+
+/**
+ * Billing Records table - tracks billing for each completed route
+ * Generated when a route is marked complete
+ */
+export const billingRecords = mysqlTable("billing_records", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Account owner
+  routeId: int("routeId").notNull(), // Route that was completed
+  clientId: int("clientId").notNull(), // Client being billed
+  routeHolderId: int("routeHolderId").notNull(), // Route holder who executed the route
+  // Route details (denormalized for historical record)
+  routeName: varchar("routeName", { length: 255 }).notNull(),
+  routeDate: timestamp("routeDate").notNull(), // When route was scheduled/executed
+  completedAt: timestamp("completedAt").notNull(), // When route was marked complete
+  // Billing calculation
+  billingModel: mysqlEnum("billingModel", ["mileage", "flat_fee", "hourly"]).notNull(),
+  totalMiles: int("totalMiles"), // Total miles driven (for mileage billing)
+  mileageRate: int("mileageRate"), // Rate per mile in cents at time of billing
+  totalHours: int("totalHours"), // Total hours worked in minutes (for hourly billing)
+  hourlyRate: int("hourlyRate"), // Hourly rate in cents at time of billing
+  flatFeeAmount: int("flatFeeAmount"), // Flat fee in cents at time of billing
+  calculatedAmount: int("calculatedAmount").notNull(), // Final calculated amount in cents
+  // Payment tracking
+  invoiceNumber: varchar("invoiceNumber", { length: 50 }), // Generated invoice number
+  invoiceDate: timestamp("invoiceDate"), // When invoice was generated
+  paidAt: timestamp("paidAt"), // When payment was received
+  paymentMethod: varchar("paymentMethod", { length: 50 }), // How payment was received (check, transfer, etc.)
+  notes: text("notes"), // Additional billing notes
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type BillingRecord = typeof billingRecords.$inferSelect;
+export type InsertBillingRecord = typeof billingRecords.$inferInsert;
+
+/**
+ * Account Settings table - stores business information for invoice generation
+ * One record per user (account owner)
+ */
+export const accountSettings = mysqlTable("account_settings", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(), // Account owner (one record per user)
+  businessName: varchar("businessName", { length: 255 }), // Business name for invoices
+  businessAddress: text("businessAddress"), // Business address for invoices
+  businessPhone: varchar("businessPhone", { length: 50 }), // Business phone
+  businessEmail: varchar("businessEmail", { length: 320 }), // Business email
+  businessLogo: text("businessLogo"), // S3 URL to business logo
+  taxId: varchar("taxId", { length: 50 }), // Tax ID/EIN for invoices
+  invoicePrefix: varchar("invoicePrefix", { length: 20 }).default("INV"), // Invoice number prefix (e.g., "INV", "BILL")
+  nextInvoiceNumber: int("nextInvoiceNumber").default(1000).notNull(), // Next invoice number to use
+  invoiceFooter: text("invoiceFooter"), // Custom footer text for invoices
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AccountSetting = typeof accountSettings.$inferSelect;
+export type InsertAccountSetting = typeof accountSettings.$inferInsert;

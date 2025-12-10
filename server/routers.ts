@@ -29,7 +29,22 @@ import {
   createCommentOption,
   getUserCommentOptions,
   updateCommentOption,
-  deleteCommentOption
+  deleteCommentOption,
+  createClient,
+  getUserClients,
+  getRouteHolderClients,
+  getClientById,
+  updateClient,
+  deleteClient,
+  createBillingRecord,
+  getUserBillingRecords,
+  getClientBillingRecords,
+  getRouteHolderBillingRecords,
+  getBillingRecordById,
+  updateBillingRecord,
+  getAccountSettings,
+  upsertAccountSettings,
+  getNextInvoiceNumber
 } from "./db";
 import { getDashboardPreferences, upsertDashboardPreferences } from "./dashboardPreferences";
 import { 
@@ -2178,9 +2193,65 @@ export const appRouter = router({
 
         // Mark route as completed if all waypoints are finished
         if (allFinished && !route.completedAt) {
+          const completedAt = new Date();
           await db.update(routes)
-            .set({ completedAt: new Date() })
+            .set({ completedAt })
             .where(eq(routes.id, waypoint[0].routeId));
+
+          // Create billing record if route has a route holder assigned
+          if (route.routeHolderId) {
+            try {
+              // Get route holder's clients
+              const routeHolderClients = await getRouteHolderClients(ctx.user.id, route.routeHolderId);
+              
+              // If there's exactly one client for this route holder, auto-create billing
+              // Otherwise, user will need to manually assign billing
+              if (routeHolderClients.length === 1) {
+                const client = routeHolderClients[0];
+                
+                // Calculate billing amount based on model
+                let calculatedAmount = 0;
+                let totalMiles: number | undefined;
+                let totalHours: number | undefined;
+                
+                if (client.billingModel === "mileage" && client.mileageRate) {
+                  // Convert route distance from meters to miles
+                  const distanceInMiles = route.totalDistance ? (route.totalDistance / 1609.34) : 0;
+                  totalMiles = Math.round(distanceInMiles);
+                  calculatedAmount = Math.round(totalMiles * client.mileageRate);
+                } else if (client.billingModel === "flat_fee" && client.flatFeeAmount) {
+                  calculatedAmount = client.flatFeeAmount;
+                } else if (client.billingModel === "hourly" && client.hourlyRate) {
+                  // Convert route duration from seconds to hours (rounded to nearest 15 min)
+                  const durationInHours = route.totalDuration ? (route.totalDuration / 3600) : 0;
+                  const roundedHours = Math.ceil(durationInHours * 4) / 4; // Round to nearest 0.25
+                  totalHours = Math.round(roundedHours * 60); // Store as minutes
+                  calculatedAmount = Math.round(roundedHours * client.hourlyRate);
+                }
+                
+                // Create billing record
+                await createBillingRecord({
+                  userId: ctx.user.id,
+                  routeId: route.id,
+                  clientId: client.id,
+                  routeHolderId: route.routeHolderId,
+                  routeName: route.name,
+                  routeDate: route.scheduledDate || completedAt,
+                  completedAt,
+                  billingModel: client.billingModel,
+                  totalMiles,
+                  mileageRate: client.mileageRate || undefined,
+                  totalHours,
+                  hourlyRate: client.hourlyRate || undefined,
+                  flatFeeAmount: client.flatFeeAmount || undefined,
+                  calculatedAmount,
+                });
+              }
+            } catch (error) {
+              console.error("Failed to create billing record:", error);
+              // Don't fail the route completion if billing fails
+            }
+          }
         }
 
         return { success: true };
@@ -5209,6 +5280,194 @@ export const appRouter = router({
 
         return { success: true };
       }),
+  }),
+
+  // ============================================================================
+  // BILLING SYSTEM
+  // ============================================================================
+  billing: router({
+    // Client Management
+    clients: router({
+      list: protectedProcedure.query(async ({ ctx }) => {
+        return getUserClients(ctx.user.id);
+      }),
+
+      listByRouteHolder: protectedProcedure
+        .input(z.object({ routeHolderId: z.number() }))
+        .query(async ({ ctx, input }) => {
+          return getRouteHolderClients(ctx.user.id, input.routeHolderId);
+        }),
+
+      getById: protectedProcedure
+        .input(z.object({ id: z.number() }))
+        .query(async ({ ctx, input }) => {
+          const client = await getClientById(input.id);
+          if (!client || client.userId !== ctx.user.id) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Client not found" });
+          }
+          return client;
+        }),
+
+      create: protectedProcedure
+        .input(z.object({
+          routeHolderId: z.number(),
+          clientName: z.string().min(1),
+          contactName: z.string().optional(),
+          email: z.string().email().optional(),
+          phone: z.string().optional(),
+          address: z.string().optional(),
+          billingModel: z.enum(["mileage", "flat_fee", "hourly"]),
+          mileageRate: z.number().optional(), // in cents
+          flatFeeAmount: z.number().optional(), // in cents
+          hourlyRate: z.number().optional(), // in cents
+          paymentTerms: z.string().optional(),
+          notes: z.string().optional(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          await createClient({
+            userId: ctx.user.id,
+            ...input,
+          });
+          return { success: true };
+        }),
+
+      update: protectedProcedure
+        .input(z.object({
+          id: z.number(),
+          routeHolderId: z.number().optional(),
+          clientName: z.string().min(1).optional(),
+          contactName: z.string().optional(),
+          email: z.string().email().optional(),
+          phone: z.string().optional(),
+          address: z.string().optional(),
+          billingModel: z.enum(["mileage", "flat_fee", "hourly"]).optional(),
+          mileageRate: z.number().optional(),
+          flatFeeAmount: z.number().optional(),
+          hourlyRate: z.number().optional(),
+          paymentTerms: z.string().optional(),
+          notes: z.string().optional(),
+          isActive: z.boolean().optional(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          const { id, ...updates } = input;
+          const client = await getClientById(id);
+          if (!client || client.userId !== ctx.user.id) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Client not found" });
+          }
+          await updateClient(id, updates);
+          return { success: true };
+        }),
+
+      delete: protectedProcedure
+        .input(z.object({ id: z.number() }))
+        .mutation(async ({ ctx, input }) => {
+          const client = await getClientById(input.id);
+          if (!client || client.userId !== ctx.user.id) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Client not found" });
+          }
+          await deleteClient(input.id);
+          return { success: true };
+        }),
+    }),
+
+    // Billing Records
+    records: router({
+      list: protectedProcedure.query(async ({ ctx }) => {
+        return getUserBillingRecords(ctx.user.id);
+      }),
+
+      listByClient: protectedProcedure
+        .input(z.object({ clientId: z.number() }))
+        .query(async ({ ctx, input }) => {
+          const records = await getClientBillingRecords(input.clientId);
+          // Verify ownership
+          if (records.length > 0 && records[0].userId !== ctx.user.id) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+          }
+          return records;
+        }),
+
+      listByRouteHolder: protectedProcedure
+        .input(z.object({ routeHolderId: z.number() }))
+        .query(async ({ ctx, input }) => {
+          return getRouteHolderBillingRecords(ctx.user.id, input.routeHolderId);
+        }),
+
+      getById: protectedProcedure
+        .input(z.object({ id: z.number() }))
+        .query(async ({ ctx, input }) => {
+          const record = await getBillingRecordById(input.id);
+          if (!record || record.userId !== ctx.user.id) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Billing record not found" });
+          }
+          return record;
+        }),
+
+      markPaid: protectedProcedure
+        .input(z.object({
+          id: z.number(),
+          paymentMethod: z.string(),
+          paidAt: z.date().optional(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          const record = await getBillingRecordById(input.id);
+          if (!record || record.userId !== ctx.user.id) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Billing record not found" });
+          }
+          await updateBillingRecord(input.id, {
+            paidAt: input.paidAt || new Date(),
+            paymentMethod: input.paymentMethod,
+          });
+          return { success: true };
+        }),
+
+      generateInvoice: protectedProcedure
+        .input(z.object({ id: z.number() }))
+        .mutation(async ({ ctx, input }) => {
+          const record = await getBillingRecordById(input.id);
+          if (!record || record.userId !== ctx.user.id) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Billing record not found" });
+          }
+          
+          // Generate invoice number if not already assigned
+          if (!record.invoiceNumber) {
+            const invoiceNumber = await getNextInvoiceNumber(ctx.user.id);
+            await updateBillingRecord(input.id, {
+              invoiceNumber,
+              invoiceDate: new Date(),
+            });
+            return { success: true, invoiceNumber };
+          }
+          
+          return { success: true, invoiceNumber: record.invoiceNumber };
+        }),
+    }),
+
+    // Account Settings
+    settings: router({
+      get: protectedProcedure.query(async ({ ctx }) => {
+        return getAccountSettings(ctx.user.id);
+      }),
+
+      update: protectedProcedure
+        .input(z.object({
+          businessName: z.string().optional(),
+          businessAddress: z.string().optional(),
+          businessPhone: z.string().optional(),
+          businessEmail: z.string().email().optional(),
+          businessLogo: z.string().optional(),
+          taxId: z.string().optional(),
+          invoicePrefix: z.string().optional(),
+          invoiceFooter: z.string().optional(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          await upsertAccountSettings({
+            userId: ctx.user.id,
+            ...input,
+          });
+          return { success: true };
+        }),
+    }),
   }),
 });
 

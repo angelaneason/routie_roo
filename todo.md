@@ -52,59 +52,60 @@
 
 ## Client Billing System Implementation (2025-12-09)
 ### Phase 1: Analysis & Design
-- [ ] Analyze RoadRunner billing model and adapt for Routie Roo
-- [ ] Design multi-route-holder architecture (each route holder manages their own clients)
-- [ ] Define client-to-route-holder relationship model
-- [ ] Plan billing workflow: route completion → invoice generation → payment tracking
+- [x] Analyze RoadRunner billing model and adapt for Routie Roo
+- [x] Design multi-route-holder architecture (each route holder manages their own clients)
+- [x] Define client-to-route-holder relationship model
+- [x] Plan billing workflow: route completion → invoice generation → payment tracking
 
 ### Phase 2: Database Schema
-- [ ] Create clients table with route holder foreign key
-- [ ] Add billing fields: mileage_rate, stop_charge_type, stop_charge_amount
-- [ ] Add contact info fields: name, email, phone, address
-- [ ] Enhance routes table with billing fields: mileage_charge, stop_charge, total_charge
-- [ ] Add billing status tracking: unbilled/billed/paid with timestamps
-- [ ] Create database migration and push schema
+- [x] Create clients table with route holder foreign key
+- [x] Add billing fields: mileage_rate, flat_fee_amount, hourly_rate
+- [x] Add contact info fields: name, email, phone, address
+- [x] Create billing_records table for completed routes
+- [x] Create account_settings table for business info
+- [x] Add billing status tracking: unpaid/paid with timestamps
+- [x] Create database tables via SQL
 
 ### Phase 3: Backend API
-- [ ] Create clients router with CRUD operations
-- [ ] Implement client.list filtered by route holder
-- [ ] Implement client.create with route holder association
-- [ ] Implement client.update and client.delete (soft delete)
-- [ ] Add billing calculations to route completion
-- [ ] Create invoice generation endpoint
-- [ ] Create payment tracking endpoints
+- [x] Create billing.clients router with CRUD operations
+- [x] Implement client.list filtered by route holder
+- [x] Implement client.create with route holder association
+- [x] Implement client.update and client.delete
+- [x] Add billing calculations to route completion
+- [x] Create invoice generation endpoint
+- [x] Create payment tracking endpoints (markPaid)
 - [ ] Write comprehensive tests for all endpoints
 
 ### Phase 4: Client Management UI
-- [ ] Create Clients page with route holder filter
-- [ ] Build Add/Edit Client dialog with billing rate configuration
-- [ ] Implement client list with search and filtering
-- [ ] Add client summary cards showing billing stats
-- [ ] Support three billing models: mileage-only, flat-fee per stop, hourly rate
-- [ ] Handle $0.00 mileage rate for service-only billing
+- [x] Create Clients page with route holder filter
+- [x] Build Add/Edit Client dialog with billing rate configuration
+- [x] Implement client list with search and filtering
+- [x] Add client summary cards showing billing stats
+- [x] Support three billing models: mileage-only, flat-fee, hourly rate
+- [x] Create Billing page for viewing billing records
+- [x] Create Account Settings page for business info
 
 ### Phase 5: Route Billing Integration
-- [ ] Add client selector to route creation/editing
-- [ ] Display client billing rates on route cards
-- [ ] Calculate charges on route completion (mileage + stops)
-- [ ] Store billing data with completed routes
-- [ ] Implement PDF invoice generation with jsPDF
-- [ ] Create invoice template with itemized charges
-- [ ] Auto-mark routes as "billed" when invoice generated
+- [x] Auto-create billing record on route completion
+- [x] Calculate charges based on billing model (mileage/flat/hourly)
+- [x] Store billing data in billing_records table
+- [x] Add invoice number generation
+- [ ] Implement PDF invoice download
+- [x] Add navigation links to sidebar
+- [x] Wire up routes in App.tsx
 
 ### Phase 6: Billing Reports & Payment Tracking
-- [ ] Add billing status filter to routes list
-- [ ] Create billing report page with client filtering
-- [ ] Show charge breakdowns (mileage vs stop charges)
-- [ ] Implement bulk "Mark as Paid" action
-- [ ] Add payment date tracking
-- [ ] Create client billing summary view
+- [x] Create billing report page with client filtering
+- [x] Show charge breakdowns and totals
+- [x] Implement "Mark as Paid" action
+- [x] Add payment date tracking
+- [x] Add revenue summary cards (total billed, paid, outstanding)
 - [ ] Add revenue reporting by route holder
+- [ ] Add date range filtering for reports
 
 ### Phase 7: Testing & Documentation
 - [ ] Test complete workflow: client creation → route completion → invoice → payment
 - [ ] Test with multiple route holders managing separate clients
-- [ ] Verify $0.00 mileage rate scenario (service-only billing)
 - [ ] Test all three billing models (mileage-only, flat-fee, hourly)
 - [ ] Create user guide for billing features
 - [ ] Document route holder billing workflows

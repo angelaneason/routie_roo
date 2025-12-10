@@ -34,7 +34,10 @@ import {
   FileText, 
   Settings as SettingsIcon,
   UserCog,
-  Zap
+  Zap,
+  DollarSign,
+  Receipt,
+  Building2
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -49,6 +52,9 @@ const menuItems = [
   { icon: Clock, label: "Reschedule", path: "/reschedule-history" },
   { icon: Archive, label: "Archive", path: "/archive" },
   { icon: FileText, label: "Changed Addresses", path: "/changed-addresses" },
+  { icon: DollarSign, label: "Clients", path: "/clients" },
+  { icon: Receipt, label: "Billing", path: "/billing" },
+  { icon: Building2, label: "Account Settings", path: "/account-settings" },
   { icon: SettingsIcon, label: "Settings", path: "/settings" },
   { icon: UserCog, label: "Admin", path: "/admin/users" },
 ];
