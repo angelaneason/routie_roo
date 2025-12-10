@@ -190,3 +190,11 @@
 - [x] Fix label badge colors in waypoint cards to show actual colors from Settings
 - [x] Verify client labels sort first (already working correctly)
 - [x] Map marker colors already working correctly with label color logic
+
+## Fix Stop Type and Client Label Legends (2025-12-10)
+- [x] Fix stop type legend to show black color for Visit instead of blue
+- [x] Add client label legend showing which colored labels appear on route
+- [x] Updated default stop color from #3b82f6 (blue) to #050505 (black)
+- [x] Updated existing waypoints in database to use black color
+- [x] Changed client label legend to show ALL colored labels on route
+- [ ] Test both legends display correctly with proper colors

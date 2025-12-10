@@ -1563,7 +1563,7 @@ export const appRouter = router({
             importantDates: wp.importantDates || null,
             comments: wp.comments || null,
             stopType: wp.stopType || "other",
-            stopColor: wp.stopColor || "#3b82f6",
+            stopColor: wp.stopColor || "#050505",
           };
         });
 
@@ -2630,7 +2630,7 @@ export const appRouter = router({
           longitude,
           phoneNumbers: input.phoneNumbers || null,
           stopType: input.stopType || "visit",
-          stopColor: input.stopColor || "#3b82f6",
+          stopColor: input.stopColor || "#050505",
           photoUrl: input.photoUrl || null,
           position: nextOrder,
           executionOrder: nextOrder,
