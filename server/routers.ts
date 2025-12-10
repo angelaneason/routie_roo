@@ -2022,6 +2022,104 @@ export const appRouter = router({
         return { url: getGoogleAuthUrl(redirectUri, state) };
       }),
 
+    // Add route to calendar (called after OAuth authorization)
+    addToCalendar: protectedProcedure
+      .input(z.object({  
+        routeId: z.number(),
+        calendarId: z.string(),
+        startTime: z.string(),
+        accessToken: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        // Get route and waypoints
+        const route = await getRouteById(input.routeId);
+        if (!route || route.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Route not found" });
+        }
+
+        const waypoints = await db
+          .select()
+          .from(routeWaypoints)
+          .where(eq(routeWaypoints.routeId, input.routeId))
+          .orderBy(routeWaypoints.position);
+
+        // Get user preferences for event duration
+        const user = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        const defaultStopDuration = user[0]?.defaultStopDuration || 30; // minutes
+        const eventDurationMode = user[0]?.eventDurationMode || 'stop_only';
+
+        // Create calendar events for each waypoint (excluding starting point)
+        const { createCalendarEvent } = await import("./googleAuth");
+        const createdEvents = [];
+        let currentTime = new Date(input.startTime);
+
+        for (const waypoint of waypoints) {
+          // Skip starting point (position 0) and gap stops
+          if (waypoint.position === 0 || waypoint.isGapStop) {
+            // Add gap stop duration to current time
+            if (waypoint.isGapStop && waypoint.gapDuration) {
+              currentTime = new Date(currentTime.getTime() + waypoint.gapDuration * 60 * 1000);
+            }
+            continue;
+          }
+
+          // Calculate event duration based on mode
+          let eventDuration = defaultStopDuration; // minutes
+          if (eventDurationMode === 'include_drive') {
+            // Include drive time in the event
+            const driveTime = Math.ceil((waypoint.durationToHere || 0) / 60); // seconds to minutes
+            eventDuration = driveTime + defaultStopDuration;
+          }
+
+          const eventStart = new Date(currentTime);
+          const eventEnd = new Date(currentTime.getTime() + eventDuration * 60 * 1000);
+
+          // Create event
+          const event = await createCalendarEvent(
+            input.accessToken,
+            {
+              summary: `${waypoint.stopType}: ${waypoint.contactName}`,
+              description: `Stop from route: ${route.name}`,
+              location: waypoint.address || '',
+              start: eventStart.toISOString(),
+              end: eventEnd.toISOString(),
+            },
+            input.calendarId
+          );
+
+          // Store event ID in waypoint
+          await db.update(routeWaypoints)
+            .set({ calendarEventId: event.eventId })
+            .where(eq(routeWaypoints.id, waypoint.id));
+
+          createdEvents.push(event);
+
+          // Update current time for next event
+          if (eventDurationMode === 'stop_only') {
+            // Add drive time between events
+            const driveTime = Math.ceil((waypoint.durationToHere || 0) / 60); // seconds to minutes
+            currentTime = new Date(eventEnd.getTime() + driveTime * 60 * 1000);
+          } else {
+            // Drive time already included in event
+            currentTime = eventEnd;
+          }
+        }
+
+        // Update route with calendar ID
+        await db.update(routes)
+          .set({ googleCalendarId: input.calendarId })
+          .where(eq(routes.id, input.routeId));
+
+        return {
+          success: true,
+          eventsCreated: createdEvents.length,
+          events: createdEvents,
+        };
+      }),
+
     // Update waypoint status (for route execution)
     updateWaypointStatus: protectedProcedure
       .input(z.object({

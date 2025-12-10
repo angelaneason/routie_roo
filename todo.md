@@ -35,3 +35,10 @@
 - [x] Keep completed routes for historical records
 - [x] Write tests for route cleanup functionality
 - [x] Test with various route completion states
+
+## Calendar Integration Issue (2025-12-09)
+- [x] Investigate why "Add to Calendar" button is not working
+- [x] Check TypeScript errors related to addToCalendar procedure
+- [x] Verify OAuth flow and token handling
+- [x] Test calendar event creation end-to-end
+- [x] Fix any issues preventing calendar integration

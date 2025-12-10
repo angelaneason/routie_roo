@@ -93,8 +93,8 @@ googleOAuthRouter.get("/api/oauth/google/callback", async (req, res) => {
         accessToken: tokenData.access_token,
       }));
 
-      // Redirect back to app with calendar selection dialog
-      res.redirect(`/?calendar_auth=success&data=${calendarData}`);
+      // Redirect back to route detail page with calendar selection dialog
+      res.redirect(`/routes/${routeId}?calendar_auth=success&data=${calendarData}`);
     } else {
       // Contacts sync flow (original behavior)
       console.log('[OAuth] Starting contacts sync for userId:', userId);
@@ -127,7 +127,7 @@ googleOAuthRouter.get("/api/oauth/google/callback", async (req, res) => {
       if (stateData.action === 'calendar') {
         res.redirect("/settings?calendar_connected=false");
       } else if (stateData.action === 'addToCalendar') {
-        res.redirect("/?calendar_auth=error");
+        res.redirect(`/routes/${stateData.routeId || ''}?calendar_auth=error`);
       } else {
         res.redirect("/?sync=error");
       }
