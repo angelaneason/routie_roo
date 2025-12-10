@@ -45,7 +45,7 @@ import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: MapPin, label: "Plan Routes", path: "/workspace" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: AlertTriangle, label: "Mis-Hops", path: "/missed-stops" },
