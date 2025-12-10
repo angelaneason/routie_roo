@@ -136,27 +136,26 @@ export default function SharedRouteExecution() {
               let strokeColor = "white";
               let strokeWeight = 2;
               
+              // IMPORTANT: Client labels are any labels with assigned colors in label_colors table.
+              // Regular labels (like grouping labels) don't have colors assigned.
+              // Priority: Use first colored label (client label) as marker fill, stop type as border.
               try {
                 if (waypoint.contactLabels) {
                   const labels = JSON.parse(waypoint.contactLabels);
-                  // Helper to normalize label names (remove * prefix, lowercase)
                   const normalizeLabel = (label: string) => label.replace(/^\*/, '').toLowerCase().trim();
+                  
+                  // Find labels that have assigned colors (these are client labels)
                   const labelsWithColors = labels.filter((label: string) => 
                     labelColors.some((lc: any) => normalizeLabel(lc.labelName) === normalizeLabel(label))
                   );
                   
-                  // Use first non-gray label color (gray is often used for grouping)
+                  // Use first colored label (all colored labels are client labels)
                   if (labelsWithColors.length > 0) {
-                    // Find first non-gray label
-                    const nonGrayLabel = labelsWithColors.find((label: string) => {
-                      const lc = labelColors.find((lc: any) => normalizeLabel(lc.labelName) === normalizeLabel(label));
-                      return lc && lc.color.toLowerCase() !== '#808080' && lc.color.toLowerCase() !== '#gray';
-                    });
-                    
-                    const labelToUse = nonGrayLabel || labelsWithColors[0];
-                    const labelColor = labelColors.find((lc: any) => normalizeLabel(lc.labelName) === normalizeLabel(labelToUse));
+                    const labelColor = labelColors.find((lc: any) => 
+                      normalizeLabel(lc.labelName) === normalizeLabel(labelsWithColors[0])
+                    );
                     if (labelColor) {
-                      fillColor = labelColor.color; // label color in center
+                      fillColor = labelColor.color; // client label color in center
                       strokeColor = waypoint.stopColor || "#4F46E5"; // stop type color as border
                       strokeWeight = 4; // thicker border to show both colors
                     }

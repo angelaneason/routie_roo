@@ -167,3 +167,15 @@
 - [x] Add prominent comments explaining the label color logic
 - [x] Document why gray labels should be skipped
 - [x] Create LABEL_COLOR_LOGIC.md documentation file
+
+
+## Client Label Priority for Map Markers (2025-12-10)
+- [x] Clarified: Client labels = labels with assigned colors in label_colors table
+- [x] Regular labels = labels without colors (grouping labels like ♾️PT/Randy.Harms)
+- [x] Simplify marker color logic: use first label with assigned color (all are client labels)
+- [x] Remove gray label filtering (unnecessary since gray labels won't have colors)
+- [x] Apply to RouteDetail.tsx (authenticated view) - 3 marker locations updated
+- [x] Apply to SharedRouteExecution.tsx (shared/public view)
+- [x] Sort labels on waypoint cards: colored labels first, then regular labels (SortableWaypointItem)
+- [x] Update LABEL_COLOR_LOGIC.md documentation
+- [ ] Test with contacts that have both client labels (*Abundant) and regular labels

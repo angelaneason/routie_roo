@@ -57,6 +57,7 @@ interface SortableWaypointItemProps {
   onGeocode?: () => void;
   onPositionChange?: (waypointId: number, newPosition: number) => void;
   totalStops?: number;
+  labelColors?: Array<{ labelName: string; color: string }>;
 }
 
 // Contact photo display added
@@ -74,6 +75,7 @@ export function SortableWaypointItem({
   onGeocode,
   onPositionChange,
   totalStops,
+  labelColors,
 }: SortableWaypointItemProps) {
 
   // Fetch date types with showOnWaypoint flag
@@ -174,10 +176,21 @@ export function SortableWaypointItem({
                 const isHexId = /^[0-9a-f]{12,}$/i.test(label);
                 return lower !== 'mycontacts' && lower !== 'starred' && label.trim() !== '' && !isHexId;
               });
-              if (filteredLabels.length === 0) return null;
+              
+              // IMPORTANT: Sort labels - client labels (with colors) first, then regular labels
+              const sortedLabels = labelColors ? filteredLabels.sort((a, b) => {
+                const normalizeLabel = (label: string) => label.replace(/^\*/, '').toLowerCase().trim();
+                const aHasColor = labelColors.some(lc => normalizeLabel(lc.labelName) === normalizeLabel(a));
+                const bHasColor = labelColors.some(lc => normalizeLabel(lc.labelName) === normalizeLabel(b));
+                if (aHasColor && !bHasColor) return -1;
+                if (!aHasColor && bHasColor) return 1;
+                return 0;
+              }) : filteredLabels;
+              
+              if (sortedLabels.length === 0) return null;
               return (
                 <div className="flex gap-1 flex-wrap mb-1">
-                  {filteredLabels.map((label: string, idx: number) => (
+                  {sortedLabels.map((label: string, idx: number) => (
                     <span key={idx} className="text-sm font-bold bg-primary/10 text-primary px-2 py-0.5 rounded whitespace-nowrap">
                       {label}
                     </span>

@@ -428,29 +428,28 @@ export default function RouteDetail() {
         let strokeColor = "white";
         let strokeWeight = 2;
         
-        // Check if waypoint has labels with assigned colors
+        // IMPORTANT: Client labels are any labels with assigned colors in label_colors table.
+        // Regular labels (like grouping labels) don't have colors assigned.
+        // Priority: Use first colored label (client label) as marker fill, stop type as border.
         if (waypoint.contactLabels && labelColorsQuery.data) {
           try {
             const labels = JSON.parse(waypoint.contactLabels);
             const normalizeLabel = (label: string) => label.replace(/^\*/, '').toLowerCase().trim();
+            
+            // Find labels that have assigned colors (these are client labels)
             const labelsWithColors = labels.filter((label: string) => 
               labelColorsQuery.data.some(lc => normalizeLabel(lc.labelName) === normalizeLabel(label))
             );
             
-            // Use first non-gray label color (gray is often used for grouping, not primary classification)
+            // Use first colored label (all colored labels are client labels)
             if (labelsWithColors.length > 0) {
-              // Find first non-gray label
-              const nonGrayLabel = labelsWithColors.find((label: string) => {
-                const lc = labelColorsQuery.data.find(lc => normalizeLabel(lc.labelName) === normalizeLabel(label));
-                return lc && lc.color.toLowerCase() !== '#808080' && lc.color.toLowerCase() !== '#gray';
-              });
-              
-              const labelToUse = nonGrayLabel || labelsWithColors[0];
-              const labelColor = labelColorsQuery.data.find(lc => normalizeLabel(lc.labelName) === normalizeLabel(labelToUse));
+              const labelColor = labelColorsQuery.data.find(lc => 
+                normalizeLabel(lc.labelName) === normalizeLabel(labelsWithColors[0])
+              );
               if (labelColor) {
-                fillColor = labelColor.color;
-                strokeColor = stopColor;
-                strokeWeight = 4;
+                fillColor = labelColor.color; // client label color in center
+                strokeColor = stopColor; // stop type color as border
+                strokeWeight = 4; // thicker border to show both colors
               }
             }
           } catch (e) {
@@ -555,28 +554,25 @@ export default function RouteDetail() {
                 let strokeWeight = 2;
                 
                 // Check if waypoint has labels with assigned colors
+                // IMPORTANT: Client labels are any labels with assigned colors.
+                // Priority: Use first colored label (client label) as marker fill.
                 if (waypoint?.contactLabels && labelColorsQuery.data) {
                   try {
                     const labels = JSON.parse(waypoint.contactLabels);
-                    // Helper to normalize label names (remove * prefix, lowercase)
                     const normalizeLabel = (label: string) => label.replace(/^\*/, '').toLowerCase().trim();
+                    
+                    // Find labels that have assigned colors (these are client labels)
                     const labelsWithColors = labels.filter((label: string) => 
                       labelColorsQuery.data.some(lc => normalizeLabel(lc.labelName) === normalizeLabel(label))
                     );
                     
-                    // Use first non-gray label color (gray is often used for grouping, not primary classification)
+                    // Use first colored label (all colored labels are client labels)
                     if (labelsWithColors.length > 0) {
-                      const normalizeLabel = (label: string) => label.replace(/^\*/, '').toLowerCase().trim();
-                      // Find first non-gray label
-                      const nonGrayLabel = labelsWithColors.find((label: string) => {
-                        const lc = labelColorsQuery.data.find(lc => normalizeLabel(lc.labelName) === normalizeLabel(label));
-                        return lc && lc.color.toLowerCase() !== '#808080' && lc.color.toLowerCase() !== '#gray';
-                      });
-                      
-                      const labelToUse = nonGrayLabel || labelsWithColors[0];
-                      const labelColor = labelColorsQuery.data.find(lc => normalizeLabel(lc.labelName) === normalizeLabel(labelToUse));
+                      const labelColor = labelColorsQuery.data.find(lc => 
+                        normalizeLabel(lc.labelName) === normalizeLabel(labelsWithColors[0])
+                      );
                       if (labelColor) {
-                        fillColor = labelColor.color; // label color in center
+                        fillColor = labelColor.color; // client label color in center
                         strokeColor = stopColor; // stop type color as border
                         strokeWeight = 4; // thicker border to show both colors
                       }
@@ -627,21 +623,25 @@ export default function RouteDetail() {
             let lastStrokeWeight = 2;
             
             // Check if last waypoint has exactly one label with assigned color
+            // IMPORTANT: Client labels are any labels with assigned colors.
+            // Priority: Use first colored label (client label) as marker fill.
             if (lastWaypoint?.contactLabels && labelColorsQuery.data) {
               try {
                 const labels = JSON.parse(lastWaypoint.contactLabels);
-                // Helper to normalize label names (remove * prefix, lowercase)
                 const normalizeLabel = (label: string) => label.replace(/^\*/, '').toLowerCase().trim();
+                
+                // Find labels that have assigned colors (these are client labels)
                 const labelsWithColors = labels.filter((label: string) => 
                   labelColorsQuery.data.some(lc => normalizeLabel(lc.labelName) === normalizeLabel(label))
                 );
                 
-                // If exactly one label has a color, use it as center with stop type as border
-                if (labelsWithColors.length === 1) {
-                  const normalizeLabel = (label: string) => label.replace(/^\*/, '').toLowerCase().trim();
-                  const labelColor = labelColorsQuery.data.find(lc => normalizeLabel(lc.labelName) === normalizeLabel(labelsWithColors[0]));
+                // Use first colored label (all colored labels are client labels)
+                if (labelsWithColors.length > 0) {
+                  const labelColor = labelColorsQuery.data.find(lc => 
+                    normalizeLabel(lc.labelName) === normalizeLabel(labelsWithColors[0])
+                  );
                   if (labelColor) {
-                    lastFillColor = labelColor.color; // label color in center
+                    lastFillColor = labelColor.color; // client label color in center
                     lastStrokeColor = lastStopColor; // stop type color as border
                     lastStrokeWeight = 4; // thicker border to show both colors
                   }
@@ -1305,6 +1305,7 @@ export default function RouteDetail() {
                           waypoint={waypoint}
                           index={index}
                           totalStops={localWaypoints.length}
+                          labelColors={labelColorsQuery.data}
                           onComplete={() => {
                             setSelectedWaypoint(waypoint);
                             setActionType("complete");
