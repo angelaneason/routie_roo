@@ -28,3 +28,10 @@
 ## Route Title Simplification (2025-12-09)
 - [x] Update route title generation to use format "Name - Day Date" instead of "Name - Day Route - Week of Date Day Date"
 - [x] Test with Smart Auto-Routing generated routes
+
+## Auto-Delete Incomplete Routes on Schedule Deletion (2025-12-09)
+- [x] Analyze current schedule deletion logic in contacts.updateScheduledDays
+- [x] Implement route cleanup to delete incomplete auto-generated routes when schedule is removed
+- [x] Keep completed routes for historical records
+- [x] Write tests for route cleanup functionality
+- [x] Test with various route completion states
