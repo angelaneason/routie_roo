@@ -109,3 +109,10 @@
 - [ ] Test all three billing models (mileage-only, flat-fee, hourly)
 - [ ] Create user guide for billing features
 - [ ] Document route holder billing workflows
+
+
+## Dashboard Button Navigation Issue (2025-12-10)
+- [x] Investigate why Dashboard button in sidebar is not working
+- [x] Check navigation path configuration in DashboardLayout
+- [x] Fix Dashboard button to properly navigate to /dashboard
+- [x] Test navigation from all pages

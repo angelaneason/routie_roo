@@ -40,7 +40,7 @@ export function Header() {
           <span className="text-sm text-muted-foreground">
             {user?.name || user?.email}
           </span>
-          <Link href="/">
+          <Link href="/dashboard">
             <Button variant="outline" size="sm">
               <HomeIcon className="h-4 w-4 md:mr-2" />
               <span className="hidden md:inline">Dashboard</span>
