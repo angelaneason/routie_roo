@@ -378,6 +378,8 @@
 - [ ] Test that badge doesn't appear for routes without calendar events
 - [x] Replace calendar emoji with custom calendar icon image
 - [x] Make badge more visible with better styling
+- [x] Redesign badge to match calendar image with dark header and "On Calendar" text
+- [x] Fix map centering for single-stop routes (should center on the stop, not San Francisco)
 
 
 ### Geotracker Address Selection Issue (2025-12-09)

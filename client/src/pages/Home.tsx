@@ -1513,9 +1513,9 @@ export default function Home() {
                                   </span>
                                 )}
                                 {route.googleCalendarId && (
-                                <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 font-semibold border border-green-300 dark:border-green-700">
-                                  <img src="/calendar-check-icon.png" alt="Calendar" className="w-4 h-4" />
-                                  On Calendar
+                                <span className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-md bg-gray-800 text-white font-bold border-2 border-gray-700 shadow-md">
+                                  <img src="/calendar-check-icon.png" alt="Calendar" className="w-5 h-5" />
+                                  ON CALENDAR
                                 </span>
                                 )}
                               </div>

@@ -407,7 +407,81 @@ export default function RouteDetail() {
 
   // Initialize map and render route
   useEffect(() => {
-    if (!map || !localWaypoints.length || localWaypoints.length < 2) return;
+    if (!map || !localWaypoints.length) return;
+
+    // Handle single waypoint case - just center the map on it
+    if (localWaypoints.length === 1) {
+      const waypoint = localWaypoints[0];
+      if (waypoint.latitude && waypoint.longitude) {
+        const position = { lat: waypoint.latitude, lng: waypoint.longitude };
+        map.setCenter(position);
+        map.setZoom(15);
+        
+        // Clear existing markers
+        markers.forEach(marker => marker.setMap(null));
+        
+        // Add a single marker
+        const stopColor = waypoint.stopColor || "#4F46E5";
+        const stopType = waypoint.stopType || "visit";
+        
+        let fillColor = stopColor;
+        let strokeColor = "white";
+        let strokeWeight = 2;
+        
+        // Check if waypoint has exactly one label with assigned color
+        if (waypoint.contactLabels && labelColorsQuery.data) {
+          try {
+            const labels = JSON.parse(waypoint.contactLabels);
+            const normalizeLabel = (label: string) => label.replace(/^\*/, '').toLowerCase().trim();
+            const labelsWithColors = labels.filter((label: string) => 
+              labelColorsQuery.data.some(lc => normalizeLabel(lc.labelName) === normalizeLabel(label))
+            );
+            
+            if (labelsWithColors.length === 1) {
+              const labelColor = labelColorsQuery.data.find(lc => normalizeLabel(lc.labelName) === normalizeLabel(labelsWithColors[0]));
+              if (labelColor) {
+                fillColor = labelColor.color;
+                strokeColor = stopColor;
+                strokeWeight = 4;
+              }
+            }
+          } catch (e) {
+            // If parsing fails, use default colors
+          }
+        }
+        
+        let markerPath = google.maps.SymbolPath.CIRCLE;
+        if (stopType === "pickup" || stopType === "delivery") {
+          markerPath = google.maps.SymbolPath.FORWARD_CLOSED_ARROW;
+        }
+        
+        const marker = new google.maps.Marker({
+          position,
+          map,
+          label: {
+            text: "1",
+            color: "white",
+            fontSize: "14px",
+            fontWeight: "bold",
+          },
+          icon: {
+            path: markerPath,
+            scale: 20,
+            fillColor: fillColor,
+            fillOpacity: 1,
+            strokeColor: strokeColor,
+            strokeWeight: strokeWeight,
+            rotation: stopType === "delivery" ? 90 : 0,
+          },
+        });
+        
+        setMarkers([marker]);
+      }
+      return;
+    }
+
+    // Need at least 2 waypoints for directions
+    if (localWaypoints.length < 2) return;
 
     const directionsService = new google.maps.DirectionsService();
     const renderer = new google.maps.DirectionsRenderer({
@@ -857,9 +931,9 @@ export default function RouteDetail() {
                 </div>
               )}
               {route.calendarId && (
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 text-sm font-semibold border-2 border-green-400 dark:border-green-600">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-gray-800 text-white text-sm font-bold border-2 border-gray-700 shadow-md">
                   <img src="/calendar-check-icon.png" alt="Calendar" className="w-5 h-5" />
-                  On Calendar
+                  ON CALENDAR
                 </div>
               )}
             </div>
@@ -944,9 +1018,9 @@ export default function RouteDetail() {
                   <div className="flex items-center gap-3 mb-4">
                     <h2 className="text-2xl font-bold">{route.name}</h2>
                     {route.googleCalendarId && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 rounded-full font-semibold border-2 border-green-400 dark:border-green-600">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-800 text-white rounded-md font-bold border-2 border-gray-700 shadow-md">
                         <img src="/calendar-check-icon.png" alt="Calendar" className="w-5 h-5" />
-                        On Calendar
+                        ON CALENDAR
                       </span>
                     )}
                   </div>
