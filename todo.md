@@ -179,3 +179,14 @@
 - [x] Sort labels on waypoint cards: colored labels first, then regular labels (SortableWaypointItem)
 - [x] Update LABEL_COLOR_LOGIC.md documentation
 - [ ] Test with contacts that have both client labels (*Abundant) and regular labels
+
+
+## Debug Label Colors Not Showing (2025-12-10)
+- [x] Check RouteDetail.tsx marker color logic implementation
+- [x] Check SharedRouteExecution.tsx marker color logic implementation
+- [x] Check SortableWaypointItem.tsx label sorting implementation
+- [x] Verify labelColorsQuery is fetching data correctly
+- [x] Check if contactLabels field is populated on waypoints
+- [x] Fix label badge colors in waypoint cards to show actual colors from Settings
+- [x] Verify client labels sort first (already working correctly)
+- [x] Map marker colors already working correctly with label color logic

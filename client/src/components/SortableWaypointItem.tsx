@@ -190,11 +190,24 @@ export function SortableWaypointItem({
               if (sortedLabels.length === 0) return null;
               return (
                 <div className="flex gap-1 flex-wrap mb-1">
-                  {sortedLabels.map((label: string, idx: number) => (
-                    <span key={idx} className="text-sm font-bold bg-primary/10 text-primary px-2 py-0.5 rounded whitespace-nowrap">
-                      {label}
-                    </span>
-                  ))}
+                  {sortedLabels.map((label: string, idx: number) => {
+                    // Get label color from settings
+                    const normalizeLabel = (l: string) => l.replace(/^\*/, '').toLowerCase().trim();
+                    const labelColor = labelColors?.find(lc => normalizeLabel(lc.labelName) === normalizeLabel(label));
+                    
+                    return (
+                      <span 
+                        key={idx} 
+                        className="text-sm font-bold px-2 py-0.5 rounded whitespace-nowrap"
+                        style={{
+                          backgroundColor: labelColor ? labelColor.color : '#e0e7ff',
+                          color: labelColor ? '#ffffff' : '#4f46e5'
+                        }}
+                      >
+                        {label}
+                      </span>
+                    );
+                  })}
                 </div>
               );
             } catch {
