@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE billing_records \nADD COLUMN visitType VARCHAR(100) AFTER contactName,\nCHANGE COLUMN routeDate visitDate TIMESTAMP NOT NULL,\nMODIFY COLUMN billingModel ENUM('mileage','flat_fee','hourly','per_visit') NOT NULL,\nCHANGE COLUMN totalHours totalMinutes INT,\nADD COLUMN perVisitAmount INT AFTER flatFeeAmount;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute ALTER TABLE billing_records \nADD COLUMN visitType VARCHAR(100) AFTER contactName,\nCHANGE COLUMN routeDate visitDate TIMESTAMP NOT NULL,\nMODIFY COLUMN billingModel ENUM('mileage','flat_fee','hourly','per_visit') NOT NULL,\nCHANGE COLUMN totalHours totalMinutes INT,\nADD COLUMN perVisitAmount INT AFTER flatFeeAmount;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 742
+}

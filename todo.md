@@ -116,3 +116,17 @@
 - [x] Check navigation path configuration in DashboardLayout
 - [x] Fix Dashboard button to properly navigate to /dashboard
 - [x] Test navigation from all pages
+
+
+## Per-Visit Billing System Update (2025-12-10)
+- [x] Analyze current billing_records schema and route completion trigger
+- [x] Update billing_records to track waypointId instead of routeId
+- [x] Add contactId/contactName to billing records for client tracking
+- [x] Update auto-billing trigger to fire on waypoint completion (not route completion)
+- [x] Calculate charges per visit based on client's billing model
+- [x] Update billing UI to show itemized list of completed visits
+- [x] Add per_visit billing model to schema and validation
+- [x] Update database schema with new columns (waypointId, contactId, contactName, visitType, visitDate, perVisitAmount)
+- [ ] Add grouping by client/route in billing records view
+- [ ] Manual testing: Complete multiple waypoints and verify billing records are created
+- [ ] Verify mileage/flat fee/hourly/per-visit calculations per visit

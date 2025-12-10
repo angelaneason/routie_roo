@@ -463,7 +463,7 @@ export async function getUserBillingRecords(userId: number) {
   
   return db.select().from(billingRecords)
     .where(eq(billingRecords.userId, userId))
-    .orderBy(billingRecords.routeDate);
+    .orderBy(billingRecords.visitDate);
 }
 
 export async function getClientBillingRecords(clientId: number) {
@@ -472,7 +472,7 @@ export async function getClientBillingRecords(clientId: number) {
   
   return db.select().from(billingRecords)
     .where(eq(billingRecords.clientId, clientId))
-    .orderBy(billingRecords.routeDate);
+    .orderBy(billingRecords.visitDate);
 }
 
 export async function getRouteHolderBillingRecords(userId: number, routeHolderId: number) {
@@ -481,7 +481,7 @@ export async function getRouteHolderBillingRecords(userId: number, routeHolderId
   
   return db.select().from(billingRecords)
     .where(and(eq(billingRecords.userId, userId), eq(billingRecords.routeHolderId, routeHolderId)))
-    .orderBy(billingRecords.routeDate);
+    .orderBy(billingRecords.visitDate);
 }
 
 export async function getBillingRecordById(id: number) {

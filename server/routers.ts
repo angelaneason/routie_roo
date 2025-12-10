@@ -2164,7 +2164,87 @@ export const appRouter = router({
         };
 
         if (input.status === "complete") {
-          updateData.completedAt = new Date();
+          const completedAt = new Date();
+          updateData.completedAt = completedAt;
+
+          // Create billing record for this completed visit if route has a route holder
+          if (route.routeHolderId) {
+            try {
+              // Get route holder's clients
+              const routeHolderClients = await getRouteHolderClients(ctx.user.id, route.routeHolderId);
+              
+              // If there's exactly one client for this route holder, auto-create billing
+              if (routeHolderClients.length === 1) {
+                const client = routeHolderClients[0];
+                
+                // Get contact info from waypoint
+                const contactId = waypoint[0].contactId;
+                const contactName = waypoint[0].contactName || "Unknown Contact";
+                const visitType = waypoint[0].stopType || "Visit";
+                
+                // Calculate billing amount based on model
+                let calculatedAmount = 0;
+                let totalMiles: number | undefined;
+                let totalMinutes: number | undefined;
+                let perVisitAmount: number | undefined;
+                
+                if (client.billingModel === "per_visit" && client.flatFeeAmount) {
+                  // Per-visit flat fee
+                  perVisitAmount = client.flatFeeAmount;
+                  calculatedAmount = client.flatFeeAmount;
+                } else if (client.billingModel === "mileage" && client.mileageRate) {
+                  // For mileage, we'd need to calculate distance to this waypoint
+                  // For now, we'll divide total route distance by number of waypoints
+                  const allWaypoints = await db.select()
+                    .from(routeWaypoints)
+                    .where(eq(routeWaypoints.routeId, waypoint[0].routeId));
+                  const waypointCount = allWaypoints.length;
+                  const distanceInMiles = route.totalDistance ? (route.totalDistance / 1609.34) / waypointCount : 0;
+                  totalMiles = Math.round(distanceInMiles);
+                  calculatedAmount = Math.round(totalMiles * client.mileageRate);
+                } else if (client.billingModel === "flat_fee" && client.flatFeeAmount) {
+                  // Flat fee per visit
+                  calculatedAmount = client.flatFeeAmount;
+                } else if (client.billingModel === "hourly" && client.hourlyRate) {
+                  // For hourly, estimate time per visit (route duration / waypoint count)
+                  const allWaypoints = await db.select()
+                    .from(routeWaypoints)
+                    .where(eq(routeWaypoints.routeId, waypoint[0].routeId));
+                  const waypointCount = allWaypoints.length;
+                  const durationInHours = route.totalDuration ? (route.totalDuration / 3600) / waypointCount : 0;
+                  const roundedHours = Math.ceil(durationInHours * 4) / 4; // Round to nearest 0.25
+                  totalMinutes = Math.round(roundedHours * 60);
+                  calculatedAmount = Math.round(roundedHours * client.hourlyRate);
+                }
+                
+                // Create billing record for this visit
+                await createBillingRecord({
+                  userId: ctx.user.id,
+                  routeId: route.id,
+                  waypointId: waypoint[0].id,
+                  clientId: client.id,
+                  routeHolderId: route.routeHolderId,
+                  routeName: route.name,
+                  contactId,
+                  contactName,
+                  visitType,
+                  visitDate: route.scheduledDate || completedAt,
+                  completedAt,
+                  billingModel: client.billingModel === "flat_fee" ? "per_visit" : client.billingModel,
+                  totalMiles,
+                  mileageRate: client.mileageRate || undefined,
+                  totalMinutes,
+                  hourlyRate: client.hourlyRate || undefined,
+                  flatFeeAmount: client.flatFeeAmount || undefined,
+                  perVisitAmount,
+                  calculatedAmount,
+                });
+              }
+            } catch (error) {
+              console.error("Failed to create billing record for visit:", error);
+              // Don't fail the waypoint completion if billing fails
+            }
+          }
         }
 
         if (input.status === "missed") {
@@ -2197,61 +2277,7 @@ export const appRouter = router({
           await db.update(routes)
             .set({ completedAt })
             .where(eq(routes.id, waypoint[0].routeId));
-
-          // Create billing record if route has a route holder assigned
-          if (route.routeHolderId) {
-            try {
-              // Get route holder's clients
-              const routeHolderClients = await getRouteHolderClients(ctx.user.id, route.routeHolderId);
-              
-              // If there's exactly one client for this route holder, auto-create billing
-              // Otherwise, user will need to manually assign billing
-              if (routeHolderClients.length === 1) {
-                const client = routeHolderClients[0];
-                
-                // Calculate billing amount based on model
-                let calculatedAmount = 0;
-                let totalMiles: number | undefined;
-                let totalHours: number | undefined;
-                
-                if (client.billingModel === "mileage" && client.mileageRate) {
-                  // Convert route distance from meters to miles
-                  const distanceInMiles = route.totalDistance ? (route.totalDistance / 1609.34) : 0;
-                  totalMiles = Math.round(distanceInMiles);
-                  calculatedAmount = Math.round(totalMiles * client.mileageRate);
-                } else if (client.billingModel === "flat_fee" && client.flatFeeAmount) {
-                  calculatedAmount = client.flatFeeAmount;
-                } else if (client.billingModel === "hourly" && client.hourlyRate) {
-                  // Convert route duration from seconds to hours (rounded to nearest 15 min)
-                  const durationInHours = route.totalDuration ? (route.totalDuration / 3600) : 0;
-                  const roundedHours = Math.ceil(durationInHours * 4) / 4; // Round to nearest 0.25
-                  totalHours = Math.round(roundedHours * 60); // Store as minutes
-                  calculatedAmount = Math.round(roundedHours * client.hourlyRate);
-                }
-                
-                // Create billing record
-                await createBillingRecord({
-                  userId: ctx.user.id,
-                  routeId: route.id,
-                  clientId: client.id,
-                  routeHolderId: route.routeHolderId,
-                  routeName: route.name,
-                  routeDate: route.scheduledDate || completedAt,
-                  completedAt,
-                  billingModel: client.billingModel,
-                  totalMiles,
-                  mileageRate: client.mileageRate || undefined,
-                  totalHours,
-                  hourlyRate: client.hourlyRate || undefined,
-                  flatFeeAmount: client.flatFeeAmount || undefined,
-                  calculatedAmount,
-                });
-              }
-            } catch (error) {
-              console.error("Failed to create billing record:", error);
-              // Don't fail the route completion if billing fails
-            }
-          }
+          // Note: Billing records are now created per waypoint completion, not per route
         }
 
         return { success: true };
@@ -5316,7 +5342,7 @@ export const appRouter = router({
           email: z.string().email().optional(),
           phone: z.string().optional(),
           address: z.string().optional(),
-          billingModel: z.enum(["mileage", "flat_fee", "hourly"]),
+          billingModel: z.enum(["mileage", "flat_fee", "hourly", "per_visit"]),
           mileageRate: z.number().optional(), // in cents
           flatFeeAmount: z.number().optional(), // in cents
           hourlyRate: z.number().optional(), // in cents
@@ -5340,7 +5366,7 @@ export const appRouter = router({
           email: z.string().email().optional(),
           phone: z.string().optional(),
           address: z.string().optional(),
-          billingModel: z.enum(["mileage", "flat_fee", "hourly"]).optional(),
+          billingModel: z.enum(["mileage", "flat_fee", "hourly", "per_visit"]).optional(),
           mileageRate: z.number().optional(),
           flatFeeAmount: z.number().optional(),
           hourlyRate: z.number().optional(),

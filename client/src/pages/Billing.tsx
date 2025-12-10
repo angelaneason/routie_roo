@@ -92,6 +92,7 @@ export default function Billing() {
     switch (model) {
       case "mileage": return "Mileage";
       case "flat_fee": return "Flat Fee";
+      case "per_visit": return "Per Visit";
       case "hourly": return "Hourly";
       default: return model;
     }
@@ -149,7 +150,7 @@ export default function Billing() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">Billing Records</h1>
-          <p className="text-muted-foreground">View and manage billing for completed routes</p>
+          <p className="text-muted-foreground">View and manage billing for completed visits</p>
         </div>
       </div>
 
@@ -197,7 +198,7 @@ export default function Billing() {
           <h3 className="text-lg font-semibold mb-2">No billing records yet</h3>
           <p className="text-muted-foreground">
             {selectedRouteHolder === "all"
-              ? "Billing records will appear here when routes are completed"
+              ? "Billing records will appear here when visits are completed"
               : "No billing records for this route holder"}
           </p>
         </div>
@@ -207,10 +208,11 @@ export default function Billing() {
             <TableHeader>
               <TableRow>
                 <TableHead>Invoice #</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead>Visit Date</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Visit Type</TableHead>
                 <TableHead>Route</TableHead>
                 <TableHead>Client</TableHead>
-                <TableHead>Route Holder</TableHead>
                 <TableHead>Model</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
@@ -232,15 +234,13 @@ export default function Billing() {
                       </Button>
                     )}
                   </TableCell>
-                  <TableCell>{formatDate(record.routeDate)}</TableCell>
-                  <TableCell className="font-medium">{record.routeName}</TableCell>
-                  <TableCell>{getClientName(record.clientId)}</TableCell>
+                  <TableCell>{formatDate(record.visitDate)}</TableCell>
+                  <TableCell className="font-medium">{record.contactName}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">
-                      <User className="w-3 h-3 mr-1" />
-                      Route Holder {record.routeHolderId}
-                    </Badge>
+                    <Badge variant="outline">{record.visitType || "Visit"}</Badge>
                   </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{record.routeName}</TableCell>
+                  <TableCell>{getClientName(record.clientId)}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">{getBillingModelLabel(record.billingModel)}</Badge>
                   </TableCell>
