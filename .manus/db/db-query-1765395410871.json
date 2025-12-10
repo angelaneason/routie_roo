@@ -1,0 +1,31 @@
+{
+  "query": "SELECT \n  rw.id, \n  rw.contactName, \n  rw.contactLabels, \n  rw.stopColor,\n  (SELECT GROUP_CONCAT(CONCAT(labelName, ':', color) SEPARATOR '; ') \n   FROM label_colors \n   WHERE userId = r.userId) as user_label_colors\nFROM route_waypoints rw\nJOIN routes r ON rw.routeId = r.id\nWHERE rw.routeId = 1860004 \nORDER BY rw.position \nLIMIT 3",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT \n  rw.id, \n  rw.contactName, \n  rw.contactLabels, \n  rw.stopColor,\n  (SELECT GROUP_CONCAT(CONCAT(labelName, ':', color) SEPARATOR '; ') \n   FROM label_colors \n   WHERE userId = r.userId) as user_label_colors\nFROM route_waypoints rw\nJOIN routes r ON rw.routeId = r.id\nWHERE rw.routeId = 1860004 \nORDER BY rw.position \nLIMIT 3",
+  "rows": [
+    {
+      "id": "2130004",
+      "contactName": "Starting Point",
+      "contactLabels": "NULL",
+      "stopColor": "#10b981",
+      "user_label_colors": "*Abundant:#ff8ad8; *Applesoft:#ff4013; *DeltaCare:#fce101; *NurseAngel:#0061ff; *Universal:#be38f3; ♾️PT/Randy.Harms:#808080"
+    },
+    {
+      "id": "2130010",
+      "contactName": "MITCHELL Becki",
+      "contactLabels": "[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]",
+      "stopColor": "#3b82f6",
+      "user_label_colors": "*Abundant:#ff8ad8; *Applesoft:#ff4013; *DeltaCare:#fce101; *NurseAngel:#0061ff; *Universal:#be38f3; ♾️PT/Randy.Harms:#808080"
+    },
+    {
+      "id": "2130011",
+      "contactName": "WILSON Eric",
+      "contactLabels": "[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\"]",
+      "stopColor": "#3b82f6",
+      "user_label_colors": "*Abundant:#ff8ad8; *Applesoft:#ff4013; *DeltaCare:#fce101; *NurseAngel:#0061ff; *Universal:#be38f3; ♾️PT/Randy.Harms:#808080"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tcontactName\tcontactLabels\tstopColor\tuser_label_colors\n2130004\tStarting Point\tNULL\t#10b981\t*Abundant:#ff8ad8; *Applesoft:#ff4013; *DeltaCare:#fce101; *NurseAngel:#0061ff; *Universal:#be38f3; ♾️PT/Randy.Harms:#808080\n2130010\tMITCHELL Becki\t[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\t#3b82f6\t*Abundant:#ff8ad8; *Applesoft:#ff4013; *DeltaCare:#fce101; *NurseAngel:#0061ff; *Universal:#be38f3; ♾️PT/Randy.Harms:#808080\n2130011\tWILSON Eric\t[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\"]\t#3b82f6\t*Abundant:#ff8ad8; *Applesoft:#ff4013; *DeltaCare:#fce101; *NurseAngel:#0061ff; *Universal:#be38f3; ♾️PT/Randy.Harms:#808080\n",
+  "stderr": "",
+  "execution_time_ms": 51
+}

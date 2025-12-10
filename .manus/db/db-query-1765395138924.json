@@ -1,0 +1,46 @@
+{
+  "query": "SELECT id, userId, labelName, color FROM label_colors ORDER BY labelName",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, userId, labelName, color FROM label_colors ORDER BY labelName",
+  "rows": [
+    {
+      "id": "1",
+      "userId": "38",
+      "labelName": "*Abundant",
+      "color": "#ff8ad8"
+    },
+    {
+      "id": "2",
+      "userId": "38",
+      "labelName": "*Applesoft",
+      "color": "#ff4013"
+    },
+    {
+      "id": "3",
+      "userId": "38",
+      "labelName": "*DeltaCare",
+      "color": "#fce101"
+    },
+    {
+      "id": "4",
+      "userId": "38",
+      "labelName": "*NurseAngel",
+      "color": "#0061ff"
+    },
+    {
+      "id": "5",
+      "userId": "38",
+      "labelName": "*Universal",
+      "color": "#be38f3"
+    },
+    {
+      "id": "30001",
+      "userId": "38",
+      "labelName": "♾️PT/Randy.Harms",
+      "color": "#808080"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tlabelName\tcolor\n1\t38\t*Abundant\t#ff8ad8\n2\t38\t*Applesoft\t#ff4013\n3\t38\t*DeltaCare\t#fce101\n4\t38\t*NurseAngel\t#0061ff\n5\t38\t*Universal\t#be38f3\n30001\t38\t♾️PT/Randy.Harms\t#808080\n",
+  "stderr": "",
+  "execution_time_ms": 53
+}

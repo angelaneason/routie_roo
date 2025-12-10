@@ -130,7 +130,8 @@ export default function SharedRouteExecution() {
             // Add numbered markers for each valid waypoint
             const newMarkers: google.maps.Marker[] = [];
             validWaypoints.forEach((waypoint, index) => {
-              // Apply label color logic: if contact has exactly ONE label with color, use it
+              // Apply label color logic: use first non-gray label color when contact has multiple labels
+              // Gray labels (like "♾️PT/Randy.Harms") are often used for grouping, not primary classification
               let fillColor = waypoint.stopColor || "#4F46E5";
               let strokeColor = "white";
               let strokeWeight = 2;
@@ -138,17 +139,26 @@ export default function SharedRouteExecution() {
               try {
                 if (waypoint.contactLabels) {
                   const labels = JSON.parse(waypoint.contactLabels);
+                  // Helper to normalize label names (remove * prefix, lowercase)
+                  const normalizeLabel = (label: string) => label.replace(/^\*/, '').toLowerCase().trim();
                   const labelsWithColors = labels.filter((label: string) => 
-                    labelColors.some((lc: any) => lc.labelName === label)
+                    labelColors.some((lc: any) => normalizeLabel(lc.labelName) === normalizeLabel(label))
                   );
                   
-                  if (labelsWithColors.length === 1) {
-                    // Use label color as center, stop color as border
-                    const labelColor = labelColors.find((lc: any) => lc.labelName === labelsWithColors[0]);
+                  // Use first non-gray label color (gray is often used for grouping)
+                  if (labelsWithColors.length > 0) {
+                    // Find first non-gray label
+                    const nonGrayLabel = labelsWithColors.find((label: string) => {
+                      const lc = labelColors.find((lc: any) => normalizeLabel(lc.labelName) === normalizeLabel(label));
+                      return lc && lc.color.toLowerCase() !== '#808080' && lc.color.toLowerCase() !== '#gray';
+                    });
+                    
+                    const labelToUse = nonGrayLabel || labelsWithColors[0];
+                    const labelColor = labelColors.find((lc: any) => normalizeLabel(lc.labelName) === normalizeLabel(labelToUse));
                     if (labelColor) {
-                      fillColor = labelColor.color;
-                      strokeColor = waypoint.stopColor || "#4F46E5";
-                      strokeWeight = 4;
+                      fillColor = labelColor.color; // label color in center
+                      strokeColor = waypoint.stopColor || "#4F46E5"; // stop type color as border
+                      strokeWeight = 4; // thicker border to show both colors
                     }
                   }
                 }

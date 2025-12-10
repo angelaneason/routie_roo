@@ -148,3 +148,22 @@
 - [x] Verify stopColor field is being passed to shared route view
 - [x] Verify label colors are being applied in shared route view
 - [x] Test shared route with custom stop types and label colors
+
+
+## Label Color Issue on Route Map (2025-12-10)
+- [x] Investigate why label colors aren't showing on route detail map markers
+- [x] Check if waypoints have contactLabels field populated
+- [x] Check if user has label colors configured in Settings
+- [x] Verify marker color logic applies label colors correctly
+- [x] Updated logic to use first non-gray label color when contacts have multiple labels
+- [x] Test label colors on route 1860004 map
+
+
+## Label Color Feature Loss Investigation (2025-12-10)
+- [x] Search for all route view components (RouteDetail, SharedRoute, etc.)
+- [x] Found SharedRouteExecution.tsx was using old logic (only works with exactly 1 label)
+- [x] Apply label color fix to RouteDetail.tsx (authenticated view)
+- [x] Apply label color fix to SharedRouteExecution.tsx (shared/public view)
+- [x] Add prominent comments explaining the label color logic
+- [x] Document why gray labels should be skipped
+- [x] Create LABEL_COLOR_LOGIC.md documentation file
