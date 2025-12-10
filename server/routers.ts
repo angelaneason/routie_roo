@@ -921,7 +921,7 @@ export const appRouter = router({
             
             // Find or create route for this day
             const routeNamePrefix = routeHolderName ? `${routeHolderName} - ` : '';
-            const routeName = `${routeNamePrefix}${day} Route - Week of ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+            const routeName = `${routeNamePrefix}${day} ${routeDate.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}`;
             
             let routeId: number;
             const existingRoutes = await db.select()
@@ -1043,7 +1043,15 @@ export const appRouter = router({
           // Remove contact from routes for days that were unscheduled
           const removedDays = oldScheduledDays.filter((day: string) => !daysToProcess.includes(day));
           for (const day of removedDays) {
-            const routeName = `${day} Route - Week of ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+            // Calculate date for this day
+            const dayMap: Record<string, number> = {
+              'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3,
+              'Thursday': 4, 'Friday': 5, 'Saturday': 6
+            };
+            const targetDayOfWeek = dayMap[day];
+            const dayDate = new Date(weekStart);
+            dayDate.setDate(weekStart.getDate() + targetDayOfWeek);
+            const routeName = `${day} ${dayDate.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}`;
             
             const routesToUpdate = await db.select()
               .from(routes)
@@ -1256,9 +1264,9 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
-        // Generate route name: "Monday Route - Week of Dec 9, 2024"
+        // Generate route name: "Monday 12/9/2024"
         const weekDate = new Date(input.weekStartDate);
-        const routeName = `${input.dayOfWeek} Route - Week of ${weekDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+        const routeName = `${input.dayOfWeek} ${weekDate.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}`;
 
         // Check if route already exists for this day/week
         const existingRoutes = await db.select()

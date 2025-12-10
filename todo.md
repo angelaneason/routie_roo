@@ -24,3 +24,7 @@
 - [x] Investigate why contacts with no visible schedule show up in scheduled filter
 - [x] Fix filter logic to exclude contacts with empty/null schedule arrays
 - [x] Test filter to ensure only truly scheduled contacts appear
+
+## Route Title Simplification (2025-12-09)
+- [x] Update route title generation to use format "Name - Day Date" instead of "Name - Day Route - Week of Date Day Date"
+- [x] Test with Smart Auto-Routing generated routes
