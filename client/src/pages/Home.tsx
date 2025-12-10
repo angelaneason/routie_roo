@@ -1513,8 +1513,8 @@ export default function Home() {
                                   </span>
                                 )}
                                 {route.googleCalendarId && (
-                                <span className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-md bg-gray-800 text-white font-bold border-2 border-gray-700 shadow-md">
-                                  <img src="/calendar-check-icon.png" alt="Calendar" className="w-5 h-5" />
+                                <span className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-md bg-gray-800 text-white font-bold border-2 border-gray-700 shadow-md">
+                                  <img src="/calendar-check-icon.png" alt="Calendar" className="w-8 h-8" />
                                   ON CALENDAR
                                 </span>
                                 )}

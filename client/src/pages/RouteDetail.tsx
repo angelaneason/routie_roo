@@ -455,23 +455,14 @@ export default function RouteDetail() {
           markerPath = google.maps.SymbolPath.FORWARD_CLOSED_ARROW;
         }
         
+        // For single-stop routes, show Routie Roo holding a map pin
         const marker = new google.maps.Marker({
           position,
           map,
-          label: {
-            text: "1",
-            color: "white",
-            fontSize: "14px",
-            fontWeight: "bold",
-          },
           icon: {
-            path: markerPath,
-            scale: 20,
-            fillColor: fillColor,
-            fillOpacity: 1,
-            strokeColor: strokeColor,
-            strokeWeight: strokeWeight,
-            rotation: stopType === "delivery" ? 90 : 0,
+            url: '/routie-roo-marker.png',
+            scaledSize: new google.maps.Size(48, 64),
+            anchor: new google.maps.Point(24, 64),
           },
         });
         
@@ -932,7 +923,7 @@ export default function RouteDetail() {
               )}
               {route.calendarId && (
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-gray-800 text-white text-sm font-bold border-2 border-gray-700 shadow-md">
-                  <img src="/calendar-check-icon.png" alt="Calendar" className="w-5 h-5" />
+                  <img src="/calendar-check-icon.png" alt="Calendar" className="w-8 h-8" />
                   ON CALENDAR
                 </div>
               )}
@@ -1018,8 +1009,8 @@ export default function RouteDetail() {
                   <div className="flex items-center gap-3 mb-4">
                     <h2 className="text-2xl font-bold">{route.name}</h2>
                     {route.googleCalendarId && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-800 text-white rounded-md font-bold border-2 border-gray-700 shadow-md">
-                        <img src="/calendar-check-icon.png" alt="Calendar" className="w-5 h-5" />
+                      <span className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-800 text-white rounded-md font-bold border-2 border-gray-700 shadow-md">
+                        <img src="/calendar-check-icon.png" alt="Calendar" className="w-8 h-8" />
                         ON CALENDAR
                       </span>
                     )}

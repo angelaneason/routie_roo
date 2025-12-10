@@ -380,6 +380,8 @@
 - [x] Make badge more visible with better styling
 - [x] Redesign badge to match calendar image with dark header and "On Calendar" text
 - [x] Fix map centering for single-stop routes (should center on the stop, not San Francisco)
+- [x] Update "On Calendar" badge to use the entire calendar icon image (not just checkmark)
+- [x] For single-stop routes: Show only Routie Roo marker at destination (no route line, no starting point marker)
 
 
 ### Geotracker Address Selection Issue (2025-12-09)
