@@ -70,6 +70,7 @@ export default function Home() {
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importPreview, setImportPreview] = useState<any[]>([]);
   const [showMissingAddresses, setShowMissingAddresses] = useState(false);
+  const [showScheduled, setShowScheduled] = useState(false);
   const [selectedLabelFilter, setSelectedLabelFilter] = useState<string>("all");
   const [scheduledDate, setScheduledDate] = useState<string>("");
   const [showCalendarSelectionDialog, setShowCalendarSelectionDialog] = useState(false);
@@ -720,6 +721,13 @@ export default function Home() {
       if (hasAddress) return false; // Only show contacts WITHOUT addresses
     }
     
+    // Filter by scheduled contacts
+    if (showScheduled) {
+      const hasSchedule = (contact.scheduledDays && contact.scheduledDays.length > 0) || 
+                         (contact.oneTimeVisits && contact.oneTimeVisits.length > 0);
+      if (!hasSchedule) return false; // Only show contacts WITH schedules
+    }
+    
     // Filter by label
     if (selectedLabelFilter && selectedLabelFilter !== "all") {
       if (!contact.labels) return false;
@@ -1072,6 +1080,18 @@ export default function Home() {
                       />
                       <label htmlFor="show-missing-addresses" className="text-sm text-muted-foreground cursor-pointer">
                         Show contacts without addresses
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="show-scheduled"
+                        checked={showScheduled}
+                        onChange={(e) => setShowScheduled(e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <label htmlFor="show-scheduled" className="text-sm text-muted-foreground cursor-pointer">
+                        Show scheduled contacts
                       </label>
                     </div>
                   </div>

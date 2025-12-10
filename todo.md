@@ -13,3 +13,8 @@
 - [x] Duplicate stop type legend entries fixed
 
 (rest of file continues...)
+
+
+## Scheduled Contacts Filter (2025-12-09)
+- [x] Add "Show scheduled contacts" filter checkbox to contact list
+- [x] Implement filter logic to show only contacts with scheduledDays or oneTimeVisits
