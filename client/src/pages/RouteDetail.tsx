@@ -922,7 +922,7 @@ export default function RouteDetail() {
                 </div>
               )}
               {route.calendarId && (
-                <img src="/calendar-badge.png" alt="On Calendar" className="h-20 w-auto" />
+                <img src="/calendar-badge.png" alt="On Calendar" className="h-24 w-auto" />
               )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -1004,9 +1004,14 @@ export default function RouteDetail() {
               <CardContent className="space-y-4">
                 <div>
                   <div className="flex items-center gap-3 mb-4">
-                    <h2 className="text-2xl font-bold">{route.name}</h2>
+                    <h2 className="text-2xl font-bold">
+                      {route.scheduledDate 
+                        ? `${route.name} ${new Date(route.scheduledDate).toLocaleDateString('en-US', { weekday: 'long' })} ${new Date(route.scheduledDate).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}`
+                        : route.name
+                      }
+                    </h2>
                     {route.googleCalendarId && (
-                      <img src="/calendar-badge.png" alt="On Calendar" className="h-16 w-auto" />
+                      <img src="/calendar-badge.png" alt="On Calendar" className="h-24 w-auto" />
                     )}
                   </div>
                 </div>

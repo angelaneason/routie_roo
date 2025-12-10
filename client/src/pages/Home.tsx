@@ -1494,7 +1494,12 @@ export default function Home() {
                           />
                           <Link href={`/route/${route.id}`} className="flex-1 min-w-0">
                             <div className="cursor-pointer">
-                              <h3 className="font-medium truncate">{route.name}</h3>
+                              <h3 className="font-medium truncate">
+                                {route.scheduledDate 
+                                  ? `${route.name} ${new Date(route.scheduledDate).toLocaleDateString('en-US', { weekday: 'long' })} ${new Date(route.scheduledDate).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}`
+                                  : route.name
+                                }
+                              </h3>
                               <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                                 <span>{formatDistance(route.totalDistance! / 1000, user?.distanceUnit || "km")}</span>
                                 <span>{Math.round(route.totalDuration! / 60)} min</span>
@@ -1513,7 +1518,7 @@ export default function Home() {
                                   </span>
                                 )}
                                 {route.googleCalendarId && (
-                                <img src="/calendar-badge.png" alt="On Calendar" className="h-20 w-auto" />
+                                <img src="/calendar-badge.png" alt="On Calendar" className="h-24 w-auto" />
                                 )}
                               </div>
                             </div>
