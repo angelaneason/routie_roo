@@ -1,0 +1,118 @@
+{
+  "query": "SELECT id, contactName, stopType, stopColor, contactLabels, latitude, longitude \nFROM route_waypoints \nWHERE routeId = (SELECT id FROM routes WHERE shareToken = '308c43b5-adcf-44db-b71f-088647a80bda')\nORDER BY position;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT id, contactName, stopType, stopColor, contactLabels, latitude, longitude \nFROM route_waypoints \nWHERE routeId = (SELECT id FROM routes WHERE shareToken = '308c43b5-adcf-44db-b71f-088647a80bda')\nORDER BY position;",
+  "rows": [
+    {
+      "id": "2130004",
+      "contactName": "Starting Point",
+      "stopType": "other",
+      "stopColor": "#10b981",
+      "contactLabels": "NULL",
+      "latitude": "32.6528135",
+      "longitude": "-97.05302089999999"
+    },
+    {
+      "id": "2130010",
+      "contactName": "MITCHELL Becki",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "contactLabels": "[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]",
+      "latitude": "32.470250199999995",
+      "longitude": "-97.0017069"
+    },
+    {
+      "id": "2130011",
+      "contactName": "WILSON Eric",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "contactLabels": "[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\"]",
+      "latitude": "32.501612699999995",
+      "longitude": "-96.9565367"
+    },
+    {
+      "id": "2130008",
+      "contactName": "COUCH Sharon",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "contactLabels": "[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]",
+      "latitude": "32.500350399999995",
+      "longitude": "-97.0988943"
+    },
+    {
+      "id": "2130009",
+      "contactName": "SHINE Linda",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "contactLabels": "[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]",
+      "latitude": "32.438866499999996",
+      "longitude": "-97.1068694"
+    },
+    {
+      "id": "2130007",
+      "contactName": "HARRINGTON Dana",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "contactLabels": "[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\"]",
+      "latitude": "32.5976321",
+      "longitude": "-97.09844539999999"
+    },
+    {
+      "id": "2130006",
+      "contactName": "LAMBERT Shari",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "contactLabels": "[\"♾️PT/Randy.Harms\",\"*Applesoft\",\"contactGroups/myContacts\",\"contactGroups/starred\"]",
+      "latitude": "32.645464",
+      "longitude": "-97.1421708"
+    },
+    {
+      "id": "2130016",
+      "contactName": "BENNETT Sharon",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "contactLabels": "[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\"]",
+      "latitude": "32.6862807",
+      "longitude": "-96.9112526"
+    },
+    {
+      "id": "2130015",
+      "contactName": "MORGAN Barbara",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "contactLabels": "[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\"]",
+      "latitude": "32.7155649",
+      "longitude": "-96.85258069999999"
+    },
+    {
+      "id": "2130014",
+      "contactName": "SERRATO Rogelio",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "contactLabels": "[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]",
+      "latitude": "32.6353344",
+      "longitude": "-96.8867508"
+    },
+    {
+      "id": "2130012",
+      "contactName": "ROE Debbie",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "contactLabels": "[\"♾️PT/Randy.Harms\",\"⚕️NaTarsha.Walton(*Asenime)\",\"⚕️K.Strickland\",\"*Abundant\",\"❓❓\",\"contactGroups/myContacts\",\"contactGroups/starred\"]",
+      "latitude": "32.614278399999996",
+      "longitude": "-96.9460299"
+    },
+    {
+      "id": "2130017",
+      "contactName": "WARREN Lisa",
+      "stopType": "● Visit",
+      "stopColor": "#050505",
+      "contactLabels": "[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\"]",
+      "latitude": "NULL",
+      "longitude": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tcontactName\tstopType\tstopColor\tcontactLabels\tlatitude\tlongitude\n2130004\tStarting Point\tother\t#10b981\tNULL\t32.6528135\t-97.05302089999999\n2130010\tMITCHELL Becki\t● Visit\t#050505\t[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\t32.470250199999995\t-97.0017069\n2130011\tWILSON Eric\t● Visit\t#050505\t[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\"]\t32.501612699999995\t-96.9565367\n2130008\tCOUCH Sharon\t● Visit\t#050505\t[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\t32.500350399999995\t-97.0988943\n2130009\tSHINE Linda\t● Visit\t#050505\t[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\t32.438866499999996\t-97.1068694\n2130007\tHARRINGTON Dana\t● Visit\t#050505\t[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\"]\t32.5976321\t-97.09844539999999\n2130006\tLAMBERT Shari\t● Visit\t#050505\t[\"♾️PT/Randy.Harms\",\"*Applesoft\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\t32.645464\t-97.1421708\n2130016\tBENNETT Sharon\t● Visit\t#050505\t[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\"]\t32.6862807\t-96.9112526\n2130015\tMORGAN Barbara\t● Visit\t#050505\t[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\"]\t32.7155649\t-96.85258069999999\n2130014\tSERRATO Rogelio\t● Visit\t#050505\t[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\t32.6353344\t-96.8867508\n2130012\tROE Debbie\t● Visit\t#050505\t[\"♾️PT/Randy.Harms\",\"⚕️NaTarsha.Walton(*Asenime)\",\"⚕️K.Strickland\",\"*Abundant\",\"❓❓\",\"contactGroups/myContacts\",\"contactGroups/starred\"]\t32.614278399999996\t-96.9460299\n2130017\tWARREN Lisa\t● Visit\t#050505\t[\"♾️PT/Randy.Harms\",\"*Abundant\",\"contactGroups/myContacts\"]\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

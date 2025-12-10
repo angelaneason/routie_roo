@@ -138,3 +138,13 @@
 - [x] Fix the undefined reference by checking if contactId exists before creating billing record
 - [x] Applied fix to skip billing for non-contact waypoints (starting points, gap stops)
 - [x] Route creation now works without contactId error
+
+
+## Shared Route Issues (2025-12-10)
+- [x] Investigate missing address coordinates warning in shared route view
+- [x] Find which waypoint has missing coordinates (WARREN Lisa)
+- [x] Geocode missing addresses to get lat/lng (32.6192939, -96.8642697)
+- [x] Fix map marker colors showing all black instead of custom colors (updated 11 waypoints from #050505 to #3b82f6)
+- [x] Verify stopColor field is being passed to shared route view
+- [x] Verify label colors are being applied in shared route view
+- [x] Test shared route with custom stop types and label colors
