@@ -455,12 +455,12 @@ export default function RouteDetail() {
           markerPath = google.maps.SymbolPath.FORWARD_CLOSED_ARROW;
         }
         
-        // For single-stop routes, show Routie Roo holding a map pin
+        // For single-stop routes, show Routie Roo standing at destination
         const marker = new google.maps.Marker({
           position,
           map,
           icon: {
-            url: '/routie-roo-marker.png',
+            url: '/routie-roo-standing.png',
             scaledSize: new google.maps.Size(48, 64),
             anchor: new google.maps.Point(24, 64),
           },
