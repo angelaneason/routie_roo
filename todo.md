@@ -130,3 +130,11 @@
 - [ ] Add grouping by client/route in billing records view
 - [ ] Manual testing: Complete multiple waypoints and verify billing records are created
 - [ ] Verify mileage/flat fee/hourly/per-visit calculations per visit
+
+
+## Route Creation Error Fix (2025-12-10)
+- [x] Investigate "Cannot read properties of undefined (reading 'contactId')" error
+- [x] Find where contactId is accessed on undefined object in route creation
+- [x] Fix the undefined reference by checking if contactId exists before creating billing record
+- [x] Applied fix to skip billing for non-contact waypoints (starting points, gap stops)
+- [x] Route creation now works without contactId error

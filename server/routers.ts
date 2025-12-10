@@ -2182,6 +2182,12 @@ export const appRouter = router({
                 const contactName = waypoint[0].contactName || "Unknown Contact";
                 const visitType = waypoint[0].stopType || "Visit";
                 
+                // Only create billing record if this is a contact waypoint (not a starting point or gap stop)
+                if (!contactId) {
+                  console.log("Skipping billing for non-contact waypoint (starting point or gap stop)");
+                  return { success: true };
+                }
+                
                 // Calculate billing amount based on model
                 let calculatedAmount = 0;
                 let totalMiles: number | undefined;
