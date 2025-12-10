@@ -723,9 +723,30 @@ export default function Home() {
     
     // Filter by scheduled contacts
     if (showScheduled) {
-      const hasSchedule = (contact.scheduledDays && contact.scheduledDays.length > 0) || 
-                         (contact.oneTimeVisits && contact.oneTimeVisits.length > 0);
-      if (!hasSchedule) return false; // Only show contacts WITH schedules
+      // Check for recurring schedule (scheduledDays or repeatDays with actual values)
+      let hasRecurringSchedule = false;
+      if (contact.scheduledDays) {
+        try {
+          const days = JSON.parse(contact.scheduledDays);
+          hasRecurringSchedule = Array.isArray(days) && days.length > 0;
+        } catch (e) {
+          // Invalid JSON, treat as no schedule
+        }
+      }
+      if (!hasRecurringSchedule && contact.repeatDays) {
+        try {
+          const days = JSON.parse(contact.repeatDays);
+          hasRecurringSchedule = Array.isArray(days) && days.length > 0;
+        } catch (e) {
+          // Invalid JSON, treat as no schedule
+        }
+      }
+      
+      // Check for one-time visit
+      const hasOneTimeVisit = contact.isOneTimeVisit === 1 && !!contact.oneTimeVisitDate;
+      
+      // Only show if contact has either type of schedule
+      if (!hasRecurringSchedule && !hasOneTimeVisit) return false;
     }
     
     // Filter by label

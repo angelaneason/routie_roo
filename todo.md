@@ -18,3 +18,9 @@
 ## Scheduled Contacts Filter (2025-12-09)
 - [x] Add "Show scheduled contacts" filter checkbox to contact list
 - [x] Implement filter logic to show only contacts with scheduledDays or oneTimeVisits
+
+
+## Scheduled Contacts Filter Bug Fix (2025-12-09)
+- [x] Investigate why contacts with no visible schedule show up in scheduled filter
+- [x] Fix filter logic to exclude contacts with empty/null schedule arrays
+- [x] Test filter to ensure only truly scheduled contacts appear
