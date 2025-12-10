@@ -2167,89 +2167,77 @@ export const appRouter = router({
           const completedAt = new Date();
           updateData.completedAt = completedAt;
 
-          // Create billing record for this completed visit if route has a route holder
-          if (route.routeHolderId) {
-            try {
-              // Get route holder's clients
-              const routeHolderClients = await getRouteHolderClients(ctx.user.id, route.routeHolderId);
-              
-              // If there's exactly one client for this route holder, auto-create billing
-              if (routeHolderClients.length === 1) {
-                const client = routeHolderClients[0];
+          // Create billing record for this completed visit
+          try {
+            // Get contact info from waypoint
+            const contactId = waypoint[0].contactId;
+            const contactName = waypoint[0].contactName || "Unknown Contact";
+            const stopType = waypoint[0].stopType || "Visit";
+            
+            // Only create billing record if this is a contact waypoint (not a starting point or gap stop)
+            if (!contactId) {
+              console.log("Skipping billing for non-contact waypoint (starting point or gap stop)");
+            } else {
+              // Get contact to find client label
+              const contact = await getContactById(contactId);
+              if (!contact) {
+                console.log("Contact not found for billing");
+              } else {
+                // Get first client label (label with assigned color)
+                const clientLabel = contact.labels?.split(',').find(l => l.startsWith('*'));
                 
-                // Get contact info from waypoint
-                const contactId = waypoint[0].contactId;
-                const contactName = waypoint[0].contactName || "Unknown Contact";
-                const visitType = waypoint[0].stopType || "Visit";
-                
-                // Only create billing record if this is a contact waypoint (not a starting point or gap stop)
-                if (!contactId) {
-                  console.log("Skipping billing for non-contact waypoint (starting point or gap stop)");
-                  return { success: true };
+                if (!clientLabel) {
+                  console.log("No client label found for contact");
+                } else {
+                  // Get billing rate for this client label + stop type
+                  const rateRecord = await db.select()
+                    .from(clientBillingRates)
+                    .where(
+                      and(
+                        eq(clientBillingRates.userId, ctx.user.id),
+                        eq(clientBillingRates.clientLabel, clientLabel),
+                        eq(clientBillingRates.stopType, stopType)
+                      )
+                    )
+                    .limit(1);
+                  
+                  const rate = rateRecord[0]?.rate || 0;
+                  
+                  // Get route holder name
+                  let routeHolderName = "Unknown";
+                  if (route.routeHolderId) {
+                    const routeHolder = await getRouteHolderById(route.routeHolderId);
+                    if (routeHolder) {
+                      routeHolderName = routeHolder.name;
+                    }
+                  }
+                  
+                  // Create billing record
+                  await createBillingRecord({
+                    userId: ctx.user.id,
+                    clientLabel,
+                    routeId: route.id,
+                    waypointId: waypoint[0].id,
+                    clientId: 0, // No longer using old clients table
+                    routeHolderId: route.routeHolderId || 0,
+                    routeName: route.name,
+                    contactId,
+                    contactName,
+                    visitType: stopType,
+                    visitDate: route.scheduledDate || completedAt,
+                    routeHolderName,
+                    status: "completed",
+                    completedAt,
+                    billingModel: "per_visit",
+                    perVisitAmount: rate,
+                    calculatedAmount: rate,
+                  });
                 }
-                
-                // Calculate billing amount based on model
-                let calculatedAmount = 0;
-                let totalMiles: number | undefined;
-                let totalMinutes: number | undefined;
-                let perVisitAmount: number | undefined;
-                
-                if (client.billingModel === "per_visit" && client.flatFeeAmount) {
-                  // Per-visit flat fee
-                  perVisitAmount = client.flatFeeAmount;
-                  calculatedAmount = client.flatFeeAmount;
-                } else if (client.billingModel === "mileage" && client.mileageRate) {
-                  // For mileage, we'd need to calculate distance to this waypoint
-                  // For now, we'll divide total route distance by number of waypoints
-                  const allWaypoints = await db.select()
-                    .from(routeWaypoints)
-                    .where(eq(routeWaypoints.routeId, waypoint[0].routeId));
-                  const waypointCount = allWaypoints.length;
-                  const distanceInMiles = route.totalDistance ? (route.totalDistance / 1609.34) / waypointCount : 0;
-                  totalMiles = Math.round(distanceInMiles);
-                  calculatedAmount = Math.round(totalMiles * client.mileageRate);
-                } else if (client.billingModel === "flat_fee" && client.flatFeeAmount) {
-                  // Flat fee per visit
-                  calculatedAmount = client.flatFeeAmount;
-                } else if (client.billingModel === "hourly" && client.hourlyRate) {
-                  // For hourly, estimate time per visit (route duration / waypoint count)
-                  const allWaypoints = await db.select()
-                    .from(routeWaypoints)
-                    .where(eq(routeWaypoints.routeId, waypoint[0].routeId));
-                  const waypointCount = allWaypoints.length;
-                  const durationInHours = route.totalDuration ? (route.totalDuration / 3600) / waypointCount : 0;
-                  const roundedHours = Math.ceil(durationInHours * 4) / 4; // Round to nearest 0.25
-                  totalMinutes = Math.round(roundedHours * 60);
-                  calculatedAmount = Math.round(roundedHours * client.hourlyRate);
-                }
-                
-                // Create billing record for this visit
-                await createBillingRecord({
-                  userId: ctx.user.id,
-                  routeId: route.id,
-                  waypointId: waypoint[0].id,
-                  clientId: client.id,
-                  routeHolderId: route.routeHolderId,
-                  routeName: route.name,
-                  contactId,
-                  contactName,
-                  visitType,
-                  visitDate: route.scheduledDate || completedAt,
-                  completedAt,
-                  billingModel: client.billingModel === "flat_fee" ? "per_visit" : client.billingModel,
-                  totalMiles,
-                  mileageRate: client.mileageRate || undefined,
-                  totalMinutes,
-                  hourlyRate: client.hourlyRate || undefined,
-                  flatFeeAmount: client.flatFeeAmount || undefined,
-                  perVisitAmount,
-                  calculatedAmount,
-                });
               }
-            } catch (error) {
-              console.error("Failed to create billing record for visit:", error);
-              // Don't fail the waypoint completion if billing fails
             }
+          } catch (error) {
+            console.error("Failed to create billing record for visit:", error);
+            // Don't fail the waypoint completion if billing fails
           }
         }
 
@@ -2257,6 +2245,65 @@ export const appRouter = router({
           updateData.needsReschedule = 1;
           if (input.missedReason) {
             updateData.missedReason = input.missedReason;
+          }
+          
+          // Create billing record for missed visit
+          try {
+            const contactId = waypoint[0].contactId;
+            const contactName = waypoint[0].contactName || "Unknown Contact";
+            const stopType = waypoint[0].stopType || "Visit";
+            
+            if (contactId) {
+              const contact = await getContactById(contactId);
+              if (contact) {
+                const clientLabel = contact.labels?.split(',').find(l => l.startsWith('*'));
+                
+                if (clientLabel) {
+                  const rateRecord = await db.select()
+                    .from(clientBillingRates)
+                    .where(
+                      and(
+                        eq(clientBillingRates.userId, ctx.user.id),
+                        eq(clientBillingRates.clientLabel, clientLabel),
+                        eq(clientBillingRates.stopType, stopType)
+                      )
+                    )
+                    .limit(1);
+                  
+                  const rate = rateRecord[0]?.rate || 0;
+                  
+                  let routeHolderName = "Unknown";
+                  if (route.routeHolderId) {
+                    const routeHolder = await getRouteHolderById(route.routeHolderId);
+                    if (routeHolder) {
+                      routeHolderName = routeHolder.name;
+                    }
+                  }
+                  
+                  await createBillingRecord({
+                    userId: ctx.user.id,
+                    clientLabel,
+                    routeId: route.id,
+                    waypointId: waypoint[0].id,
+                    clientId: 0,
+                    routeHolderId: route.routeHolderId || 0,
+                    routeName: route.name,
+                    contactId,
+                    contactName,
+                    visitType: stopType,
+                    visitDate: route.scheduledDate || new Date(),
+                    routeHolderName,
+                    status: "missed",
+                    completedAt: new Date(),
+                    billingModel: "per_visit",
+                    perVisitAmount: rate,
+                    calculatedAmount: 0, // Missed visits don't get charged
+                  });
+                }
+              }
+            }
+          } catch (error) {
+            console.error("Failed to create billing record for missed visit:", error);
           }
         }
 
@@ -5318,112 +5365,132 @@ export const appRouter = router({
   // BILLING SYSTEM
   // ============================================================================
   billing: router({
-    // Client Management
+    // Client Billing Management (Label-Based)
     clients: router({
+      // List all client labels with assigned colors
       list: protectedProcedure.query(async ({ ctx }) => {
-        return getUserClients(ctx.user.id);
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        
+        // Get all labels with colors from label_colors table
+        const labels = await db.select().from(labelColors).where(eq(labelColors.userId, ctx.user.id));
+        return labels;
       }),
 
-      listByRouteHolder: protectedProcedure
-        .input(z.object({ routeHolderId: z.number() }))
+      // Get billing rates for a specific client label
+      getRates: protectedProcedure
+        .input(z.object({ clientLabel: z.string() }))
         .query(async ({ ctx, input }) => {
-          return getRouteHolderClients(ctx.user.id, input.routeHolderId);
+          const db = await getDb();
+          if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+          
+          const rates = await db.select()
+            .from(clientBillingRates)
+            .where(
+              and(
+                eq(clientBillingRates.userId, ctx.user.id),
+                eq(clientBillingRates.clientLabel, input.clientLabel)
+              )
+            );
+          return rates;
         }),
 
-      getById: protectedProcedure
-        .input(z.object({ id: z.number() }))
-        .query(async ({ ctx, input }) => {
-          const client = await getClientById(input.id);
-          if (!client || client.userId !== ctx.user.id) {
-            throw new TRPCError({ code: "NOT_FOUND", message: "Client not found" });
-          }
-          return client;
-        }),
-
-      create: protectedProcedure
+      // Update billing rates for a client label
+      updateRates: protectedProcedure
         .input(z.object({
-          routeHolderId: z.number(),
-          clientName: z.string().min(1),
-          contactName: z.string().optional(),
-          email: z.string().email().optional(),
-          phone: z.string().optional(),
-          address: z.string().optional(),
-          billingModel: z.enum(["mileage", "flat_fee", "hourly", "per_visit"]),
-          mileageRate: z.number().optional(), // in cents
-          flatFeeAmount: z.number().optional(), // in cents
-          hourlyRate: z.number().optional(), // in cents
-          paymentTerms: z.string().optional(),
-          notes: z.string().optional(),
+          clientLabel: z.string(),
+          rates: z.array(z.object({
+            stopType: z.string(),
+            rate: z.number(), // in cents
+          })),
         }))
         .mutation(async ({ ctx, input }) => {
-          await createClient({
-            userId: ctx.user.id,
-            ...input,
-          });
-          return { success: true };
-        }),
-
-      update: protectedProcedure
-        .input(z.object({
-          id: z.number(),
-          routeHolderId: z.number().optional(),
-          clientName: z.string().min(1).optional(),
-          contactName: z.string().optional(),
-          email: z.string().email().optional(),
-          phone: z.string().optional(),
-          address: z.string().optional(),
-          billingModel: z.enum(["mileage", "flat_fee", "hourly", "per_visit"]).optional(),
-          mileageRate: z.number().optional(),
-          flatFeeAmount: z.number().optional(),
-          hourlyRate: z.number().optional(),
-          paymentTerms: z.string().optional(),
-          notes: z.string().optional(),
-          isActive: z.boolean().optional(),
-        }))
-        .mutation(async ({ ctx, input }) => {
-          const { id, ...updates } = input;
-          const client = await getClientById(id);
-          if (!client || client.userId !== ctx.user.id) {
-            throw new TRPCError({ code: "NOT_FOUND", message: "Client not found" });
+          const db = await getDb();
+          if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+          
+          // Delete existing rates for this client
+          await db.delete(clientBillingRates).where(
+            and(
+              eq(clientBillingRates.userId, ctx.user.id),
+              eq(clientBillingRates.clientLabel, input.clientLabel)
+            )
+          );
+          
+          // Insert new rates
+          for (const rate of input.rates) {
+            await db.insert(clientBillingRates).values({
+              userId: ctx.user.id,
+              clientLabel: input.clientLabel,
+              stopType: rate.stopType,
+              rate: rate.rate,
+            });
           }
-          await updateClient(id, updates);
-          return { success: true };
-        }),
-
-      delete: protectedProcedure
-        .input(z.object({ id: z.number() }))
-        .mutation(async ({ ctx, input }) => {
-          const client = await getClientById(input.id);
-          if (!client || client.userId !== ctx.user.id) {
-            throw new TRPCError({ code: "NOT_FOUND", message: "Client not found" });
-          }
-          await deleteClient(input.id);
+          
           return { success: true };
         }),
     }),
 
     // Billing Records
     records: router({
-      list: protectedProcedure.query(async ({ ctx }) => {
-        return getUserBillingRecords(ctx.user.id);
-      }),
-
-      listByClient: protectedProcedure
-        .input(z.object({ clientId: z.number() }))
+      // List all billing records grouped by client label
+      list: protectedProcedure
+        .input(z.object({
+          clientLabel: z.string().optional(),
+          status: z.enum(["completed", "missed", "rescheduled"]).optional(),
+          startDate: z.string().optional(),
+          endDate: z.string().optional(),
+        }).optional())
         .query(async ({ ctx, input }) => {
-          const records = await getClientBillingRecords(input.clientId);
-          // Verify ownership
-          if (records.length > 0 && records[0].userId !== ctx.user.id) {
-            throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+          const db = await getDb();
+          if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+          
+          let query = db.select().from(billingRecords).where(eq(billingRecords.userId, ctx.user.id));
+          
+          if (input?.clientLabel) {
+            query = query.where(eq(billingRecords.clientLabel, input.clientLabel));
           }
+          if (input?.status) {
+            query = query.where(eq(billingRecords.status, input.status));
+          }
+          if (input?.startDate) {
+            query = query.where(sql`${billingRecords.visitDate} >= ${input.startDate}`);
+          }
+          if (input?.endDate) {
+            query = query.where(sql`${billingRecords.visitDate} <= ${input.endDate}`);
+          }
+          
+          const records = await query.orderBy(desc(billingRecords.visitDate));
           return records;
         }),
 
-      listByRouteHolder: protectedProcedure
-        .input(z.object({ routeHolderId: z.number() }))
-        .query(async ({ ctx, input }) => {
-          return getRouteHolderBillingRecords(ctx.user.id, input.routeHolderId);
-        }),
+      // Get summary stats by client label
+      summary: protectedProcedure.query(async ({ ctx }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        
+        const records = await db.select().from(billingRecords).where(eq(billingRecords.userId, ctx.user.id));
+        
+        // Group by client label
+        const summary = records.reduce((acc, record) => {
+          const label = record.clientLabel || "Unknown";
+          if (!acc[label]) {
+            acc[label] = {
+              clientLabel: label,
+              totalAmount: 0,
+              completedCount: 0,
+              missedCount: 0,
+              rescheduledCount: 0,
+            };
+          }
+          acc[label].totalAmount += record.calculatedAmount || 0;
+          if (record.status === "completed") acc[label].completedCount++;
+          if (record.status === "missed") acc[label].missedCount++;
+          if (record.status === "rescheduled") acc[label].rescheduledCount++;
+          return acc;
+        }, {} as Record<string, any>);
+        
+        return Object.values(summary);
+      }),
 
       getById: protectedProcedure
         .input(z.object({ id: z.number() }))

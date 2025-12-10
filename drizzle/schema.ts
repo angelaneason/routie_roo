@@ -23,6 +23,7 @@ export const accountSettings = mysqlTable("account_settings", {
 export const billingRecords = mysqlTable("billing_records", {
 	id: int().autoincrement().notNull(),
 	userId: int().notNull(),
+	clientLabel: varchar({ length: 255 }),
 	routeId: int().notNull(),
 	waypointId: int().notNull(),
 	clientId: int().notNull(),
@@ -32,6 +33,8 @@ export const billingRecords = mysqlTable("billing_records", {
 	contactName: varchar({ length: 255 }).notNull(),
 	visitType: varchar({ length: 100 }),
 	visitDate: timestamp({ mode: 'string' }).notNull(),
+	routeHolderName: varchar({ length: 255 }),
+	status: varchar({ length: 50 }).default('completed'),
 	completedAt: timestamp({ mode: 'string' }).notNull(),
 	billingModel: mysqlEnum(['mileage','flat_fee','hourly','per_visit']).notNull(),
 	totalMiles: int(),
@@ -114,6 +117,20 @@ export const clients = mysqlTable("clients", {
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
+
+export const clientBillingRates = mysqlTable("client_billing_rates", {
+	id: int().autoincrement().notNull(),
+	userId: int().notNull(),
+	clientLabel: varchar({ length: 255 }).notNull(),
+	stopType: varchar({ length: 100 }).notNull(),
+	rate: int().notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("userId_clientLabel").on(table.userId, table.clientLabel),
+	index("userId_clientLabel_stopType").on(table.userId, table.clientLabel, table.stopType),
+]);
 
 export const commentOptions = mysqlTable("comment_options", {
 	id: int().autoincrement().notNull(),

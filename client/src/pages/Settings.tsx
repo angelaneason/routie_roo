@@ -22,6 +22,7 @@ import { ImportantDateTypesSettings } from "@/components/ImportantDateTypesSetti
 import { CommentOptionsSettings } from "@/components/CommentOptionsSettings";
 import { LabelColorsSettings } from "@/components/LabelColorsSettings";
 import RouteHoldersSettings from "./RouteHoldersSettings";
+import { ClientBillingSettings } from "@/components/ClientBillingSettings";
 
 export default function Settings() {
   const { user, isAuthenticated } = useAuth();
@@ -177,7 +178,7 @@ export default function Settings() {
             </div>
           ) : (
             <Tabs defaultValue="account" className="w-full">
-              <TabsList className={`grid w-full ${['premium', 'enterprise'].includes(user?.subscriptionTier || 'free') ? 'grid-cols-6' : 'grid-cols-5'}`}>
+              <TabsList className={`grid w-full ${['premium', 'enterprise'].includes(user?.subscriptionTier || 'free') ? 'grid-cols-7' : 'grid-cols-6'}`}>
                 <TabsTrigger value="account">Account</TabsTrigger>
                 <TabsTrigger value="site">Site Config</TabsTrigger>
                 <TabsTrigger value="contacts">Contacts</TabsTrigger>
@@ -186,6 +187,7 @@ export default function Settings() {
                   <TabsTrigger value="holders">Route Holders</TabsTrigger>
                 )}
                 <TabsTrigger value="labels">Label Colors</TabsTrigger>
+                <TabsTrigger value="billing">Billing</TabsTrigger>
               </TabsList>
 
               {/* ========== ACCOUNT TAB ========== */}
@@ -1032,6 +1034,11 @@ export default function Settings() {
               {/* ========== LABEL COLORS TAB ========== */}
               <TabsContent value="labels" className="space-y-4 mt-6">
                 <LabelColorsSettings />
+              </TabsContent>
+
+              {/* ========== BILLING TAB ========== */}
+              <TabsContent value="billing" className="space-y-4 mt-6">
+                <ClientBillingSettings />
               </TabsContent>
             </Tabs>
           )}

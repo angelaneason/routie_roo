@@ -197,4 +197,41 @@
 - [x] Updated default stop color from #3b82f6 (blue) to #050505 (black)
 - [x] Updated existing waypoints in database to use black color
 - [x] Changed client label legend to show ALL colored labels on route
-- [ ] Test both legends display correctly with proper colors
+- [x] Test both legends display correctly with proper colors
+
+## Fix Map Markers to Ignore Grouping Labels (2025-12-10)
+- [x] Investigate why PT/Randy.Harms label is being used for marker colors
+- [x] Check label color settings to see if grouping labels have colors assigned
+- [x] Found: Randy label had grey color assigned in label_colors table
+- [x] Deleted Randy's label color entry from database
+- [x] Markers will now use stop type color (black) when no client labels present
+- [ ] Test that markers show stop type color when no client labels present
+- [ ] Verify markers show client label color when client labels present
+
+
+
+## Billing System Rebuild - Client-Based Billing (2025-12-10)
+- [x] Update database schema for client-based billing
+  - [x] Create client_billing_rates table (clientLabel, stopType, rate)
+  - [x] Update billing_records table (add clientLabel, remove routeHolderId)
+  - [x] Add fields: contactName, stopType, visitDate, routeHolderName, status (completed/missed/rescheduled)
+- [x] Create backend API procedures
+  - [x] billing.clients.list - Get all client labels with colors
+  - [x] billing.clients.getRates - Get pricing for a client
+  - [x] billing.clients.updateRates - Set pricing per stop type for a client
+  - [x] billing.records.list - Get billing records grouped by client
+  - [x] Update auto-billing to use client labels and stop types
+- [x] Build Settings UI for client pricing
+  - [x] Client billing rates section in Settings
+  - [x] Table showing each client with stop type pricing
+  - [x] Edit dialog to set rates per stop type
+- [x] Update Billing page
+  - [x] Group by client label
+  - [x] Show contact name, stop type, visit date, route holder, amount, status
+  - [x] Filter by client, status, date range
+  - [x] Summary cards per client
+- [ ] Test billing system
+  - [ ] Complete a visit and verify billing record created
+  - [ ] Miss a visit and verify billing record tracks it
+  - [ ] Reschedule a visit and verify status updated
+  - [ ] Verify client-specific rates applied correctly

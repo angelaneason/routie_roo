@@ -1,0 +1,34 @@
+{
+  "query": "SELECT labelName, color FROM label_colors WHERE userId = 38;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3nFpALUewgkhNV8.bafe9024b59b --database gdFesFzxMsSKJbuPWiaC7y --execute SELECT labelName, color FROM label_colors WHERE userId = 38;",
+  "rows": [
+    {
+      "labelName": "*Abundant",
+      "color": "#ff8ad8"
+    },
+    {
+      "labelName": "*Applesoft",
+      "color": "#ff4013"
+    },
+    {
+      "labelName": "*DeltaCare",
+      "color": "#fce101"
+    },
+    {
+      "labelName": "*NurseAngel",
+      "color": "#0061ff"
+    },
+    {
+      "labelName": "*Universal",
+      "color": "#be38f3"
+    },
+    {
+      "labelName": "♾️PT/Randy.Harms",
+      "color": "#808080"
+    }
+  ],
+  "messages": [],
+  "stdout": "labelName\tcolor\n*Abundant\t#ff8ad8\n*Applesoft\t#ff4013\n*DeltaCare\t#fce101\n*NurseAngel\t#0061ff\n*Universal\t#be38f3\n♾️PT/Randy.Harms\t#808080\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}
